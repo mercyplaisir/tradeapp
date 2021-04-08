@@ -1,2 +1,2 @@
 # tradeapp
-app that gonna trade automatically
+app that gonna trade cryptocurrency automatically using binance api
