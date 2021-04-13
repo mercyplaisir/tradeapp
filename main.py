@@ -26,15 +26,17 @@ while disconnected:
 #-------------------------------------
 
 
+btc_traded = True
+usdt_traded = False
 
 
 #------------------------------------------------
 while True:
     #boucle pour recuperer le prix
-    btc_price = client.get_avg_price(symbol='BTCUSDT')
-    btc_price = float(btc_price['price'])
-    btc_price
-    print('prix recuperer\n')
+    prices = client.get_all_tickers()
+    btc_price = float(prices[11]['price'])
+    print('------------------------------------')
+    print('prix recuperer')
 
 
     #-----fin------------
@@ -44,7 +46,7 @@ while True:
     # fetch 1 minute klines for the last day up until now
     klines = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_1MINUTE, "1 day ago UTC")
 
-    print('klines recuperer\n')
+    print('klines recuperer')
 
     #changer timestamp en date
     for kline in klines:
@@ -90,8 +92,9 @@ while True:
     balance_dataframe= pd.DataFrame(info['balances'])
 
 
+    if btc_traded:
     #sort the portfolio by the quantity
-    balance_dataframe.sort_values('free',ascending= False, inplace= True)
+        balance_dataframe.sort_values('free',ascending= False, inplace= True)
 
     #refaire les index
     balance_dataframe.reset_index(inplace = True)
@@ -101,59 +104,96 @@ while True:
     #supprimer les deux indexes suivant le premier puisque il peut nuire l'algorithme
 
     balance_dataframe.drop(index=[1,2],inplace=True)
+    
+    if btc_traded:
+        print('i have usdt')
+    if usdt_traded:
+        print('i have btc')
 
     #--------fin--------------------
+
+    Sma_signal_buy = False
+    Sma_signal_sell = False
+    Have_Btc = False
+    Have_Usdt = False
+    Have_not_usdt = False
+    Have_not_btc = True
 
     #si SMA9 est superieur a SMA15
     if klines.loc[0]['SMA_9']>klines.loc[0]['SMA_15']:
         print("SMA_9 > SMA_15")
+        Sma_signal_sell = False
         Sma_signal_buy = True
-        print('time to buy\n')
+        print('time to buy')
 
     #si SMA9 est inferieur a SMA15
-    if klines.loc[0]['SMA_9'] == klines.loc[0]['SMA_15']:
+    if klines.loc[0]['SMA_9'] < klines.loc[0]['SMA_15']:
         print("SMA_9 < SMA_15")
         Sma_signal_sell = True
-        print('tmie to sell\n')
+        Sma_signal_buy = False
+        print('time to sell')
+
+    price_trick = False # pour voir si le marche ne triche pas
+       #le prix inferieur a SMA 9             le prix inferieur ou egale a valeur de SMA 15 -30 and SMA9 est superieur a SMA15
+    if btc_price < klines.loc[0]['SMA_9'] and btc_price<=(klines.loc[0]['SMA_15']-30) and (klines.loc[0]['SMA_9']>klines.loc[0]['SMA_15']):
+        print("price under SMA9 and SMA15. it's a trick")
+        Sma_signal_sell = True
+        Sma_signal_buy = False
+        price_trick = True
 
 
     #si je n'ais pas de USDT et que j'ai le BTC dans ma wallet
     if balance_dataframe.loc[0]['asset'] == 'BTC':
-
+        
         Have_Btc = True
         Have_Usdt = False
+        Have_not_usdt = True
 
-        #sell order
-        sell_order = client.order_market_sell(symbol='BNBBTC',quantity=balance_dataframe.loc[0]['free'])
+
 
     # #si je n'ais pas de BTC et que j'ai le USDT dans ma wallet
     if balance_dataframe.loc[0]['asset'] == 'USDT':
+        
         Have_Btc = False
         Have_Usdt = True
-
-        #buy order
-        buy_order = client.order_market_buy(symbol='BTCUSDT',quantity=(float(balance_dataframe.loc[0]['free'])/btc_price))
-
+        Have_not_btc = True
+        
     #-----------------------------------------------------------------
 
 
-    try:
-        if Sma_signal_buy and Have_Usdt:
-            buy_order
-            print(' {} bought btc at {} \n'.format(datetime.datetime.now(),btc_price))
+    if price_trick:
+        print("dont buy just sell")
 
-    except:
-        pass   
 
-    try:
-        if Sma_signal_sell and Have_Btc :
-            sell_order
-            print(' {} sold btc of {} \n'.format(datetime.datetime.now(),(float(balance_dataframe.loc[0]['free'])*btc_price)))
-    except:
-        pass
+    if Sma_signal_buy and Have_Usdt:
+        #buy order
+        buy_order = client.order_market_buy(symbol='BTCUSDT',quantity=math.floor((float(balance_dataframe.loc[0]['free']))))
+        buy_order
+        print(' {} bought btc at {} \n'.format(datetime.datetime.now(),btc_price))
+        btc_traded = False
+        usdt_traded = True
+
+    if Sma_signal_buy and Have_not_usdt:
+        print('No money for BUY ORDER')
     
-    time.sleep(3)
-    print('retour a la ligne')
+
+    if Sma_signal_sell and Have_Btc :
+
+        #sell order
+        sell_order = client.order_market_sell(symbol='BTCUSDT',quantity=round(float(balance_dataframe.loc[0]['free']),5))
+        
+        sell_order
+        print(' {} sold btc of {} \n'.format(datetime.datetime.now(),(float(balance_dataframe.loc[0]['free'])*btc_price)))
+        btc_traded = True
+        usdt_traded = False
+
+    
+    if Sma_signal_sell and Have_not_btc:
+        print('No BTC for SELL ORDER')
+    
+
+    time.sleep(5)
+   
 
 
 
