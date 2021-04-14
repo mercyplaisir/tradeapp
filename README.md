@@ -1,2 +1,4 @@
-# tradeapp
-app that gonna trade cryptocurrency automatically using binance api
+BINANCE TRADING ALGORITHM
+
+it's a algorithm that trade automatically cryptocurrency for you
+using a confident strategy
