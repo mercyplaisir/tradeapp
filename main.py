@@ -2,6 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 from binance.client import Client
+from binance.enums import *
 import e #contains the api and secret keys
 import math
 import Coinpaprika
@@ -26,15 +27,16 @@ while disconnected:
 #-------------------------------------
 
 
-bnb_traded = False #it mean i have bnb in my wallet
-btc_traded = True #it mean i have btc in my wallet
+usdt_traded = True #it mean i have usdt in my wallet
+btc_traded = False #it mean i have btc in my wallet
 
 
 #------------------------------------------------
 while True:
     #boucle pour recuperer le prix
-    prices = client.get_all_tickers()
-    bnb_price = float(prices[11]['price'])
+    btc_price = client.get_margin_price_index(symbol='BTCUSDT')
+    btc_price = float(btc_price['price'])
+
     print('------------------------------------')
     print('prix recuperer')
 
@@ -44,7 +46,7 @@ while True:
 
     #-------pou recuperer les SMA-----------------------
     # fetch 1 minute klines for the last day up until now
-    klines = client.get_historical_klines("BNBBTC", Client.KLINE_INTERVAL_1MINUTE, "1 day ago UTC")
+    klines = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_1MINUTE, "1 day ago UTC")
 
     print('klines recuperer')
 
@@ -72,52 +74,58 @@ while True:
     klines.drop(columns=['index'],inplace=True)
 
     #------------------Fin-----------------------------
-        
-    #--------pour recuperer la balance---------------
-    #boucle pour recuperer les infos        
+            
+        #--------pour recuperer la balance---------------
+        #boucle pour recuperer les infos        
     get_info_error = True
     while get_info_error:
         #get all the info of my  account
         try:
+            info = client.get_margin_account()
 
-            info = client.get_account()
             print('info recuperer')
             get_info_error = False
-
         except:
             print('impossible de recuperer les infos')
+    balance_dataframe= pd.DataFrame(info['userAssets'])
 
+    #supprimer BNB pour qu'il ne nous derange pas
+    balance_dataframe.drop(index=52,inplace=True)
 
-    #create a dataframe that store and study the balances
-    balance_dataframe= pd.DataFrame(info['balances'])
-
-
-    if bnb_traded:
     #sort the portfolio by the quantity
+    if usdt_traded:
+        #sort the portfolio by the quantity
         balance_dataframe.sort_values('free',ascending= False, inplace= True)
+        #refaire les index
+        balance_dataframe.reset_index(inplace = True)
 
-    #refaire les index
-    balance_dataframe.reset_index(inplace = True)
+        #supprimer un colonnes pas important
+        balance_dataframe.drop(columns=['index'],inplace=True)
 
-    #supprimer un colonnes pas important
-    balance_dataframe.drop(columns=['index'],inplace=True)
-    #supprimer les deux indexes suivant le premier puisque il peut nuire l'algorithme
-
-    balance_dataframe.drop(index=[1,2],inplace=True)
-    
-    if bnb_traded:
-        print('i have btc')
     if btc_traded:
-        print('i have bnb')
+        balance_dataframe.drop(index=3,inplace=True)
+        #sort the portfolio by the quantity
+        balance_dataframe.sort_values('free',ascending= False, inplace= True)
+        #refaire les index
+        balance_dataframe.reset_index(inplace = True)
+
+        #supprimer un colonnes pas important
+        balance_dataframe.drop(columns=['index'],inplace=True)
+
+    
+    if btc_traded:
+        print('i have btc')
+    if usdt_traded:
+        print('i have usdt')
 
     #--------fin--------------------
 
     Sma_signal_buy = False
     Sma_signal_sell = False
-    Have_bnb = False
+    Have_usdt = False
     Have_btc = False
     Have_not_btc = False
-    Have_not_bnb = True
+    Have_not_usdt = False
 
     #si SMA9 est superieur a SMA15
     if klines.loc[0]['SMA_9']>klines.loc[0]['SMA_15']:
@@ -135,28 +143,28 @@ while True:
 
     price_trick = False # pour voir si le marche ne triche pas
        #le prix inferieur a SMA 9             le prix inferieur ou egale a valeur de SMA 15 -30 and SMA9 est superieur a SMA15
-    if bnb_price < klines.loc[0]['SMA_9'] and bnb_price<=(klines.loc[0]['SMA_15']-30) and (klines.loc[0]['SMA_9']>klines.loc[0]['SMA_15']):
+    if btc_price < klines.loc[0]['SMA_9'] and btc_price<=(klines.loc[0]['SMA_15']-30) and (klines.loc[0]['SMA_9']>klines.loc[0]['SMA_15']):
         print("price under SMA9 and SMA15. it's a trick")
         Sma_signal_sell = True
         Sma_signal_buy = False
         price_trick = True
 
 
-    #si je n'ais pas de btc et que j'ai le bnb dans ma wallet
-    if balance_dataframe.loc[0]['asset'] == 'BNB':
+    #si je n'ais pas de btc et que j'ai le usdt dans ma wallet
+    if balance_dataframe.loc[0]['asset'] == 'USDT':
         
-        Have_bnb = True
+        Have_usdt = True
         Have_btc = False
         Have_not_btc = True
 
 
 
-    # #si je n'ais pas de bnb et que j'ai le btc dans ma wallet
+    # #si je n'ais pas de usdt et que j'ai le btc dans ma wallet
     if balance_dataframe.loc[0]['asset'] == 'BTC':
         
-        Have_bnb = False
+        Have_usdt = False
         Have_btc = True
-        Have_not_bnb = True
+        Have_not_usdt = True
         
     #-----------------------------------------------------------------
 
@@ -165,40 +173,44 @@ while True:
         print("dont buy just sell")
 
 
-    if Sma_signal_buy and Have_btc:
+    if Sma_signal_buy and Have_usdt:
         x = balance_dataframe.loc[0]['free']
         x= x[:6]
-        x = float(x)- 2
-        #buy order
-        buy_order = client.order_market_buy(symbol='BNBBTC',quantity=x)
-        buy_order
-        print(' {} bought bnb at {} \n'.format(datetime.datetime.now(),bnb_price))
-        bnb_traded = False
-        btc_traded = True
-
-    if Sma_signal_buy and Have_not_btc:
-        print('No money for BUY ORDER')
-    
-
-    if Sma_signal_sell and Have_bnb :
-        x = balance_dataframe.loc[0]['free']
-        x= x[:4]
         x = float(x)
+        order_quantity=x / btc_price
+        order_quantity = float(str(order_quantity)[:7])
+        order_quantity
         
+        #buy order
+        order = client.create_margin_order(symbol='BTCUSDT',side=SIDE_BUY,type=ORDER_TYPE_MARKET,quantity=order_quantity)
+        #-------------------------
+        print(' {} bought {} btc at {} \n'.format(datetime.datetime.now(),order_quantity,btc_price))
+        usdt_traded = False #don't have usdt
+        btc_traded = True # have btc
+
+    if Sma_signal_buy and Have_not_usdt:
+        print('No usdt for BUY ORDER')
+    
+
+    if Sma_signal_sell and Have_btc :
+        x = balance_dataframe.loc[0]['free']
+        x= x[:7]
+        order_quantity = float(x)
+                        
         #sell order
-        sell_order = client.order_market_sell(symbol='BNBBTC',quantity=x)
         
-        sell_order
-        print(' {} sold bnb of {} \n'.format(datetime.datetime.now(),(float(balance_dataframe.loc[0]['free'])*bnb_price)))
-        bnb_traded = True
-        btc_traded = False
+        order = client.create_margin_order(symbol='BTCUSDT',side=SIDE_SELL,type=ORDER_TYPE_MARKET,quantity=order_quantity)
+        #sell_order
+        print(' {} sold btc of {} \n'.format(datetime.datetime.now(),(float(order_quantity*btc_price))))
+        usdt_traded = True # have usdt
+        btc_traded = False #don't have btc
 
     
-    if Sma_signal_sell and Have_not_bnb:
-        print('No bnb for SELL ORDER')
+    if Sma_signal_sell and Have_not_btc:
+        print('No BTC for SELL ORDER')
     
 
-    time.sleep(10)
+    time.sleep(5)
    
 
 
