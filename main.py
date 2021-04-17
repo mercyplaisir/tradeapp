@@ -3,11 +3,10 @@ import numpy as np
 import pandas as pd
 from binance.client import Client
 from binance.enums import *
-import e #contains the api and secret keys
 import math
 import datetime
 import time
-
+import e # contain os environ that contain binance  keys
 
 #boucle pour se connecter
 disconnected = True
