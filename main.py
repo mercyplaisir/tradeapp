@@ -142,7 +142,7 @@ while True:
     price_trick = False # pour voir si le marche ne triche pas
        #le prix inferieur a SMA 9             le prix inferieur ou egale a valeur de SMA 15 -30 and SMA9 est superieur a SMA15
     if btc_price < klines.loc[0]['SMA_15'] and btc_price<=(klines.loc[0]['SMA_50']-90) and (klines.loc[0]['SMA_15']>klines.loc[0]['SMA_50']):
-        print("price under SMA9 and SMA15. it's a trick")
+        print("price under SMA9 and SMA15. SELL")
         Sma_signal_sell = True
         Sma_signal_buy = False
         price_trick = True
@@ -166,9 +166,6 @@ while True:
 
     #-----------------------------------------------------------------
 
-
-    if price_trick:
-        print("dont buy just sell")
 
 
     if Sma_signal_buy and Have_usdt:
