@@ -26,14 +26,16 @@ while disconnected:
 #----------------------------------------
 
 profit_of_3_percent = False # pour rester dans le profit
-Have_usdt = True # have usdt
-Have_not_usdt = False #don't have usdt,meaning i have a crypto
+have_btc = True # have BTC
+Have_not_BTC = False #don't have BTC,meaning i have a crypto
 
 profit_target_price = 0 #mon take profit price
 loss_target_price = 0 #mon stop loss price
 
-Have_usdt = True
-Have_not_usdt = False
+have_btc = True
+Have_not_BTC = False
+
+search_coin = True
 
 #---------------------------------------------------------------
 
@@ -43,68 +45,81 @@ def margin_buy_order(coin,order_quantity):
 def margin_sell_order(coin,order_quantity):
     order = client.create_margin_order(symbol=coin,side=SIDE_SELL,type=ORDER_TYPE_MARKET,quantity=order_quantity)
 
-def write_json(text:dict):
-    with open('./test.json','a') as f:
-        json.dump(text,f,indent= 4)
+def write_json(text):
+    with open('./test.json','r') as f:
+        j = json.load(f)
+        j.append(text)
+    with open('./test.json','w') as f:
+        json.dump(j,f,indent= 4)
 
 def percent_calculator(x:float,y:int):
     z=x+((x*3)/100)
     return z
 
+def margin_balance_of(coin:str):
+    info = client.get_margin_account()
+    for i in info['userAssets']:
+
+        if i['asset']==coin:
+            balance = float(str(i['free'])[:7])
+    return balance
 #---------------------------------------------------------------
 
 
 
 while True:
-    #--------process to choose a crypto to rade with----------------------
-    tickers = client.get_ticker()
 
 
-    list_of_crypto = ['BTC','ETH','XRP','BNB','OCEAN','OGN']
-    crypto_info = []
-    for ticker in tickers:
-        ticker.pop('weightedAvgPrice')
-        ticker.pop('quoteVolume')
-        ticker.pop('firstId')
-        ticker.pop('lastId')
-        ticker.pop('count')
-        ticker.pop('highPrice')
-        ticker.pop('lowPrice')
-        ticker.pop('lastQty')
-        ticker.pop('prevClosePrice')
-        ticker.pop('bidPrice')
-        ticker.pop('bidQty')
-        ticker.pop('askPrice')
-        ticker.pop('askQty')
-        ticker.pop('volume')
-        for i in list_of_crypto:
-            if (i+'USDT') == ticker['symbol']:
-                crypto_info.append(ticker)
-    crypto_info = pd.DataFrame(crypto_info)
-
-    crypto_info[['priceChange', 'priceChangePercent']] = crypto_info[['priceChange', 'priceChangePercent']].astype(float)
-
-    #trier les indexes pour que 0 correspondents avec maintenant
-    crypto_info.sort_values('priceChangePercent',ascending=False,inplace=True)
-
-    #refaire les index
-    crypto_info.reset_index(inplace = True)
-
-    #supprimer un colonnes pas important
-    crypto_info.drop(columns=['index'],inplace=True)
-
-    #coin that we gonna use to trade
-    coin_to_trade = crypto_info.iloc[0]['symbol']
-    #price change percent
-    price_change = crypto_info.iloc[0]['priceChangePercent']
-    print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
-    #---------------------------------------------------------------------------------------------
-    #----------------boucle pour recuperer le prix-------------
-    coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
-    coin_price = float(coin_ticker['price'])
+    #--------process to choose a crypto to trade with----------------------
+    if search_coin:
+        tickers = client.get_ticker()
 
 
-    print('prix recuperer')
+        list_of_crypto = ['BTC','ETH','XRP','BNB','OCEAN','OGN']
+        crypto_info = []
+        for ticker in tickers:
+            ticker.pop('weightedAvgPrice')
+            ticker.pop('quoteVolume')
+            ticker.pop('firstId')
+            ticker.pop('lastId')
+            ticker.pop('count')
+            ticker.pop('highPrice')
+            ticker.pop('lowPrice')
+            ticker.pop('lastQty')
+            ticker.pop('prevClosePrice')
+            ticker.pop('bidPrice')
+            ticker.pop('bidQty')
+            ticker.pop('askPrice')
+            ticker.pop('askQty')
+            ticker.pop('volume')
+            for i in list_of_crypto:
+                if (i+'BTC') == ticker['symbol']:
+                    crypto_info.append(ticker)
+        crypto_info = pd.DataFrame(crypto_info)
+
+        crypto_info[['priceChange', 'priceChangePercent']] = crypto_info[['priceChange', 'priceChangePercent']].astype(float)
+
+        #trier les indexes pour que 0 correspondents avec maintenant
+        crypto_info.sort_values('priceChangePercent',ascending=False,inplace=True)
+
+        #refaire les index
+        crypto_info.reset_index(inplace = True)
+
+        #supprimer un colonnes pas important
+        crypto_info.drop(columns=['index'],inplace=True)
+
+        #coin that we gonna use to trade
+        coin_to_trade = crypto_info.iloc[0]['symbol']
+        coin = str(coin_to_trade.replace('BTC',''))# coin that i am using
+        #price change percent
+        price_change = crypto_info.iloc[0]['priceChangePercent']
+        print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
+        #---------------------------------------------------------------------------------------------
+        #----------------boucle pour recuperer le prix-------------
+        coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
+        coin_price = float(coin_ticker['price'])
+        
+        print('prix recuperer')
     #---------------------------------------------------------------
 
     #-------pou recupererles klines en 15 min et calculer les SMA-----------------------
@@ -179,37 +194,38 @@ while True:
 
 
 
-    coin = str(coin_to_trade.replace('USDT',''))# coin that i am using
+    
 
 #-----------------------
 
 
-    if Sma_signal_buy and Have_usdt and not profit_of_3_percent:
-        balance = client.get_asset_balance(asset='USDT')
-        #info = client.get_margin_account()
+    if Sma_signal_buy and have_btc and not profit_of_3_percent:
         
-        x = balance['free']
-        x= x[:6]
-        x = float(x)
-        
-        order_quantity=x / coin_price
+        balance = margin_balance_of('BTC')
+        order_quantity=balance / coin_price
         order_quantity = float(str(order_quantity)[:7])
         order_quantity
-        print('sma signal buy and have usdt')
+        print('sma signal buy and have BTC')
         try:
             #buy order
             margin_buy_order(coin_to_trade,order_quantity)
             #-------------------------
             print(f' {datetime.datetime.now()} bought {order_quantity}{coin} of {float(order_quantity*coin_price)} at {coin_price} \n')
-            Have_not_usdt = True #don't have usdt
-            Have_usdt = False # have btc
+            Have_not_BTC = True #don't have BTC
+            have_btc = False # have btc
+            search_coin = False#don't search coin until i sell it
+
+
             operation = 'Buy'
 
 
             profit_target_price = percent_calculator(coin_price,3)#target profit price
+            now_time = datetime.datetime.now()
+
+            now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
             #--------------------------------------------
             
-            trade_details = {'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
+            trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
             write_json(trade_details)
 
 
@@ -221,19 +237,16 @@ while True:
 
 
 
-    if Sma_signal_buy and Have_not_usdt:
-        print('No USDT for BUY ORDER')
+    if Sma_signal_buy and Have_not_BTC:
+        print('No BTC for BUY ORDER')
 
     #-------------------------------------
     
-    if Sma_signal_sell or sell_for_profit and Have_not_usdt:
-        #trades = client.get_my_trades(symbol="BTCUSDT")
-        balance = client.get_asset_balance(asset=coin)
-        #info = client.get_margin_account()
-        x =balance['free']
-        x= x[:7]
-        order_quantity = float(x)
-        print('smasignal sell and have no usdt')
+    if Sma_signal_sell or sell_for_profit and Have_not_BTC:
+
+        balance = margin_balance_of(coin)
+        order_quantity = balance
+        print('smasignal sell and have no BTC')
         if sell_for_profit:
             profit_of_3_percent =True
 
@@ -242,19 +255,22 @@ while True:
             margin_sell_order(coin_to_trade,order_quantity)
             #sell_order
             print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
-            Have_usdt = True # have usdt
-            Have_not_usdt = False #don't have usdt,meaning i have a crypto
+            have_btc = True # have BTC
+            Have_not_BTC = False #don't have BTC,meaning i have a crypto
+            search_coin = True#search for another coin 
             operation = 'Sell'
-            
+
+            now_time = datetime.datetime.now()
+            now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
             #--------------------------------------------
-            trade_details = {'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
+            trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
             write_json(trade_details)
         except:
             print('erreur lors du vente')
             
 
 
-    if Sma_signal_sell and Have_usdt:
+    if Sma_signal_sell and have_btc:
         print(f'No {coin} for SELL ORDER')
 
     
