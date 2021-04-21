@@ -1,7 +1,2 @@
-time,list_of_crypto
-2021-04-20 07:28:55.735309,BTC
-2021-04-20 07:28:55.735350,ETH
-2021-04-20 07:28:55.735359,XRP
-2021-04-20 07:28:55.735365,BNB
-2021-04-20 07:28:55.735371,OCEAN
-2021-04-20 07:28:55.735377,OGN
+time,crypto,operation,price,quantity
+<built-in method now of type object at 0x92ab80>,BNBUSDT,Buy,581.9973,0.0

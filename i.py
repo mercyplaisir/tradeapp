@@ -1,5 +1,22 @@
-x = 100
+y = True
 
-y = x + (x*3/100)
+x= False
 
-print(y)
+n= True
+
+
+if x or y and n:
+    if y:
+        print('y es true')
+    print('hello')
+    
+else:
+    print('no')
+
+
+
+k = 100
+
+ki = 100+ (100*3)/100
+
+print(ki)
