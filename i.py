@@ -1,22 +1,10 @@
-y = True
 
-x= False
+import pandas as pd
+import json
 
-n= True
+with open('./test.json','r+')as f:
+    x=json.load(f)
 
-
-if x or y and n:
-    if y:
-        print('y es true')
-    print('hello')
-    
-else:
-    print('no')
-
-
-
-k = 100
-
-ki = 100+ (100*3)/100
-
-print(ki)
+for i in x:
+    if i['coin']:
+        print(i['hello'])
