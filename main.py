@@ -26,25 +26,31 @@ while disconnected:
         print("impossible de se connecter\nveuillez patientez\n")
 #----------------------------------------
 
-profit_of_3_percent = False # pour rester dans le profit
+
 have_btc = True # have BTC
 Have_other_coin = False #don't have BTC,meaning i have a crypto
 
+sell_order = False
+buy_order = False
+
 profit_target_price = 0 #mon take profit price
 loss_target_price = 0 #mon stop loss price
+bought_at= 0 #le prix auxquelle j'ai achete
+now_price = 0 #prix actuelle
 
 
 
 search_coin = True
 
 #---------------------------------------------------------------
-
+#placer un ordre d'achat
 def margin_buy_order(coin_to_trade:str,order_quantity:float):
     order = client.create_margin_order(symbol=coin_to_trade,side=SIDE_BUY,type=ORDER_TYPE_MARKET,quantity=order_quantity)
-
+#pplacer un ordre de vente
 def margin_sell_order(coin_to_trade:str,order_quantity:float):
     order = client.create_margin_order(symbol=coin_to_trade,side=SIDE_SELL,type=ORDER_TYPE_MARKET,quantity=order_quantity)
 
+#ecrire dans un fichier json
 def write_json(text):
     with open('./test.json','r') as f:
         j = json.load(f)
@@ -52,10 +58,12 @@ def write_json(text):
     with open('./test.json','w') as f:
         json.dump(j,f,indent= 4)
 
+#calcule du pourcentage
 def percent_calculator(x:float,y:int):
     z=x+((x*y)/100)
     return z
 
+#recuperer la balance d'un crypto
 def margin_balance_of(coin:str):
     info = client.get_margin_account()
     for i in info['userAssets']:
@@ -71,8 +79,9 @@ def margin_balance_of(coin:str):
             balance = round((float(str(i['free'])[:4])),3)
     return balance
 
-
+#permet d'avoir une quantite pour placer l'ordre
 def order_quantity_of(balance:float,coin:str):
+    #il determine la quantite a utiliser pour placer un ordre en analysant so prix
     
     coin_ticker_usd = client.get_symbol_ticker(symbol=coin+'USDT')
     coin_price_usd= float(coin_ticker_usd['price'])
@@ -82,24 +91,25 @@ def order_quantity_of(balance:float,coin:str):
         q = balance / coin_price
         q =float(str(q)[:5])
     if coin!='ETH':
-        if 500<=coin_price_usd<=700:
+        if 50<=coin_price_usd<=700:#si le prix est entre 50 et 700
             q = balance / coin_price
             q =float(str(q)[:5])
 
-        elif 16<=coin_price_usd<=49:
+        elif 16<=coin_price_usd<=49:#si le prix est entre 16 et 49
             q = balance / coin_price
             q =float(str(q)[:3])
 
-        elif 0<=coin_price_usd<=15:
+        elif 0<=coin_price_usd<=15:#si le prix est entre 0 et 15
             q = balance / coin_price
             q =float(str(q)[:2])
-    return q
+    return q#q c'est la quqntite
     
 
 
 #---------------------------------------------------------------
 
-
+time_when_passing_order = 0
+time_now =0
 
 while True:
 
@@ -150,11 +160,13 @@ while True:
         price_change = crypto_info.iloc[n]['priceChangePercent']
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
-        #----------------boucle pour recuperer le prix-------------
-        coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
-        coin_price = float(coin_ticker['price'])
+    
+    
+    #---------------pour recuperer le prix-------------
+    coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
+    coin_price = float(coin_ticker['price'])
 
-        print('prix recuperer')
+    print('prix recuperer')
     #---------------------------------------------------------------
 
 
@@ -197,44 +209,52 @@ while True:
     #si SMA9 est superieur a SMA15
     if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
         print("SMA_30 > SMA_50")
-        Sma_signal_sell = False
-        Sma_signal_buy = True
+        sell_order = False
+        buy_order = True
 
         print('SMA signal buy')
 
     #si SMA9 est inferieur a SMA15
     if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
         print("SMA_30 < SMA_50")
-        Sma_signal_sell = True
-        Sma_signal_buy = False
-        profit_of_3_percent = False # pour rester dans le profit
+        buy_order = False
+        sell_order = True
         print('SMA signal sell')
 
     price_trick = False # pour voir si le marche ne triche pas
         #le prix inferieur a SMA 9             le prix inferieur ou egale a valeur de SMA 15 -30 and SMA9 est superieur a SMA15
     if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
         print("price under SMA9 and SMA15. SELL")
-        Sma_signal_sell = True
-        Sma_signal_buy = False
+        sell_order = False
+        buy_order = False
         price_trick = True
 
 
 
     #------------------------------_-
 
-    sell_for_profit = False #declencheur de take profit
-    sell_for_loss = False #declencheur de stop loss
-
-
 
     if profit_target_price == coin_price:
         print('Profit of 2%, SELL')
-        sell_for_profit=True
+        sell_order = True
+        buy_order = False
 
     if loss_target_price == coin_price:
         print('loss of 2%,SELL')
-        sell_for_loss= True
+        sell_order = True
+        buy_order = False
 
+
+    time_now = datetime.datetime.timestamp(datetime.datetime.now())
+    time_passed_in_trade =  time_when_passing_order - time_now
+    
+    #pour ne passer que 2heures dans une trade
+    if time_passed_in_trade >=7200:
+        sell_order
+
+
+
+    print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
 
 
 
@@ -242,7 +262,7 @@ while True:
 #-----------------------
 
 
-    if Sma_signal_buy and have_btc and not profit_of_3_percent:
+    if buy_order and have_btc:
 
         balance = margin_balance_of('BTC')
         #order_quantity=balance / coin_price
@@ -258,7 +278,9 @@ while True:
         have_btc = False # have btc
         search_coin = False#don't search coin until i sell it
 
+        time_when_passing_order = datetime.datetime.timestamp(datetime.datetime.now())#time when passing order
 
+        bought_at = coin_price
         operation = 'Buy'
 
 
@@ -283,41 +305,38 @@ while True:
 
 
 
-    if Sma_signal_buy and Have_other_coin:
+    if buy_order and Have_other_coin:
         print('No BTC for BUY ORDER')
 
     #-------------------------------------
 
 
 
-    if Sma_signal_sell or sell_for_profit or sell_for_loss:
-
-        if Have_other_coin:
-            balance = margin_balance_of(coin)
-            order_quantity = balance
-            print(f'sma signal sell and have {coin}')
-            #sell order
-            margin_sell_order(coin_to_trade,order_quantity)
-            #sell_order
-            print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
-            have_btc = True # have BTC
-            Have_other_coin = False #don't have BTC,meaning i have a crypto
-            search_coin = True#search for another coin
-            operation = 'Sell'
+    if sell_order and Have_other_coin:
+        balance = margin_balance_of(coin)
+        order_quantity = balance
+        print(f'sell_order of {coin}')
+        #sell order
+        margin_sell_order(coin_to_trade,order_quantity)
+        #sell_order
+        print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
+        have_btc = True # have BTC
+        Have_other_coin = False #don't have BTC,meaning i have a crypto
+        search_coin = True#search for another coin
+        operation = 'Sell'
 
 
-            now_time = datetime.datetime.now()
-            now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
-            #--------------------------------------------
-            trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
-            write_json(trade_details)
-        
-            #    print('erreur lors du vente')
-            if sell_for_profit:
-                profit_of_3_percent =True
+        now_time = datetime.datetime.now()
+        now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+        #--------------------------------------------
+        trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
+        write_json(trade_details)
+    
+        #    print('erreur lors du vente')
 
 
-    if Sma_signal_sell and have_btc:
+
+    if sell_order and have_btc:
         print(f'No {coin} for SELL ORDER')
         search_coin=True
 
