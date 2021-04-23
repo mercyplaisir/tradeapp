@@ -109,7 +109,7 @@ while True:
         tickers = client.get_ticker()
 
 
-        list_of_crypto = ['DOGE','ETH','XRP','BNB','LTC','BCH']
+        list_of_crypto = ['DOGE','ETH','XRP','BNB','LTC','BCH','TRX','LINK','EOS','ADA','XLM','ATOM','DOT','NEO']
         crypto_info = []
         for ticker in tickers:
             ticker.pop('weightedAvgPrice')
