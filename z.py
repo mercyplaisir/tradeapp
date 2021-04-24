@@ -35,5 +35,22 @@ v= datetime.datetime.timestamp(datetime.datetime.now())
 print(type(v))
 
 
+
+
+from binance.websockets import BinanceSocketManager
+from twisted.internet import reactor
+
+# init and start the WebSocket
+bsm = BinanceSocketManager(client)
+conn_key = bsm.start_symbol_ticker_socket('BTCUSDT', btc_trade_history)
+bsm.start()
+
+
+# stop websocket
+bsm.stop_socket(conn_key)
+
+# properly terminate WebSocket
+reactor.stop()
+
 #print(y)
 

@@ -30,6 +30,8 @@ while disconnected:
 have_btc = True # have BTC
 Have_other_coin = False #don't have BTC,meaning i have a crypto
 
+show_trade_info = False #pour montrer les infos sur le terminal
+
 sell_order = False
 buy_order = False
 
@@ -38,7 +40,7 @@ loss_target_price = 0 #mon stop loss price
 bought_at= 0 #le prix auxquelle j'ai achete
 now_price = 0 #prix actuelle
 
-
+compteur_pour_searchcoin = 0 #compteur pour ralentir quand il y a pas d'opportunite
 
 search_coin = True
 
@@ -82,7 +84,7 @@ def margin_balance_of(coin:str):
 #permet d'avoir une quantite pour placer l'ordre
 def order_quantity_of(balance:float,coin:str):
     #il determine la quantite a utiliser pour placer un ordre en analysant so prix
-    
+
     coin_ticker_usd = client.get_symbol_ticker(symbol=coin+'USDT')
     coin_price_usd= float(coin_ticker_usd['price'])
     coin_ticker = client.get_symbol_ticker(symbol=coin+'BTC')
@@ -99,27 +101,31 @@ def order_quantity_of(balance:float,coin:str):
             q = balance / coin_price
             q =float(str(q)[:3])
 
-        elif 0<=coin_price_usd<=15:#si le prix est entre 0 et 15
+        elif 0.18<=coin_price_usd<=15:#si le prix est entre 0 et 15
             q = balance / coin_price
             q =float(str(q)[:2])
+        elif coin_price<0.18:
+            q = balance / coin_price
+            q =float(str(q)[:3])
     return q#q c'est la quqntite
-    
+
 
 
 #---------------------------------------------------------------
 
 time_when_passing_order = 0
 time_now =0
+time_passed_in_trade =  0
 
 while True:
-
+    print(datetime.datetime.now())
 
     #--------process to choose a crypto to trade with----------------------
     if search_coin:
         tickers = client.get_ticker()
 
 
-        list_of_crypto = ['DOGE','ETH','XRP','BNB','LTC','BCH','TRX','LINK','EOS','ADA','XLM','ATOM','DOT','NEO']
+        list_of_crypto = ['DOGE','ETH','BNB','LTC','BCH','TRX','LINK','EOS','ADA','XLM','ATOM','DOT','NEO']
         crypto_info = []
         for ticker in tickers:
             ticker.pop('weightedAvgPrice')
@@ -160,8 +166,13 @@ while True:
         price_change = crypto_info.iloc[n]['priceChangePercent']
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
-    
-    
+
+        compteur_pour_searchcoin+=1
+        if compteur_pour_searchcoin == 10:
+            time.sleep(10)
+            compteur_pour_searchcoin=0
+
+
     #---------------pour recuperer le prix-------------
     coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
     coin_price = float(coin_ticker['price'])
@@ -246,15 +257,19 @@ while True:
 
 
     time_now = datetime.datetime.timestamp(datetime.datetime.now())
-    time_passed_in_trade =  time_when_passing_order - time_now
-    
+
+
+    if show_trade_info:
+        time_passed_in_trade =  time_now - time_when_passing_order
+        print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
+
+
     #pour ne passer que 2heures dans une trade
-    if time_passed_in_trade >=7200:
-        sell_order
+    if time_when_passing_order>0 and  time_passed_in_trade >3600:
+        sell_order = True
+        buy_order = False
 
 
-
-    print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
 
 
 
@@ -278,6 +293,8 @@ while True:
         have_btc = False # have btc
         search_coin = False#don't search coin until i sell it
 
+        compteur_pour_searchcoin=0
+
         time_when_passing_order = datetime.datetime.timestamp(datetime.datetime.now())#time when passing order
 
         bought_at = coin_price
@@ -287,6 +304,7 @@ while True:
         profit_target_price = percent_calculator(coin_price,2)#target profit price
         loss_target_price = percent_calculator(coin_price,-2)#stop loss
 
+        show_trade_info = True
 
         now_time = datetime.datetime.now()
 
@@ -302,6 +320,7 @@ while True:
         #    print('erreur lors de l achat')
 
         #    pass
+
 
 
 
@@ -322,7 +341,7 @@ while True:
         print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
         have_btc = True # have BTC
         Have_other_coin = False #don't have BTC,meaning i have a crypto
-        search_coin = True#search for another coin
+        search_coin = True #search for another coin
         operation = 'Sell'
 
 
@@ -331,7 +350,13 @@ while True:
         #--------------------------------------------
         trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
         write_json(trade_details)
-    
+
+        show_trade_info = False
+
+        compteur_pour_searchcoin=0
+
+        time_when_passing_order = 0
+        time_passed_in_trade = 0
         #    print('erreur lors du vente')
 
 
@@ -340,6 +365,7 @@ while True:
         print(f'No {coin} for SELL ORDER')
         search_coin=True
 
+    print(time_passed_in_trade)
 
     print('------------------------------------\n')
 
