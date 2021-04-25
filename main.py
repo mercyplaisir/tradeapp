@@ -9,8 +9,8 @@ import time
 import json
 import random
 
-apikey='pPLvK8xoiqqTQi1IoLJQscGmI4uEqZBvkONXEfA7mq5dVptusfiYNaobXTiPHlvn'
-secretkey='teJqKc0KiS6Ftg4FPPwfb2rocz8t8S7MmjnwjouoYuezp2Ue5Gsojmr9fXkqdYFK'
+apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
+secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 
 
@@ -122,6 +122,14 @@ while True:
 
     #--------process to choose a crypto to trade with----------------------
     if search_coin:
+
+        print(f"nbre de fois sans opportunite = {compteur_pour_searchcoin}")
+        compteur_pour_searchcoin = compteur_pour_searchcoin + 1
+        if compteur_pour_searchcoin == 15:
+            time.sleep(60)
+            compteur_pour_searchcoin=0
+
+
         tickers = client.get_ticker()
 
 
@@ -167,10 +175,7 @@ while True:
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
 
-        compteur_pour_searchcoin+=1
-        if compteur_pour_searchcoin == 10:
-            time.sleep(10)
-            compteur_pour_searchcoin=0
+
 
 
     #---------------pour recuperer le prix-------------
