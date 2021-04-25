@@ -126,7 +126,7 @@ while True:
         print(f"nbre de fois sans opportunite = {compteur_pour_searchcoin}")
         compteur_pour_searchcoin = compteur_pour_searchcoin + 1
         if compteur_pour_searchcoin == 15:
-            time.sleep(60)
+            time.sleep(120)
             compteur_pour_searchcoin=0
 
 
@@ -375,14 +375,3 @@ while True:
     print('------------------------------------\n')
 
     time.sleep(3)
-
-
-
-
-
-
-
-
-
-
-
