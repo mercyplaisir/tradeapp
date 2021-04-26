@@ -39,6 +39,7 @@ profit_target_price = 0 #mon take profit price
 loss_target_price = 0 #mon stop loss price
 bought_at= 0 #le prix auxquelle j'ai achete
 now_price = 0 #prix actuelle
+percent_of_profit = 0 #percent iim making in a trade
 
 compteur_pour_searchcoin = 0 #compteur pour ralentir quand il y a pas d'opportunite
 
@@ -63,6 +64,9 @@ def write_json(text):
 #calcule du pourcentage
 def percent_calculator(x:float,y:int):
     z=x+((x*y)/100)
+    return z
+def percent_change(original_number:float,new_number:float):
+    z = ((new_number-original_number)/original_number)*100
     return z
 
 #recuperer la balance d'un crypto
@@ -126,7 +130,7 @@ while True:
         print(f"nbre de fois sans opportunite = {compteur_pour_searchcoin}")
         compteur_pour_searchcoin = compteur_pour_searchcoin + 1
         if compteur_pour_searchcoin == 15:
-            time.sleep(120)
+            time.sleep(600)
             compteur_pour_searchcoin=0
 
 
@@ -251,12 +255,12 @@ while True:
 
 
     if profit_target_price == coin_price:
-        print('Profit of 2%, SELL')
+        print('Profit of 1%, SELL')
         sell_order = True
         buy_order = False
 
     if loss_target_price == coin_price:
-        print('loss of 2%,SELL')
+        print('loss of 1%,SELL')
         sell_order = True
         buy_order = False
 
@@ -265,12 +269,15 @@ while True:
 
 
     if show_trade_info:
+
         time_passed_in_trade =  time_now - time_when_passing_order
         print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
+        percent_of_profit = percent_change(bought_at,coin_price)
+        print(percent_of_profit)
 
 
     #pour ne passer que 2heures dans une trade
-    if time_when_passing_order>0 and  time_passed_in_trade >3600:
+    if time_when_passing_order>0 and  time_passed_in_trade >10800:
         sell_order = True
         buy_order = False
 
@@ -298,7 +305,8 @@ while True:
         have_btc = False # have btc
         search_coin = False#don't search coin until i sell it
 
-        compteur_pour_searchcoin=0
+        compteur_pour_searchcoin=0 #counter of searching coin initialized
+        percent_of_profit = 0 #percent i'm making in a trade initialize
 
         time_when_passing_order = datetime.datetime.timestamp(datetime.datetime.now())#time when passing order
 
@@ -306,8 +314,8 @@ while True:
         operation = 'Buy'
 
 
-        profit_target_price = percent_calculator(coin_price,2)#target profit price
-        loss_target_price = percent_calculator(coin_price,-2)#stop loss
+        profit_target_price = percent_calculator(coin_price,0.5)#target profit price
+        loss_target_price = percent_calculator(coin_price,-1)#stop loss
 
         show_trade_info = True
 
@@ -358,7 +366,8 @@ while True:
 
         show_trade_info = False
 
-        compteur_pour_searchcoin=0
+        compteur_pour_searchcoin=0 #counter of searching coin initialized
+        percent_of_profit = 0 #percent i'm making in a trade initialized
 
         time_when_passing_order = 0
         time_passed_in_trade = 0

@@ -17,12 +17,12 @@ def percent_change(original_number:float,new_number:float):
 
 
 
-i=0.0003742
-x = percent_calculator(i,-2)
+i=0.047012
+x = percent_calculator(i,0.4)
 
 #y=percent_change(i,)
 
-y = percent_change(i,0.0003781)
+y = percent_change(i,0.047186)
    
 
 
@@ -30,7 +30,5 @@ print(x)
 print(y)
 
 
-v= datetime.datetime.timestamp(datetime.datetime.now())
 
-print(type(v))
 
