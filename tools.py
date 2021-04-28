@@ -310,13 +310,13 @@ def coin_for_trade():
 
 
 
-        for i in range(0,14):
+        for n in range(0,(len(list_of_crypto)-1)):
             #coin that we gonna use to trade
-            n = random.randint(0,(len(list_of_crypto)-1))#pick a random crypto from the list of crypto
+            #n = random.randint(0,(len(list_of_crypto)-1))#pick a random crypto from the list of crypto
             coin_to_trade = crypto_info.iloc[n]['symbol']
             price_change = crypto_info.iloc[n]['priceChangePercent']
 
-            print(coin_to_trade)
+            print(coin_to_trade,' : ',price_change)
             up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
             up_trend_15min = minute15_trend(coin_to_trade) #tendance pour 15min
             isThere_price_trick = True
