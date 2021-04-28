@@ -29,6 +29,8 @@ y = percent_change(i,0.047186)
 print(x)
 print(y)
 
+x=False
 
+a=[12,534,7,8756,856]
 
-
+print(len(a))
