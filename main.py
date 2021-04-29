@@ -8,13 +8,14 @@ import datetime
 import time
 import json
 import random
+from tools import *
 
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 
 
-#boucle pour se connecter
+#------------boucle pour se connecter---------------------
 disconnected = True
 while disconnected:
     try :
@@ -41,79 +42,11 @@ bought_at= 0 #le prix auxquelle j'ai achete
 now_price = 0 #prix actuelle
 percent_of_profit = 0 #percent iim making in a trade
 
-compteur_pour_searchcoin = 0 #compteur pour ralentir quand il y a pas d'opportunite
+
 
 search_coin = True
 
 #---------------------------------------------------------------
-#placer un ordre d'achat
-def margin_buy_order(coin_to_trade:str,order_quantity:float):
-    order = client.create_margin_order(symbol=coin_to_trade,side=SIDE_BUY,type=ORDER_TYPE_MARKET,quantity=order_quantity)
-#pplacer un ordre de vente
-def margin_sell_order(coin_to_trade:str,order_quantity:float):
-    order = client.create_margin_order(symbol=coin_to_trade,side=SIDE_SELL,type=ORDER_TYPE_MARKET,quantity=order_quantity)
-
-#ecrire dans un fichier json
-def write_json(text):
-    with open('./test.json','r') as f:
-        j = json.load(f)
-        j.append(text)
-    with open('./test.json','w') as f:
-        json.dump(j,f,indent= 4)
-
-#calcule du pourcentage
-def percent_calculator(x:float,y:int):
-    z=x+((x*y)/100)
-    return z
-def percent_change(original_number:float,new_number:float):
-    z = ((new_number-original_number)/original_number)*100
-    return z
-
-#recuperer la balance d'un crypto
-def margin_balance_of(coin:str):
-    info = client.get_margin_account()
-    for i in info['userAssets']:
-        if coin=='ETH':
-            if i['asset']==coin:
-                balance = float(str(i['free'])[:5])
-
-        if coin=='BTC':
-            if i['asset']==coin:
-                balance = float(str(i['free'])[:7])
-
-        elif i['asset']==coin:
-            balance = round((float(str(i['free'])[:4])),3)
-    return balance
-
-#permet d'avoir une quantite pour placer l'ordre
-def order_quantity_of(balance:float,coin:str):
-    #il determine la quantite a utiliser pour placer un ordre en analysant so prix
-
-    coin_ticker_usd = client.get_symbol_ticker(symbol=coin+'USDT')
-    coin_price_usd= float(coin_ticker_usd['price'])
-    coin_ticker = client.get_symbol_ticker(symbol=coin+'BTC')
-    coin_price = float(coin_ticker['price'])
-    if coin=='ETH':
-        q = balance / coin_price
-        q =float(str(q)[:5])
-    if coin!='ETH':
-        if 50<=coin_price_usd<=700:#si le prix est entre 50 et 700
-            q = balance / coin_price
-            q =float(str(q)[:5])
-
-        elif 16<=coin_price_usd<=49:#si le prix est entre 16 et 49
-            q = balance / coin_price
-            q =float(str(q)[:3])
-
-        elif 0.18<=coin_price_usd<=15:#si le prix est entre 0 et 15
-            q = balance / coin_price
-            q =float(str(q)[:2])
-        elif coin_price<0.18:
-            q = balance / coin_price
-            q =float(str(q)[:3])
-    return q#q c'est la quqntite
-
-
 
 #---------------------------------------------------------------
 
@@ -126,140 +59,44 @@ while True:
 
     #--------process to choose a crypto to trade with----------------------
     if search_coin:
+        
+        info_for_coin = coin_for_trade()
 
-        print(f"nbre de fois sans opportunite = {compteur_pour_searchcoin}")
-        compteur_pour_searchcoin = compteur_pour_searchcoin + 1
-        if compteur_pour_searchcoin == 15:
-            time.sleep(600)
-            compteur_pour_searchcoin=0
-
-
-        tickers = client.get_ticker()
-
-
-        list_of_crypto = ['DOGE','ETH','BNB','LTC','BCH','TRX','LINK','EOS','ADA','XLM','ATOM','DOT','NEO']
-        crypto_info = []
-        for ticker in tickers:
-            ticker.pop('weightedAvgPrice')
-            ticker.pop('quoteVolume')
-            ticker.pop('firstId')
-            ticker.pop('lastId')
-            ticker.pop('count')
-            ticker.pop('highPrice')
-            ticker.pop('lowPrice')
-            ticker.pop('lastQty')
-            ticker.pop('prevClosePrice')
-            ticker.pop('bidPrice')
-            ticker.pop('bidQty')
-            ticker.pop('askPrice')
-            ticker.pop('askQty')
-            ticker.pop('volume')
-            for i in list_of_crypto:
-                if (i+'BTC') == ticker['symbol']:
-                    crypto_info.append(ticker)
-        crypto_info = pd.DataFrame(crypto_info)
-
-        crypto_info[['priceChange', 'priceChangePercent']] = crypto_info[['priceChange', 'priceChangePercent']].astype(float)
-
-        #trier les indexes pour que 0 correspondents avec maintenant
-        crypto_info.sort_values('priceChangePercent',ascending=False,inplace=True)
-
-        #refaire les index
-        crypto_info.reset_index(inplace = True)
-
-        #supprimer un colonnes pas important
-        crypto_info.drop(columns=['index'],inplace=True)
-
-        #coin that we gonna use to trade
-        n = random.randint(0,5)#pick a random crypto
-        coin_to_trade = crypto_info.iloc[n]['symbol']
+        coin_to_trade = info_for_coin['coin to trade']
         coin = str(coin_to_trade.replace('BTC',''))# coin that i am using
         #price change percent
-        price_change = crypto_info.iloc[n]['priceChangePercent']
+        price_change = info_for_coin['price change']
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
 
-
-
-
     #---------------pour recuperer le prix-------------
-    coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
-    coin_price = float(coin_ticker['price'])
+    coin_price = get_coin_price(coin_to_trade)
 
     print('prix recuperer')
     #---------------------------------------------------------------
 
-
-
     print(coin_to_trade)
-    #-------pou recupererles klines en 15 min et calculer les SMA-----------------------
 
-    # fetch 15 minute klines for the last day up until now
-    #klines_1min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_1MINUTE, "1 day ago UTC")
-    klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-
-    print('klines recuperer')
-    #changer timestamp en date
-    for kline in klines_15min:
-        kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
-
-    klines = pd.DataFrame(klines_15min)#changer en dataframe
-    klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-    klines.columns = ['open_time','close_price']#renommer les colonnes
-
-    #creer un SMA15
-    klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
-
-    #creer un SMA50
-    klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
-
-    #trier les indexes pour que 0 correspondents avec maintenant
-    klines.sort_index(ascending=False,inplace=True)
-
-    #refaire les index
-    klines.reset_index(inplace = True)
-
-    #supprimer un colonnes pas important
-    klines.drop(columns=['index'],inplace=True)
+    up_trend_1hour = hour1_trend(coin_to_trade)
+    up_trend_15min = minute15_trend(coin_to_trade)
+    isThere_price_trick = price_trick(coin_to_trade) # pour voir si le marche ne triche pas
 
 
-
-    #-------------------------------------------
-
-    #si SMA9 est superieur a SMA15
-    if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-        print("SMA_30 > SMA_50")
-        sell_order = False
+    if up_trend_1hour and up_trend_15min and not isThere_price_trick:
         buy_order = True
-
-        print('SMA signal buy')
-
-    #si SMA9 est inferieur a SMA15
-    if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-        print("SMA_30 < SMA_50")
-        buy_order = False
-        sell_order = True
-        print('SMA signal sell')
-
-    price_trick = False # pour voir si le marche ne triche pas
-        #le prix inferieur a SMA 9             le prix inferieur ou egale a valeur de SMA 15 -30 and SMA9 est superieur a SMA15
-    if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
-        print("price under SMA9 and SMA15. SELL")
         sell_order = False
-        buy_order = False
-        price_trick = True
 
 
 
     #------------------------------_-
 
 
-    if profit_target_price == coin_price:
+    if profit_target_price <= coin_price:
         print('Profit of 1%, SELL')
         sell_order = True
         buy_order = False
 
-    if loss_target_price == coin_price:
+    if loss_target_price >= coin_price:
         print('loss of 1%,SELL')
         sell_order = True
         buy_order = False
@@ -282,7 +119,7 @@ while True:
         buy_order = False
 
 
-
+    
 
 
 
@@ -314,7 +151,7 @@ while True:
         operation = 'Buy'
 
 
-        profit_target_price = percent_calculator(coin_price,0.5)#target profit price
+        profit_target_price = percent_calculator(coin_price,1)#target profit price
         loss_target_price = percent_calculator(coin_price,-1)#stop loss
 
         show_trade_info = True
