@@ -92,7 +92,7 @@ def margin_balance_of(coin:str):
                 balance = float(str(i['free'])[:7])
 
         elif i['asset']==coin:
-            balance = round((float(str(i['free'])[:4])),3)
+            balance = (float(str(i['free'])[:5]))
     return balance
 
 def order_quantity_of(balance:float,coin:str):
@@ -171,8 +171,13 @@ def minute15_trend(coin_to_trade:str):
     """
     tendance d'un crypto dans un timeframe de 1heure
     """
-
-    klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+    getKlines = False
+    while not getKlines:
+        try:
+            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+            getKlines = True
+        except:
+            pass
 
 
     #changer timestamp en date
@@ -229,7 +234,13 @@ def price_trick(coin_to_trade:str):
 
 
 
-    klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+    getKlines = False
+    while not getKlines:
+        try:
+            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+            getKlines = True
+        except:
+            pass
 
     #changer timestamp en date
     for kline in klines_15min:
@@ -283,7 +294,13 @@ def coin_for_trade():
     redo_search = True
 
     while redo_search:
-        tickers = client.get_ticker()
+        getTickers=False
+        while not getTickers:
+            try:
+                tickers = client.get_ticker()
+                getTickers=True
+            except:
+                pass
         crypto_info = []
         cryptoList = []
         for ticker in tickers:
@@ -396,7 +413,13 @@ def check_price_moves(coin_to_trade:str):
 
 
 
-    klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+    getKlines = False
+    while not getKlines:
+        try:
+            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+            getKlines = True
+        except:
+            pass
 
     #changer timestamp en date
     for kline in klines_15min:

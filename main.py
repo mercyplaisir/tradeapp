@@ -140,7 +140,7 @@ while True:
         #order_quantity=balance / coin_price
         order_quantity = order_quantity_of(balance,coin)
 
-        print('sma signal buy and have BTC')
+        #print('sma signal buy and have BTC')
         #try:
         #buy order
         margin_buy_order(coin_to_trade,order_quantity)
