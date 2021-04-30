@@ -343,7 +343,7 @@ def coin_for_trade():
 
         nonePickedUp = True
 
-        for n in range(0,(len(cryptoList)-24)):
+        for n in range(0,(len(cryptoList)-1)):
             #coin that we gonna use to trade
             #n = random.randint(0,(len(list_of_crypto)-1))#pick a random crypto from the list of crypto
             coin_to_trade = crypto_infoPD.iloc[n]['symbol']
