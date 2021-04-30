@@ -179,40 +179,41 @@ def minute15_trend(coin_to_trade:str):
         except:
             pass
 
+    try:
+        #changer timestamp en date
+        for kline in klines_15min:
+            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
 
-    #changer timestamp en date
-    for kline in klines_15min:
-        kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+        klines = pd.DataFrame(klines_15min)#changer en dataframe
+        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
+        klines.columns = ['open_time','close_price']#renommer les colonnes
 
-    klines = pd.DataFrame(klines_15min)#changer en dataframe
-    klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-    klines.columns = ['open_time','close_price']#renommer les colonnes
+        #creer un SMA_30
+        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
 
-    #creer un SMA_30
-    klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
+        #creer un SMA50
+        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
 
-    #creer un SMA50
-    klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
+        #trier les indexes pour que 0 correspondents avec maintenant
+        klines.sort_index(ascending=False,inplace=True)
 
-    #trier les indexes pour que 0 correspondents avec maintenant
-    klines.sort_index(ascending=False,inplace=True)
+        #refaire les index
+        klines.reset_index(inplace = True)
 
-    #refaire les index
-    klines.reset_index(inplace = True)
+        #supprimer un colonnes pas important
+        klines.drop(columns=['index'],inplace=True)
 
-    #supprimer un colonnes pas important
-    klines.drop(columns=['index'],inplace=True)
+        #si SMA_30 est superieur a SMA_50
+        if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
+            up_trend = True
+            print(" 15min : uptrend")
 
-    #si SMA_30 est superieur a SMA_50
-    if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-        up_trend = True
-        print(" 15min : uptrend")
-
-    #si SMA_30 est inferieur a SMA_50
-    if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-        up_trend = False
-        print(" 15min : downtrend")
-
+        #si SMA_30 est inferieur a SMA_50
+        if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
+            up_trend = False
+            print(" 15min : downtrend")
+    except:
+        up_trend=False
     return up_trend
 
 
@@ -241,45 +242,46 @@ def price_trick(coin_to_trade:str):
             getKlines = True
         except:
             pass
+    try:
+        #changer timestamp en date
+        for kline in klines_15min:
+            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
 
-    #changer timestamp en date
-    for kline in klines_15min:
-        kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+        klines = pd.DataFrame(klines_15min)#changer en dataframe
+        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
+        klines.columns = ['open_time','close_price']#renommer les colonnes
 
-    klines = pd.DataFrame(klines_15min)#changer en dataframe
-    klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-    klines.columns = ['open_time','close_price']#renommer les colonnes
+        #creer un SMA_30
+        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
 
-    #creer un SMA_30
-    klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
+        #creer un SMA50
+        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
 
-    #creer un SMA50
-    klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
+        #trier les indexes pour que 0 correspondents avec maintenant
+        klines.sort_index(ascending=False,inplace=True)
 
-    #trier les indexes pour que 0 correspondents avec maintenant
-    klines.sort_index(ascending=False,inplace=True)
+        #refaire les index
+        klines.reset_index(inplace = True)
 
-    #refaire les index
-    klines.reset_index(inplace = True)
+        #supprimer un colonnes pas important
+        klines.drop(columns=['index'],inplace=True)
 
-    #supprimer un colonnes pas important
-    klines.drop(columns=['index'],inplace=True)
+        price_trick = False
+        if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
+            price_trick = True
+            #print("price under sma30 and 50")
+        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
+            price_trick = True
+            #print(" too late to enter the trend")
+        if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
+            price_trick = True
+            #print(" too late, price really high")
+        if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
+            price_trick = True
+            #print(" price between SMA30 and SMA50")
 
-    price_trick = False
-    if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
-        price_trick = True
-        #print("price under sma30 and 50")
-    if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
-        price_trick = True
-        #print(" too late to enter the trend")
-    if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
-        price_trick = True
-        #print(" too late, price really high")
-    if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
-        price_trick = True
-        #print(" price between SMA30 and SMA50")
-
-
+    except:
+        price_trick= True
     return price_trick
 
 
