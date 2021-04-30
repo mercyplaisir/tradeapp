@@ -69,6 +69,16 @@ while True:
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
 
+        coinGoodForUse = coin_approvement(coin_to_trade)#get the trend and the price tricks
+
+
+        if coinGoodForUse:
+            buy_order = True
+            sell_order = False
+        
+
+
+
     #---------------pour recuperer le prix-------------
     coin_price = get_coin_price(coin_to_trade)
 
@@ -77,26 +87,20 @@ while True:
 
     print(coin_to_trade)
 
-    up_trend_1hour = hour1_trend(coin_to_trade)
-    up_trend_15min = minute15_trend(coin_to_trade)
-    isThere_price_trick = price_trick(coin_to_trade) # pour voir si le marche ne triche pas
 
-
-    if up_trend_1hour and up_trend_15min and not isThere_price_trick:
-        buy_order = True
-        sell_order = False
+    
 
 
 
     #------------------------------_-
 
 
-    if profit_target_price <= coin_price:
+    if 0!=profit_target_price <= coin_price:
         print('Profit of 1%, SELL')
         sell_order = True
         buy_order = False
 
-    if loss_target_price >= coin_price:
+    if 0!=loss_target_price >= coin_price:
         print('loss of 1%,SELL')
         sell_order = True
         buy_order = False
@@ -106,7 +110,11 @@ while True:
 
 
     if show_trade_info:
-
+        nowPriceMoves = check_price_moves(coin_to_trade)
+        if nowPriceMoves: #if true there is price trick
+            sell_order = True
+            buy_order = False
+        #-------------------------------
         time_passed_in_trade =  time_now - time_when_passing_order
         print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
         percent_of_profit = percent_change(bought_at,coin_price)
