@@ -127,6 +127,57 @@ def order_quantity_of(balance:float,coin:str):
 
 
 
+def get_klines(coin_to_trade:str):
+    """
+    get the klines of the coin you want to use(it get 15min klines)
+    """
+
+
+    getKlines = False
+    while not getKlines:
+        try:
+            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+            getKlines = True
+        except:
+            pass
+    
+    try:
+        #changer timestamp en date
+        for kline in klines_15min:
+            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+
+        klines = pd.DataFrame(klines_15min)#changer en dataframe
+        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
+        klines.columns = ['open_time','close_price']#renommer les colonnes
+
+        #creer un SMA_30
+        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
+
+        #creer un SMA50
+        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
+
+        #trier les indexes pour que 0 correspondents avec maintenant
+        klines.sort_index(ascending=False,inplace=True)
+
+        #refaire les index
+        klines.reset_index(inplace = True)
+
+        #supprimer un colonnes pas important
+        klines.drop(columns=['index'],inplace=True)
+    except:
+        get_klines(coin_to_trade)
+
+    return klines
+
+
+
+
+
+
+
+
+
+
 def hour1_trend(coin_to_trade:str):
     """
     tendance d'un crypto dans un timeframe de 1heure
@@ -171,37 +222,10 @@ def minute15_trend(coin_to_trade:str):
     """
     tendance d'un crypto dans un timeframe de 1heure
     """
-    getKlines = False
-    while not getKlines:
-        try:
-            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-            getKlines = True
-        except:
-            pass
 
+    up_trend = False
     try:
-        #changer timestamp en date
-        for kline in klines_15min:
-            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
-
-        klines = pd.DataFrame(klines_15min)#changer en dataframe
-        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-        klines.columns = ['open_time','close_price']#renommer les colonnes
-
-        #creer un SMA_30
-        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
-
-        #creer un SMA50
-        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
-
-        #trier les indexes pour que 0 correspondents avec maintenant
-        klines.sort_index(ascending=False,inplace=True)
-
-        #refaire les index
-        klines.reset_index(inplace = True)
-
-        #supprimer un colonnes pas important
-        klines.drop(columns=['index'],inplace=True)
+        klines= get_klines(coin_to_trade)
 
         #si SMA_30 est superieur a SMA_50
         if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
@@ -233,38 +257,8 @@ def price_trick(coin_to_trade:str):
     coin_price = get_coin_price(coin_to_trade)
     #coin = str(coin_to_trade.replace('BTC',''))
 
-
-
-    getKlines = False
-    while not getKlines:
-        try:
-            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-            getKlines = True
-        except:
-            pass
     try:
-        #changer timestamp en date
-        for kline in klines_15min:
-            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
-
-        klines = pd.DataFrame(klines_15min)#changer en dataframe
-        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-        klines.columns = ['open_time','close_price']#renommer les colonnes
-
-        #creer un SMA_30
-        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
-
-        #creer un SMA50
-        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
-
-        #trier les indexes pour que 0 correspondents avec maintenant
-        klines.sort_index(ascending=False,inplace=True)
-
-        #refaire les index
-        klines.reset_index(inplace = True)
-
-        #supprimer un colonnes pas important
-        klines.drop(columns=['index'],inplace=True)
+        klines= get_klines(coin_to_trade)
 
         price_trick = False
         if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
@@ -357,10 +351,10 @@ def coin_for_trade():
             if up_trend_15min: #removed the 1hour working with the 15min
                 isThere_price_trick = price_trick(coin_to_trade) #price trick
 
-            if not isThere_price_trick:
-                print('no price tricks')
-            elif isThere_price_trick:
-                print('Not a good one')
+                if not isThere_price_trick:
+                    print('no price tricks')
+                elif isThere_price_trick:
+                    print('Not a good one')
 
 
             if up_trend_15min and not isThere_price_trick :
@@ -414,37 +408,7 @@ def check_price_moves(coin_to_trade:str):
     #coin = str(coin_to_trade.replace('BTC',''))
 
 
-
-    getKlines = False
-    while not getKlines:
-        try:
-            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-            getKlines = True
-        except:
-            pass
-
-    #changer timestamp en date
-    for kline in klines_15min:
-        kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
-
-    klines = pd.DataFrame(klines_15min)#changer en dataframe
-    klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-    klines.columns = ['open_time','close_price']#renommer les colonnes
-
-    #creer un SMA_30
-    klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
-
-    #creer un SMA50
-    klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
-
-    #trier les indexes pour que 0 correspondents avec maintenant
-    klines.sort_index(ascending=False,inplace=True)
-
-    #refaire les index
-    klines.reset_index(inplace = True)
-
-    #supprimer un colonnes pas important
-    klines.drop(columns=['index'],inplace=True)
+    klines= get_klines(coin_to_trade)
 
     price_trick = False
     if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
