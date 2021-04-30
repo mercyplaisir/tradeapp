@@ -165,7 +165,7 @@ def get_klines(coin_to_trade:str):
         #supprimer un colonnes pas important
         klines.drop(columns=['index'],inplace=True)
     except:
-        get_klines(coin_to_trade)
+        pass
 
     return klines
 
