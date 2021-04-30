@@ -23,7 +23,6 @@ client = Client(apikey,secretkey)
 
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 
-list_of_crypto = get_list_of_crypto()
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 
 def get_list_of_crypto():
@@ -35,6 +34,7 @@ def get_list_of_crypto():
 
     return a
 
+list_of_crypto = get_list_of_crypto()
 
 
 #placer un ordre d'achat
