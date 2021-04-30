@@ -258,7 +258,7 @@ def price_trick(coin_to_trade:str):
     if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
         price_trick = True
         #print("price under sma30 and 50")
-    if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50']:#si la tendance etait la meme il y a 6bougies don't buy
+    if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
         price_trick = True
         #print(" too late to enter the trend")
     if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):

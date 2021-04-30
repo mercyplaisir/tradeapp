@@ -202,6 +202,9 @@ while True:
         search_coin = True #search for another coin
         operation = 'Sell'
 
+        profit_target_price = 0
+        loss_target_price = 0
+
 
         now_time = datetime.datetime.now()
         now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
