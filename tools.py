@@ -17,7 +17,15 @@ import random
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
-client = Client(apikey,secretkey)
+disconnected = True
+while disconnected:
+    try :
+        client = Client(apikey,secretkey)
+        print("vous etes connecter\n")
+        disconnected = False
+        connected = True
+    except:
+        print("impossible de se connecter\nveuillez patientez\n")
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 
 
