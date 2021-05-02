@@ -150,7 +150,7 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
     """
 
     try:
-        klines_list = client.get_historical_klines(coin_to_trade, time, f"{interval} ago UTC")
+        klines_list = client.get_historical_klines(coin_to_trade, timeframe, f"{interval} ago UTC")
 
         #changer timestamp en date
         for kline in klines_list:
@@ -195,6 +195,8 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
 
     except:
             print('no klines')
+            
+
     return klines
 
 
