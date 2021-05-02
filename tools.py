@@ -9,7 +9,9 @@ import json
 import random
 
 """
--in the function coinfortrade() i've removed the 1hour function , i'mworking with the 15min chart
+-in the function coinfortrade() i've removed the 1hour function , i'mworking with the 5min chart
+- i'm using SMA 15 and SMA 30
+
 """
 
 
@@ -117,6 +119,11 @@ def order_quantity_of(balance:float,coin:str):
         q = balance / coin_price
         q =float(str(q)[:5])
     if coin!='ETH':
+        if coin_price_usd>=5000:#si le prix est entre 50 et 700
+            q = balance / coin_price
+            q =float(str(q)[:6])
+
+
         if 50<=coin_price_usd:#si le prix est entre 50 et 700
             q = balance / coin_price
             q =float(str(q)[:5])
@@ -135,34 +142,45 @@ def order_quantity_of(balance:float,coin:str):
 
 
 
-def get_klines(coin_to_trade:str):
+def get_klines(coin_to_trade:str,timeframe:str,interval:str):
     """
-    get the klines of the coin you want to use(it get 15min klines)
-    """
-
-
-    getKlines = False
-    while not getKlines:
-        try:
-            klines_15min = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-            getKlines = True
-        except:
-            pass
+    Get the klines for the timeframe given and in interval given.
+    timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
     
+    """
+
     try:
+        klines_list = client.get_historical_klines(coin_to_trade, time, f"{interval} ago UTC")
+
         #changer timestamp en date
-        for kline in klines_15min:
+        for kline in klines_list:
             kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
 
-        klines = pd.DataFrame(klines_15min)#changer en dataframe
+        klines = pd.DataFrame(klines_list)#changer en dataframe
         klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
+
         klines.columns = ['open_time','close_price']#renommer les colonnes
 
         #creer un SMA_30
-        klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
+        klines['SMA_30'] = klines.iloc[:,1].rolling(window=15).mean()
 
         #creer un SMA50
-        klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
+        klines['SMA_50'] = klines.iloc[:,1].rolling(window=30).mean()
+
+        #calculate sma20
+        klines['SMA_20'] = klines.iloc[:,1].rolling(window=20).mean()
+
+        # calculate the standar deviation
+        klines['rstd'] = klines.iloc[:,1].rolling(window=20).std()
+
+        klines['upper_band'] = klines['SMA_20'] + 2 * klines['rstd']
+        #klines['upper_band'] = upper_band.rename(columns={symbol: 'upper'})
+        klines['lower_band'] = klines['SMA_20'] - 2 * klines['rstd']
+        #klines['lower_band'] = lower_band.rename(columns={symbol: 'lower'})
+
+        #klines = klines.join(upper_band).join(lower_band)
+
+
 
         #trier les indexes pour que 0 correspondents avec maintenant
         klines.sort_index(ascending=False,inplace=True)
@@ -171,17 +189,46 @@ def get_klines(coin_to_trade:str):
         klines.reset_index(inplace = True)
 
         #supprimer un colonnes pas important
-        klines.drop(columns=['index'],inplace=True)
-    except:
-        pass
+        klines.drop(columns=['index','rstd'],inplace=True)    
 
+        return klines
+
+    except:
+            print('no klines')
     return klines
 
 
 
+def price_study(coin_to_trade:str,klines,advanced:bool):
+    """
+    study made on klines(dataframe)
+    """
+    coin_price = get_coin_price(coin_to_trade)
 
+    if not advanced:
+        if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
+            bool_answer = True
+            print(" 1h : uptrend")
+        #si SMA_30 est inferieur a SMA_50
+        if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
+            bool_answer = False
+            print(" 1h : downtrend")
+        
+    elif advanced:
+        if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
+            bool_answer = True
+            #print("price under sma30 and 50")
+        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
+            bool_answer = True
+            #print(" too late to enter the trend")
+        if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
+            bool_answer = True
+            #print(" too late, price really high")
+        if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
+            bool_answer = True
+            #print(" price between SMA30 and SMA50")
 
-
+    return bool_answer
 
 
 
@@ -190,60 +237,27 @@ def hour1_trend(coin_to_trade:str):
     """
     tendance d'un crypto dans un timeframe de 1heure
     """
+    up_trend = False
+    try:
+        klines = get_klines(coin_to_trade,'1h','5 days')
 
-    klines_1hour = client.get_historical_klines(coin_to_trade, Client.KLINE_INTERVAL_1HOUR, "5 days ago UTC")
-
-
-    #changer timestamp en date
-    for kline in klines_1hour:
-        kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
-
-    klines = pd.DataFrame(klines_1hour)#changer en dataframe
-    klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
-    klines.columns = ['open_time','close_price']#renommer les colonnes
-
-    #creer un SMA_30
-    klines['SMA_30'] = klines.iloc[:,1].rolling(window=30).mean()
-
-    #creer un SMA50
-    klines['SMA_50'] = klines.iloc[:,1].rolling(window=50).mean()
-
-    #trier les indexes pour que 0 correspondents avec maintenant
-    klines.sort_index(ascending=False,inplace=True)
-    #refaire les index
-    klines.reset_index(inplace = True)
-    #supprimer un colonnes pas important
-    klines.drop(columns=['index'],inplace=True)
-    #si SMA_30 est superieur a SMA_50
-    if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-        up_trend = True
-        print(" 1h : uptrend")
-    #si SMA_30 est inferieur a SMA_50
-    if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-        up_trend = False
-        print(" 1h : downtrend")
+        up_trend = price_study(coin_to_trade,klines,False)
+    except:
+        up_trend=False    
 
     return up_trend
 
 
-def minute15_trend(coin_to_trade:str):
+def minute5_trend(coin_to_trade:str):
     """
     tendance d'un crypto dans un timeframe de 1heure
     """
 
     up_trend = False
     try:
-        klines= get_klines(coin_to_trade)
+        klines= get_klines(coin_to_trade,'5m','1day')
 
-        #si SMA_30 est superieur a SMA_50
-        if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-            up_trend = True
-            print(" 15min : uptrend")
-
-        #si SMA_30 est inferieur a SMA_50
-        if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-            up_trend = False
-            print(" 15min : downtrend")
+        up_trend = price_study(coin_to_trade,klines,False)
     except:
         up_trend=False
     return up_trend
@@ -262,25 +276,13 @@ def price_trick(coin_to_trade:str):
     -The coin price is between the SMA30 and SMA50 but the SMA30 is higher than the SMA50
     """
 
-    coin_price = get_coin_price(coin_to_trade)
+    #coin_price = get_coin_price(coin_to_trade)
     #coin = str(coin_to_trade.replace('BTC',''))
 
     try:
-        klines= get_klines(coin_to_trade)
+        klines= get_klines(coin_to_trade,'5m','1 day')
 
-        price_trick = False
-        if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
-            price_trick = True
-            #print("price under sma30 and 50")
-        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
-            price_trick = True
-            #print(" too late to enter the trend")
-        if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
-            price_trick = True
-            #print(" too late, price really high")
-        if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
-            price_trick = True
-            #print(" price between SMA30 and SMA50")
+        price_trick = price_study(coin_to_trade,klines,True)
 
     except:
         price_trick= True
@@ -353,7 +355,8 @@ def coin_for_trade():
 
             print(coin_to_trade,' : ',price_change)
             #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
-            up_trend_15min = minute15_trend(coin_to_trade) #tendance pour 15min
+            up_trend_15min = minute5_trend(coin_to_trade) #tendance pour 15min
+            
             isThere_price_trick = True
 
             if up_trend_15min: #removed the 1hour working with the 15min
@@ -393,8 +396,8 @@ def coin_approvement(coin_to_trade):
     """
     buy = False
     #up_trend_1hour = hour1_trend(coin_to_trade)
-    up_trend_15min = minute15_trend(coin_to_trade)
-    isThere_price_trick = price_trick(coin_to_trade) # pour voir si le marche ne triche pas   
+    up_trend_15min = minute5_trend(coin_to_trade)
+    isThere_price_trick = price_trick(coin_to_trade) # pour voir si le marche ne triche pas
 
     if up_trend_15min and not isThere_price_trick:
         buy = True
@@ -408,7 +411,7 @@ def coin_approvement(coin_to_trade):
 def check_price_moves(coin_to_trade:str):
     """
     when i'm in a trade it checks the price movement and return a boolean value.
-    False if it's for a sell 
+    False if it's for a sell
     True if it's for a hold
     """
 
@@ -416,7 +419,7 @@ def check_price_moves(coin_to_trade:str):
     #coin = str(coin_to_trade.replace('BTC',''))
 
 
-    klines= get_klines(coin_to_trade)
+    klines= get_klines(coin_to_trade,'5m','1 day')
 
     price_trick = False
     if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):

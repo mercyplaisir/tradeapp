@@ -159,8 +159,8 @@ while True:
         operation = 'Buy'
 
 
-        profit_target_price = percent_calculator(coin_price,0.3)#target profit price
-        loss_target_price = percent_calculator(coin_price,-1)#stop loss
+        profit_target_price = percent_calculator(coin_price,0.2)#target profit price
+        loss_target_price = percent_calculator(coin_price,-0.3)#stop loss
 
         show_trade_info = True
 
