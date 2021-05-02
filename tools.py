@@ -157,9 +157,9 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
             kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
 
         klines = pd.DataFrame(klines_list)#changer en dataframe
-        klines.drop(columns=[1,2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
+        klines.drop(columns=[2,3,5,6,7,8,9,10,11],inplace= True)#supprimer les collonnes qui ne sont pas necessaires
 
-        klines.columns = ['open_time','close_price']#renommer les colonnes
+        klines.columns = ['open_time','open_price','close_price']#renommer les colonnes
 
         #creer un SMA_30
         klines['SMA_30'] = klines.iloc[:,1].rolling(window=15).mean()
@@ -215,10 +215,11 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
             print(" 1h : downtrend")
         
     elif advanced:
-        if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
+        if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
             bool_answer = True
             #print("price under sma30 and 50")
-        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :#si la tendance etait la meme il y a 6bougies don't buy
+        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :
+            #si la tendance etait la meme il y a 6bougies don't buy
             bool_answer = True
             #print(" too late to enter the trend")
         if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
@@ -422,7 +423,7 @@ def check_price_moves(coin_to_trade:str):
     klines= get_klines(coin_to_trade,'5m','1 day')
 
     price_trick = False
-    if coin_price < klines.loc[0]['SMA_30'] and coin_price<=(klines.loc[0]['SMA_50']) and (klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']):
+    if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
         price_trick = True
         #print("price under sma30 and 50")
 
