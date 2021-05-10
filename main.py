@@ -36,13 +36,16 @@ show_trade_info = False #pour montrer les infos sur le terminal
 sell_order = False
 buy_order = False
 
+coinGoodForUse = False
+
+
 profit_target_price = 0 #mon take profit price
 loss_target_price = 0 #mon stop loss price
 bought_at= 0 #le prix auxquelle j'ai achete
 now_price = 0 #prix actuelle
 percent_of_profit = 0 #percent iim making in a trade
 
-
+traded_crypto = []#liste des crypto deja trader
 
 search_coin = True
 
@@ -58,12 +61,25 @@ while True:
     print(datetime.datetime.now())
 
     #--------process to choose a crypto to trade with----------------------
-    if search_coin:
+    while search_coin:
         
+
+
         info_for_coin = coin_for_trade()
 
         coin_to_trade = info_for_coin['coin to trade']
         coin = str(coin_to_trade.replace('BTC',''))# coin that i am using
+        
+        if coin not in traded_crypto:
+            traded_crypto.append(coin)
+            break
+        elif coin in traded_crypto:
+            search_coin =True
+
+
+        if len(traded_crypto)== (len(list_of_crypto)//2):#delete the list if traded the half of the list
+            traded_crypto.clear()
+        
         #price change percent
         price_change = info_for_coin['price change']
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
@@ -72,9 +88,9 @@ while True:
         coinGoodForUse = coin_approvement(coin_to_trade)#get the trend and the price tricks
 
 
-        if coinGoodForUse:
-            buy_order = True
-            sell_order = False
+    if coinGoodForUse:
+        buy_order = True
+        sell_order = False
         
 
 

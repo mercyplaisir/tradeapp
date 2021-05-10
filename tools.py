@@ -48,7 +48,7 @@ while disconnected:
 
 list_of_crypto = ['ETH','DOGE','XRP','BNB''LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
 
-traded_crypto = []#liste des crypto deja trader
+
 
 
 
