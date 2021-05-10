@@ -48,7 +48,7 @@ while disconnected:
 
 list_of_crypto = ['ETH','DOGE','XRP','BNB''LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
 
-
+traded_crypto = []#liste des crypto deja trader
 
 
 
@@ -394,33 +394,47 @@ def coin_for_trade():
             #n = random.randint(0,(len(list_of_crypto)-1))#pick a random crypto from the list of crypto
             coin_to_trade = crypto_infoPD.iloc[n]['symbol']
             price_change = crypto_infoPD.iloc[n]['priceChangePercent']
+            coin = str(coin_to_trade.replace('BTC',''))
+        
+            if coin not in traded_crypto:
+                
+                
+                print(coin_to_trade,' : ',price_change)
+                #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
+                up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
 
-            print(coin_to_trade,' : ',price_change)
-            #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
-            up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
+                #isThere_price_trick = True
 
-            #isThere_price_trick = True
+                if up_trend: #removed the 1hour working with the 15min
+                    price_5min = minute5_trend(coin_to_trade) #price trick
 
-            if up_trend: #removed the 1hour working with the 15min
-                price_5min = minute5_trend(coin_to_trade) #price trick
-
-                if not price_5min:
-                    print('no')
-                elif price_5min:
-                    print('good one')
+                    if not price_5min:
+                        print('no')
+                    elif price_5min:
+                        print('good one')
 
 
-            if up_trend and price_5min :
-                redo_search=False
-                nonePickedUp = False
+                if up_trend and price_5min :
+                    redo_search=False
+                    nonePickedUp = False
 
-                print('got it')
-                break
-            print('-----------------------------')
-        if nonePickedUp:
-            time.sleep(300)
-    b = {'coin to trade':coin_to_trade,'price change': price_change}
-    return b
+                    print('got it')
+                    break
+                print('-----------------------------')
+                if nonePickedUp:
+                    time.sleep(300)
+                b = {'coin to trade':coin_to_trade,'price change': price_change}
+                return b
+
+            elif coin in traded_crypto:
+                pass
+
+
+            if len(traded_crypto)== (len(list_of_crypto)//2):#delete the list if traded the half of the list
+                traded_crypto.clear()
+
+
+
 
 def get_coin_price(coin_to_trade):
     """

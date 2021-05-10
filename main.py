@@ -45,7 +45,7 @@ bought_at= 0 #le prix auxquelle j'ai achete
 now_price = 0 #prix actuelle
 percent_of_profit = 0 #percent iim making in a trade
 
-traded_crypto = []#liste des crypto deja trader
+
 
 search_coin = True
 
@@ -61,7 +61,7 @@ while True:
     print(datetime.datetime.now())
 
     #--------process to choose a crypto to trade with----------------------
-    while search_coin:
+    if search_coin:
         
 
 
@@ -69,16 +69,6 @@ while True:
 
         coin_to_trade = info_for_coin['coin to trade']
         coin = str(coin_to_trade.replace('BTC',''))# coin that i am using
-        
-        if coin not in traded_crypto:
-            traded_crypto.append(coin)
-            break
-        elif coin in traded_crypto:
-            search_coin =True
-
-
-        if len(traded_crypto)== (len(list_of_crypto)//2):#delete the list if traded the half of the list
-            traded_crypto.clear()
         
         #price change percent
         price_change = info_for_coin['price change']
@@ -188,6 +178,8 @@ while True:
         trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
         write_json(trade_details)
 
+
+        traded_crypto.append(coin)
 
         #except:
 
