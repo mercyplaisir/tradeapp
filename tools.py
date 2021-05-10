@@ -19,6 +19,7 @@ import random
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
+#------------boucle pour se connecter---------------------
 disconnected = True
 while disconnected:
     try :
@@ -28,23 +29,27 @@ while disconnected:
         connected = True
     except:
         print("impossible de se connecter\nveuillez patientez\n")
+#----------------------------------------
+
+
+
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 
-
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 
-#-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+#def get_list_of_crypto():
+#    x = client.get_margin_account()
+#    a=[]
+#    for i in x['userAssets']:
+#        #if float(i['asset'])>0:
+#        a.append(i['asset'])
 
-def get_list_of_crypto():
-    x = client.get_margin_account()
-    a=[]
-    for i in x['userAssets']:
-        #if float(i['asset'])>0:
-        a.append(i['asset'])
+#    return a
 
-    return a
+list_of_crypto = ['ETH','DOGE','XRP','BNB''LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
 
-list_of_crypto = get_list_of_crypto()
+traded_crypto = []#liste des crypto deja trader
+
 
 
 #placer un ordre d'achat
@@ -146,7 +151,7 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
     """
     Get the klines for the timeframe given and in interval given.
     timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
-    
+
     """
 
     try:
@@ -189,13 +194,13 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
         klines.reset_index(inplace = True)
 
         #supprimer un colonnes pas important
-        klines.drop(columns=['index','rstd'],inplace=True)    
+        klines.drop(columns=['index','rstd'],inplace=True)
 
         return klines
 
     except:
             print('no klines')
-            
+
 
     return klines
 
@@ -208,28 +213,62 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
     coin_price = get_coin_price(coin_to_trade)
 
     if not advanced:
-        if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-            bool_answer = True
-            print(" 1h : uptrend")
-        #si SMA_30 est inferieur a SMA_50
-        if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-            bool_answer = False
-            print(" 1h : downtrend")
-        
+        #if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
+        #    bool_answer = True
+        #    print(" 1h : uptrend")
+        ##si SMA_30 est inferieur a SMA_50
+        #if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
+        #    bool_answer = False
+        #    print(" 1h : downtrend")
+        a=[]
+        for n in range(0,4):
+            if float(klines.loc[n]['open_price']) and float(klines.loc[n]['close_price']) and coin_price >float(klines.loc[n]['SMA_20']):
+                y=True
+                a.append(y)
+            else:
+                y=False
+                a.append(y)
+        j=0
+        for i in a:
+            if i==True:
+                j+=1
+            else:
+                break
+        if j==4:
+            bool_answer=True
+        else:
+            bool_answer=False
+#-------------------------------------------------------------------------------
+
     elif advanced:
-        if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
-            bool_answer = True
-            #print("price under sma30 and 50")
-        if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :
-            #si la tendance etait la meme il y a 6bougies don't buy
-            bool_answer = True
-            #print(" too late to enter the trend")
-        if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
-            bool_answer = True
-            #print(" too late, price really high")
-        if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
-            bool_answer = True
-            #print(" price between SMA30 and SMA50")
+        #for the 5min dataframe. IF TRUE = BUY, FALSE = SELL
+
+        #if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
+        #    bool_answer = True
+        #    #print("price under sma30 and 50")
+        #if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :
+        #    #si la tendance etait la meme il y a 6bougies don't buy
+        #    bool_answer = True
+        #    #print(" too late to enter the trend")
+        #if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
+        #    bool_answer = True
+        #    #print(" too late, price really high")
+        #if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
+        #    bool_answer = True
+        #    #print(" price between SMA30 and SMA50")
+
+
+        if float(klines.loc[0]['SMA_20'])>float(klines.loc[2]['open_price'])>float(klines.loc[2]['close_price'])>float(klines.loc[1]['close_price'])>float(klines.loc[1]['open_price']):
+            if float(klines.loc[1]['close_price']) > percent_calculator(float(klines.loc[2]['open_price']),0.5):
+                bool_answer = True
+            else:
+                bool_answer = False
+        else:
+            bool_answer = False
+
+
+
+
 
     return bool_answer
 
@@ -246,7 +285,7 @@ def hour1_trend(coin_to_trade:str):
 
         up_trend = price_study(coin_to_trade,klines,False)
     except:
-        up_trend=False    
+        up_trend=False
 
     return up_trend
 
@@ -260,7 +299,7 @@ def minute5_trend(coin_to_trade:str):
     try:
         klines= get_klines(coin_to_trade,'5m','1day')
 
-        up_trend = price_study(coin_to_trade,klines,False)
+        up_trend = price_study(coin_to_trade,klines,True)
     except:
         up_trend=False
     return up_trend
@@ -358,20 +397,20 @@ def coin_for_trade():
 
             print(coin_to_trade,' : ',price_change)
             #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
-            up_trend_15min = minute5_trend(coin_to_trade) #tendance pour 15min
-            
-            isThere_price_trick = True
+            up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
 
-            if up_trend_15min: #removed the 1hour working with the 15min
-                isThere_price_trick = price_trick(coin_to_trade) #price trick
+            #isThere_price_trick = True
 
-                if not isThere_price_trick:
-                    print('no price tricks')
-                elif isThere_price_trick:
-                    print('Not a good one')
+            if up_trend: #removed the 1hour working with the 15min
+                price_5min = minute5_trend(coin_to_trade) #price trick
+
+                if not price_5min:
+                    print('no')
+                elif price_5min:
+                    print('good one')
 
 
-            if up_trend_15min and not isThere_price_trick :
+            if up_trend and price_5min :
                 redo_search=False
                 nonePickedUp = False
 
@@ -379,7 +418,7 @@ def coin_for_trade():
                 break
             print('-----------------------------')
         if nonePickedUp:
-            time.sleep(20)
+            time.sleep(300)
     b = {'coin to trade':coin_to_trade,'price change': price_change}
     return b
 
@@ -399,10 +438,10 @@ def coin_approvement(coin_to_trade):
     """
     buy = False
     #up_trend_1hour = hour1_trend(coin_to_trade)
-    up_trend_15min = minute5_trend(coin_to_trade)
-    isThere_price_trick = price_trick(coin_to_trade) # pour voir si le marche ne triche pas
+    up_trend = hour1_trend(coin_to_trade)
+    price_5min = minute5_trend(coin_to_trade)
 
-    if up_trend_15min and not isThere_price_trick:
+    if up_trend and not price_5min:
         buy = True
     return buy
 

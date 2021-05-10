@@ -1,4 +1,4 @@
-#import json
+
 import numpy as np
 import pandas as pd
 from binance.client import Client
@@ -16,15 +16,15 @@ secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 
 #------------boucle pour se connecter---------------------
-disconnected = True
-while disconnected:
-    try :
-        client = Client(apikey,secretkey)
-        print("vous etes connecter\n")
-        disconnected = False
-        connected = True
-    except:
-        print("impossible de se connecter\nveuillez patientez\n")
+#disconnected = True
+#while disconnected:
+#    try :
+#        client = Client(apikey,secretkey)
+#        print("vous etes connecter\n")
+#        disconnected = False
+#        connected = True
+#    except:
+#        print("impossible de se connecter\nveuillez patientez\n")
 #----------------------------------------
 
 
@@ -110,10 +110,10 @@ while True:
 
 
     if show_trade_info:
-        nowPriceMoves = check_price_moves(coin_to_trade)
-        if nowPriceMoves: #if true there is price trick
-            sell_order = True
-            buy_order = False
+        #nowPriceMoves = check_price_moves(coin_to_trade)
+        #if nowPriceMoves: #if true there is price trick
+        #    sell_order = True
+        #    buy_order = False
         #-------------------------------
         time_passed_in_trade =  time_now - time_when_passing_order
         print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
@@ -122,7 +122,7 @@ while True:
 
 
     #pour ne passer que 2heures dans une trade
-    if time_when_passing_order>0 and  time_passed_in_trade >10800:
+    if 0<time_passed_in_trade>5400:
         sell_order = True
         buy_order = False
 
@@ -159,8 +159,8 @@ while True:
         operation = 'Buy'
 
 
-        profit_target_price = percent_calculator(coin_price,0.2)#target profit price
-        loss_target_price = percent_calculator(coin_price,-0.3)#stop loss
+        profit_target_price = percent_calculator(coin_price,1)#target profit price
+        loss_target_price = percent_calculator(coin_price,-0.7)#stop loss
 
         show_trade_info = True
 
