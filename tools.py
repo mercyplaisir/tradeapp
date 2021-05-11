@@ -39,7 +39,7 @@ time_now = datetime.datetime.now()
 
 #    return a
 
-list_of_crypto = ['ETH','DOGE','XRP','BNB''LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
+list_of_crypto = ['ETH','DOGE','XRP','BNB','LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
 
 
 
