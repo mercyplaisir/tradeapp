@@ -209,16 +209,10 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
     coin_price = get_coin_price(coin_to_trade)
 
     if not advanced:
-        #if klines.loc[0]['SMA_30']>klines.loc[0]['SMA_50']:
-        #    bool_answer = True
-        #    print(" 1h : uptrend")
-        ##si SMA_30 est inferieur a SMA_50
-        #if klines.loc[0]['SMA_30'] < klines.loc[0]['SMA_50']:
-        #    bool_answer = False
-        #    print(" 1h : downtrend")
+
         a=[]
         for n in range(0,4):
-            if float(klines.loc[n]['open_price']) and float(klines.loc[n]['close_price']) and coin_price >float(klines.loc[n]['SMA_20']):
+            if float(klines.loc[n]['open_price'])>float(klines.loc[n]['close_price']) and coin_price >=percent_calculator(float(klines.loc[0]['SMA_20']),1):
                 y=True
                 a.append(y)
             else:
@@ -237,22 +231,6 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
 #-------------------------------------------------------------------------------
 
     elif advanced:
-        #for the 5min dataframe. IF TRUE = BUY, FALSE = SELL
-
-        #if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
-        #    bool_answer = True
-        #    #print("price under sma30 and 50")
-        #if klines.loc[6]['SMA_30']>klines.loc[6]['SMA_50'] and klines.loc[3]['SMA_30']>klines.loc[3]['SMA_50'] :
-        #    #si la tendance etait la meme il y a 6bougies don't buy
-        #    bool_answer = True
-        #    #print(" too late to enter the trend")
-        #if  coin_price > percent_calculator(klines.loc[0]['SMA_30'],1):
-        #    bool_answer = True
-        #    #print(" too late, price really high")
-        #if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
-        #    bool_answer = True
-        #    #print(" price between SMA30 and SMA50")
-
 
         if float(klines.loc[0]['SMA_20'])>float(klines.loc[1]['close_price'])>float(klines.loc[1]['open_price'])>=float(klines.loc[2]['close_price'])<float(klines.loc[2]['open_price']):
             if float(klines.loc[1]['close_price']) >= percent_calculator(float(klines.loc[2]['open_price']),0.5):
