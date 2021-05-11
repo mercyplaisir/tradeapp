@@ -23,7 +23,7 @@ secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 client = Client(apikey,secretkey)
 #----------------------------------------
 
-time_now = datetime.datetime.now()
+
 
 
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
@@ -343,10 +343,12 @@ def coin_for_trade():
             try:
                 tickers = client.get_ticker()
                 getTickers=True
-                print(time_now)
             except:
                 pass
-        
+            
+        time_now = datetime.datetime.now()
+        print(time_now)
+
         cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace('BTC','')) in list_of_crypto ]
         crypto_info = [ticker for ticker in tickers if ticker['symbol']in cryptoList]
         
