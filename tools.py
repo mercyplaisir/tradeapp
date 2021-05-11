@@ -23,6 +23,7 @@ secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 client = Client(apikey,secretkey)
 #----------------------------------------
 
+time_now = datetime.datetime.now()
 
 
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
@@ -342,32 +343,13 @@ def coin_for_trade():
             try:
                 tickers = client.get_ticker()
                 getTickers=True
+                print(time_now)
             except:
                 pass
-        crypto_info = []
-        cryptoList = []
-        for ticker in tickers:
-            ticker.pop('weightedAvgPrice')
-            ticker.pop('quoteVolume')
-            ticker.pop('firstId')
-            ticker.pop('lastId')
-            ticker.pop('count')
-            ticker.pop('highPrice')
-            ticker.pop('lowPrice')
-            ticker.pop('lastQty')
-            ticker.pop('prevClosePrice')
-            ticker.pop('bidPrice')
-            ticker.pop('bidQty')
-            ticker.pop('askPrice')
-            ticker.pop('askQty')
-            ticker.pop('volume')
-            for i in list_of_crypto:
-                if (i+'BTC') == ticker['symbol']:
-                    crypto_info.append(ticker)
-
-        for z in crypto_info:#['symbol']:
-            cryptoList.append(z['symbol'])
-
+        
+        cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace('BTC','')) in list_of_crypto ]
+        crypto_info = [ticker for ticker in tickers if ticker['symbol' in cryptoList]]
+        
 
         crypto_infoPD = pd.DataFrame(crypto_info)
 
@@ -414,19 +396,20 @@ def coin_for_trade():
                     nonePickedUp = False
 
                     print('got it')
+                    b = {'coin to trade':coin_to_trade,'price change': price_change}
+                    return b
                     break
                 print('-----------------------------')
-                if nonePickedUp:
-                    time.sleep(300)
-                b = {'coin to trade':coin_to_trade,'price change': price_change}
-                return b
 
             elif coin in traded_crypto:
                 continue
 
 
-            if len(traded_crypto)== (len(list_of_crypto)//2):#delete the list if traded the half of the list
+            if len(traded_crypto)>= (len(list_of_crypto)//2):#delete the list if traded the half of the list
                 traded_crypto.clear()
+
+        if nonePickedUp:
+            time.sleep(300)
 
 
 
