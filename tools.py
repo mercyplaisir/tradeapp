@@ -54,18 +54,21 @@ traded_crypto = []#liste des crypto deja trader
 
 #placer un ordre d'achat
 def margin_buy_order(coin_to_trade:str,order_quantity:float):
+    """A margin buy order"""
     client.create_margin_order(symbol=coin_to_trade,side=SIDE_BUY,type=ORDER_TYPE_MARKET,quantity=order_quantity)
 
 
 
 #placer un ordre de vente
 def margin_sell_order(coin_to_trade:str,order_quantity:float):
+    """ A margin sell order """
     client.create_margin_order(symbol=coin_to_trade,side=SIDE_SELL,type=ORDER_TYPE_MARKET,quantity=order_quantity)
 
 
 
 #ecrire dans un fichier json
 def write_json(text):
+    """ Write in a json file"""
     with open('./test.json','r') as f:
         j = json.load(f)
         j.append(text)
