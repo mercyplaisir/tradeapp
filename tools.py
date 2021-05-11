@@ -254,8 +254,8 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
         #    #print(" price between SMA30 and SMA50")
 
 
-        if float(klines.loc[0]['SMA_20'])>float(klines.loc[2]['open_price'])>float(klines.loc[2]['close_price'])>float(klines.loc[1]['close_price'])>float(klines.loc[1]['open_price']):
-            if float(klines.loc[1]['close_price']) > percent_calculator(float(klines.loc[2]['open_price']),0.5):
+        if float(klines.loc[0]['SMA_20'])>float(klines.loc[1]['close_price'])>float(klines.loc[1]['open_price'])>=float(klines.loc[2]['close_price'])<float(klines.loc[2]['open_price']):
+            if float(klines.loc[1]['close_price']) >= percent_calculator(float(klines.loc[2]['open_price']),0.5):
                 bool_answer = True
             else:
                 bool_answer = False
@@ -345,7 +345,7 @@ def coin_for_trade():
                 getTickers=True
             except:
                 pass
-            
+
         time_now = datetime.datetime.now()
         print(time_now)
 
