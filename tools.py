@@ -348,7 +348,7 @@ def coin_for_trade():
                 pass
         
         cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace('BTC','')) in list_of_crypto ]
-        crypto_info = [ticker for ticker in tickers if ticker['symbol' in cryptoList]]
+        crypto_info = [ticker for ticker in tickers if ticker['symbol']in cryptoList]
         
 
         crypto_infoPD = pd.DataFrame(crypto_info)
