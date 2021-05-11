@@ -20,15 +20,7 @@ apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 #------------boucle pour se connecter---------------------
-disconnected = True
-while disconnected:
-    try :
-        client = Client(apikey,secretkey)
-        print("vous etes connecter\n")
-        disconnected = False
-        connected = True
-    except:
-        print("impossible de se connecter\nveuillez patientez\n")
+client = Client(apikey,secretkey)
 #----------------------------------------
 
 
@@ -48,7 +40,7 @@ while disconnected:
 
 list_of_crypto = ['ETH','DOGE','XRP','BNB''LINK','ADA','LTC','DOT','AAVE','NEO','BCH']
 
-traded_crypto = []#liste des crypto deja trader
+
 
 
 
@@ -336,7 +328,7 @@ def price_trick(coin_to_trade:str):
 
 
 
-
+traded_crypto = []#liste des crypto deja trader
 
 def coin_for_trade():
     """
@@ -430,7 +422,7 @@ def coin_for_trade():
                 return b
 
             elif coin in traded_crypto:
-                pass
+                continue
 
 
             if len(traded_crypto)== (len(list_of_crypto)//2):#delete the list if traded the half of the list
