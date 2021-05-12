@@ -7,6 +7,7 @@ import datetime
 import time
 import json
 import random
+import websocket
 
 """
 -in the function coinfortrade() i've removed the 1hour function , i'mworking with the 5min chart
@@ -212,7 +213,7 @@ def price_study(coin_to_trade:str,klines,advanced:bool):
 
         a=[]
         for n in range(0,4):
-            if float(klines.loc[n]['open_price'])>float(klines.loc[n]['close_price']) and coin_price >=percent_calculator(float(klines.loc[0]['SMA_20']),1):
+            if float(klines.loc[n]['close_price'])>float(klines.loc[n]['open_price'])>=float(klines.loc[n+1]['close_price'])>float(klines.loc[n+1]['open_price'])>float(klines.loc[n+1]['SMA_20']) and coin_price >=percent_calculator(float(klines.loc[0]['SMA_20']),0.7):
                 y=True
                 a.append(y)
             else:
@@ -395,13 +396,14 @@ def coin_for_trade():
 
 
 def get_coin_price(coin_to_trade):
-    """
-    get coin price
+    sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"
+    was= websocket.create_connection(sockete)
 
-    """
-    coin_ticker = client.get_symbol_ticker(symbol=coin_to_trade)
-    coin_price = float(coin_ticker['price'])
-    return coin_price
+    json_result = was.recv()
+    was.close()
+    dict_result=json.loads(json_result)
+
+    return float(dict_result['k']['c'])#close price
 
 
 def coin_approvement(coin_to_trade):
