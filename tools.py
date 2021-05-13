@@ -348,8 +348,6 @@ def coin_for_trade():
         nonePickedUp = True
 
         for n in range(0,(len(cryptoList)-1)):
-            #coin that we gonna use to trade
-            #n = random.randint(0,(len(list_of_crypto)-1))#pick a random crypto from the list of crypto
             coin_to_trade = crypto_infoPD.iloc[n]['symbol']
             price_change = crypto_infoPD.iloc[n]['priceChangePercent']
             coin = str(coin_to_trade.replace('BTC',''))
@@ -361,7 +359,7 @@ def coin_for_trade():
                 #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
                 up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
 
-                #isThere_price_trick = True
+
 
                 if up_trend: #removed the 1hour working with the 15min
                     price_5min = minute5_trend(coin_to_trade) #price trick
@@ -424,30 +422,7 @@ def coin_approvement(coin_to_trade):
 
 
 
-def check_price_moves(coin_to_trade:str):
-    """
-    when i'm in a trade it checks the price movement and return a boolean value.
-    False if it's for a sell
-    True if it's for a hold
-    """
 
-    coin_price = get_coin_price(coin_to_trade)
-    #coin = str(coin_to_trade.replace('BTC',''))
-
-
-    klines= get_klines(coin_to_trade,'5m','1 day')
-
-    price_trick = False
-    if klines.loc[0]['SMA_30']>coin_price>=(klines.loc[0]['SMA_50']):
-        price_trick = True
-        #print("price under sma30 and 50")
-
-    if klines.loc[0]['SMA_30']>coin_price>klines.loc[0]['SMA_50']:
-        price_trick = True
-        #print(" price between SMA30 and SMA50")
-
-
-    return price_trick
 
 
 
