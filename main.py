@@ -1,13 +1,13 @@
 
-import numpy as np
-import pandas as pd
-from binance.client import Client
-from binance.enums import *
-import math
+#import numpy as np
+#import pandas as pd
+#from binance.client import Client
+#from binance.enums import *
+#import math
 import datetime
 import time
-import json
-import random
+#import json
+#import random
 from tools import *
 
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
@@ -15,21 +15,16 @@ secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 
 
-#------------boucle pour se connecter---------------------
-#disconnected = True
-#while disconnected:
-#    try :
-#        client = Client(apikey,secretkey)
-#        print("vous etes connecter\n")
-#        disconnected = False
-#        connected = True
-#    except:
-#        print("impossible de se connecter\nveuillez patientez\n")
-#----------------------------------------
+
+baseCoin = 'BTC'
 
 
-have_btc = True # have BTC
-Have_other_coin = False #don't have BTC,meaning i have a crypto
+
+
+
+
+haveBaseCoin = True # have basecoin
+Have_other_coin = False #don't have basecoin,meaning i have a crypto
 
 show_trade_info = False #pour montrer les infos sur le terminal
 
@@ -68,7 +63,7 @@ while True:
         info_for_coin = coin_for_trade()
 
         coin_to_trade = info_for_coin['coin to trade']
-        coin = str(coin_to_trade.replace('BTC',''))# coin that i am using
+        coin = str(coin_to_trade.replace(baseCoin,''))# coin that i am using
         
         #price change percent
         price_change = info_for_coin['price change']
@@ -105,8 +100,7 @@ while True:
         print('Profit of 1%, SELL')
         sell_order = True
         buy_order = False
-
-    if 0!=loss_target_price >= coin_price:
+    elif 0!=loss_target_price >= coin_price:
         print('loss of 1%,SELL')
         sell_order = True
         buy_order = False
@@ -140,20 +134,18 @@ while True:
 #-----------------------
 
 
-    if buy_order and have_btc:
+    if buy_order and haveBaseCoin:
 
-        balance = margin_balance_of('BTC')
-        #order_quantity=balance / coin_price
+        balance = margin_balance_of(baseCoin)
+        
         order_quantity = order_quantity_of(balance,coin)
 
-        #print('sma signal buy and have BTC')
-        #try:
-        #buy order
+        
         margin_buy_order(coin_to_trade,order_quantity)
         #-------------------------
         print(f' {datetime.datetime.now()} bought {order_quantity}{coin} of {float(order_quantity*coin_price)} at {coin_price} \n')
-        Have_other_coin = True #don't have BTC
-        have_btc = False # have btc
+        Have_other_coin = True #don't have basecoin
+        haveBaseCoin = False # have basecoin
         search_coin = False#don't search coin until i sell it
 
         compteur_pour_searchcoin=0 #counter of searching coin initialized
@@ -187,11 +179,8 @@ while True:
 
         #    pass
 
-
-
-
-    if buy_order and Have_other_coin:
-        print('No BTC for BUY ORDER')
+    elif buy_order and Have_other_coin:
+        print(f'No {baseCoin} for BUY ORDER')
 
     #-------------------------------------
 
@@ -205,8 +194,8 @@ while True:
         margin_sell_order(coin_to_trade,order_quantity)
         #sell_order
         print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
-        have_btc = True # have BTC
-        Have_other_coin = False #don't have BTC,meaning i have a crypto
+        haveBaseCoin = True # have basecoin
+        Have_other_coin = False #don't have basecoin,meaning i have a crypto
         search_coin = True #search for another coin
         operation = 'Sell'
 
@@ -229,9 +218,7 @@ while True:
         time_passed_in_trade = 0
         #    print('erreur lors du vente')
 
-
-
-    if sell_order and have_btc:
+    elif sell_order and haveBaseCoin:
         print(f'No {coin} for SELL ORDER')
         search_coin=True
 

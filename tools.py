@@ -1,20 +1,17 @@
-import numpy as np
+#import numpy as np
 import pandas as pd
 from binance.client import Client
 from binance.enums import *
-import math
+#import math
 import datetime
 import time
 import json
-import random
+#import random
 import websocket
 
-"""
--in the function coinfortrade() i've removed the 1hour function , i'mworking with the 5min chart
-- i'm using SMA 15 and SMA 30
 
-"""
 
+baseCoin = 'BTC'
 
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_--_-_-_-_-_-_
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
@@ -95,10 +92,6 @@ def margin_balance_of(coin:str):
 
     info = client.get_margin_account()
     for i in info['userAssets']:
-        if coin=='ETH':
-            if i['asset']==coin:
-                balance = float(str(i['free'])[:5])
-
         if coin=='BTC':
             if i['asset']==coin:
                 balance = float(str(i['free'])[:7])
@@ -113,10 +106,8 @@ def order_quantity_of(balance:float,coin:str):
     """
     #il determine la quantite a utiliser pour placer un ordre en analysant so prix
 
-    coin_ticker_usd = client.get_symbol_ticker(symbol=coin+'USDT')
-    coin_price_usd= float(coin_ticker_usd['price'])
-    coin_ticker = client.get_symbol_ticker(symbol=coin+'BTC')
-    coin_price = float(coin_ticker['price'])
+    coin_price_usd= get_coin_price(coin+'USDT')
+    coin_price = get_coin_price(coin+baseCoin)
     if coin=='ETH':
         q = balance / coin_price
         q =float(str(q)[:5])
@@ -203,7 +194,7 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
 
 
 
-def price_study(coin_to_trade:str,klines,advanced:bool):
+def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool):
     """
     study made on klines(dataframe)
     """
@@ -281,32 +272,6 @@ def minute5_trend(coin_to_trade:str):
 
 
 
-def price_trick(coin_to_trade:str):
-    """
-    *coin_to_trade,ex:ETHBTC
-    *coinBase,ex: for ETHBTC, BTC is coinBase
-
-    *price tricks if:
-    -coin price under SMA30 and 50 but SMA30 is higher than SMA50
-    -if the trend didn't start 6candles before
-    -if price is verry high when the SMA30 break the SMA50
-    -The coin price is between the SMA30 and SMA50 but the SMA30 is higher than the SMA50
-    """
-
-    #coin_price = get_coin_price(coin_to_trade)
-    #coin = str(coin_to_trade.replace('BTC',''))
-
-    try:
-        klines= get_klines(coin_to_trade,'5m','1 day')
-
-        price_trick = price_study(coin_to_trade,klines,True)
-
-    except:
-        price_trick= True
-    return price_trick
-
-
-
 
 traded_crypto = []#liste des crypto deja trader
 
@@ -328,7 +293,7 @@ def coin_for_trade():
         time_now = datetime.datetime.now()
         print(time_now)
 
-        cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace('BTC','')) in list_of_crypto ]
+        cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace(baseCoin,'')) in list_of_crypto ]
         crypto_info = [ticker for ticker in tickers if ticker['symbol']in cryptoList]
         
 
@@ -350,7 +315,7 @@ def coin_for_trade():
         for n in range(0,(len(cryptoList)-1)):
             coin_to_trade = crypto_infoPD.iloc[n]['symbol']
             price_change = crypto_infoPD.iloc[n]['priceChangePercent']
-            coin = str(coin_to_trade.replace('BTC',''))
+            coin = str(coin_to_trade.replace(baseCoin,''))
         
             if coin not in traded_crypto:
                 
@@ -413,7 +378,7 @@ def coin_approvement(coin_to_trade):
     up_trend = hour1_trend(coin_to_trade)
     price_5min = minute5_trend(coin_to_trade)
 
-    if up_trend and not price_5min:
+    if up_trend and price_5min:
         buy = True
     return buy
 
