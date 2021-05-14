@@ -275,6 +275,24 @@ def minute5_trend(coin_to_trade:str):
     return up_trend
 
 
+def coinPriceChange(coin_to_trade):
+    """Return percent variation price of the the crypto in 24hour roll"""
+    while True:
+        try:
+            sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
+            was= websocket.create_connection(sockete)
+
+            json_result = was.recv()
+            was.close()
+            dict_result=json.loads(json_result)
+
+            dict_result['k']['priceChange']= percent_change(float(dict_result['k']['o']),float(dict_result['k']['c']))
+
+            break
+        except:
+            pass
+    return float(dict_result['k']['priceChange'])
+
 
 
 traded_crypto = []#liste des crypto deja trader
@@ -286,40 +304,14 @@ def coin_for_trade():
     redo_search = True
 
     while redo_search:
-        getTickers=False
-        while not getTickers:
-            try:
-                tickers = client.get_ticker()
-                getTickers=True
-            except:
-                pass
-
-        time_now = datetime.datetime.now()
-        print(time_now)
-
-        cryptoList=[ticker['symbol'] for ticker in tickers if (ticker['symbol'].replace(baseCoin,'')) in list_of_crypto ]
-        crypto_info = [ticker for ticker in tickers if ticker['symbol']in cryptoList]
-        
-
-        crypto_infoPD = pd.DataFrame(crypto_info)
-
-        crypto_infoPD[['priceChange', 'priceChangePercent']] = crypto_infoPD[['priceChange', 'priceChangePercent']].astype(float)
-
-        #trier les indexes pour que 0 correspondents avec le crypto ayant pricechange percent eleve
-        crypto_infoPD.sort_values('priceChangePercent',ascending=False,inplace=True)
-
-        #refaire les index
-        crypto_infoPD.reset_index(inplace = True)
-
-        #supprimer un colonnes pas important
-        crypto_infoPD.drop(columns=['index'],inplace=True)
-
         nonePickedUp = True
 
-        for n in range(0,(len(cryptoList)-1)):
-            coin_to_trade = crypto_infoPD.iloc[n]['symbol']
-            price_change = crypto_infoPD.iloc[n]['priceChangePercent']
-            coin = str(coin_to_trade.replace(baseCoin,''))
+        for n in range(0,(len(list_of_crypto)-1)):
+
+            coin = list_of_crypto[n]
+
+            coin_to_trade = coin+baseCoin
+            price_change = coinPriceChange(coin_to_trade)
         
             if coin not in traded_crypto:
                 

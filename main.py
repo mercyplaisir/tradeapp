@@ -70,12 +70,11 @@ while True:
         print(f'crypto that we gonna use is {coin_to_trade}, price change = {price_change}%')
         #---------------------------------------------------------------------------------------------
 
-        coinGoodForUse = coin_approvement(coin_to_trade)#get the trend and the price tricks
+        buy_order=True
+        sell_order=False    
 
 
-    if coinGoodForUse:
-        buy_order = True
-        sell_order = False
+    
         
 
 
@@ -96,35 +95,6 @@ while True:
     #------------------------------_-
 
 
-    if 0!=profit_target_price <= coin_price:
-        print('Profit of 1%, SELL')
-        sell_order = True
-        buy_order = False
-    elif 0!=loss_target_price >= coin_price:
-        print('loss of 1%,SELL')
-        sell_order = True
-        buy_order = False
-
-
-    time_now = datetime.datetime.timestamp(datetime.datetime.now())
-
-
-    if show_trade_info:
-        #nowPriceMoves = check_price_moves(coin_to_trade)
-        #if nowPriceMoves: #if true there is price trick
-        #    sell_order = True
-        #    buy_order = False
-        #-------------------------------
-        time_passed_in_trade =  time_now - time_when_passing_order
-        print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
-        percent_of_profit = percent_change(bought_at,coin_price)
-        print(percent_of_profit)
-
-
-    #pour ne passer que 2heures dans une trade
-    if 0<time_passed_in_trade>5400:
-        sell_order = True
-        buy_order = False
 
 
     
@@ -222,6 +192,38 @@ while True:
         print(f'No {coin} for SELL ORDER')
         search_coin=True
 
+    #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-__-_-_-_-_-_-_-_-
+
+
+    if 0!=profit_target_price <= coin_price:
+        print('Profit of 1%, SELL')
+        sell_order = True
+        buy_order = False
+    elif 0!=loss_target_price >= coin_price:
+        print('loss of 1%,SELL')
+        sell_order = True
+        buy_order = False
+
+
+    time_now = datetime.datetime.timestamp(datetime.datetime.now())
+
+
+    if show_trade_info:
+        #nowPriceMoves = check_price_moves(coin_to_trade)
+        #if nowPriceMoves: #if true there is price trick
+        #    sell_order = True
+        #    buy_order = False
+        #-------------------------------
+        time_passed_in_trade =  time_now - time_when_passing_order
+        print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
+        percent_of_profit = percent_change(bought_at,coin_price)
+        print(percent_of_profit)
+
+
+    #pour ne passer que 2heures dans une trade
+    if 0<time_passed_in_trade>5400:
+        sell_order = True
+        buy_order = False
     print(time_passed_in_trade)
 
     print('------------------------------------\n')
