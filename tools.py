@@ -13,6 +13,10 @@ import websocket
 
 baseCoin = 'BTC'
 
+
+
+
+
 #-_-_-_-_-_-_-_-_-_-_-_-_-_-_--_-_-_-_-_-_
 apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
