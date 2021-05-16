@@ -22,7 +22,12 @@ apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
 secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
 
 #------------boucle pour se connecter---------------------
-client = Client(apikey,secretkey)
+while True:
+    try:
+        client = Client(apikey,secretkey)
+        break
+    except:
+        pass
 #----------------------------------------
 
 
@@ -279,6 +284,7 @@ def coinPriceChange(coin_to_trade):
     """Return percent variation price of the the crypto in 24hour roll"""
     while True:
         try:
+            print('coinPriceChange')
             sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
             was= websocket.create_connection(sockete)
 
@@ -305,19 +311,20 @@ def coin_for_trade():
 
     while redo_search:
         nonePickedUp = True
+        print('coin for trade')
 
         for n in range(0,(len(list_of_crypto)-1)):
 
             coin = list_of_crypto[n]
 
             coin_to_trade = coin+baseCoin
+            print(coin_to_trade)
             price_change = coinPriceChange(coin_to_trade)
         
             if coin not in traded_crypto:
                 
                 
                 print(coin_to_trade,' : ',price_change)
-                #up_trend_1hour = hour1_trend(coin_to_trade) #tendance pour 1heure
                 up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
 
 
@@ -355,28 +362,24 @@ def coin_for_trade():
 
 
 def get_coin_price(coin_to_trade):
-    sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"
-    was= websocket.create_connection(sockete)
+    while True:
+        try:
+            print('coinPrice')
+            sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"
+            was= websocket.create_connection(sockete)
 
-    json_result = was.recv()
-    was.close()
-    dict_result=json.loads(json_result)
+            json_result = was.recv()
+            was.close()
+            dict_result=json.loads(json_result)
+
+            break
+        except:
+            pass
 
     return float(dict_result['k']['c'])#close price
 
 
-def coin_approvement(coin_to_trade):
-    """
-    it's appprouve if the coin is really good to use
-    """
-    buy = False
-    #up_trend_1hour = hour1_trend(coin_to_trade)
-    up_trend = hour1_trend(coin_to_trade)
-    price_5min = minute5_trend(coin_to_trade)
 
-    if up_trend and price_5min:
-        buy = True
-    return buy
 
 
 
