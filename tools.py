@@ -203,17 +203,15 @@ def get_klines(coin_to_trade:str,timeframe:str,interval:str):
 
 
 
-def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool):
+def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool, coinPrice:float):
     """
     study made on klines(dataframe)
     """
-    coin_price = get_coin_price(coin_to_trade)
-
     if not advanced:
 
         a=[]
         for n in range(0,4):
-            if float(klines.loc[n]['close_price'])>float(klines.loc[n]['open_price'])>=float(klines.loc[n+1]['close_price'])>float(klines.loc[n+1]['open_price'])>float(klines.loc[n+1]['SMA_20']) and coin_price >=percent_calculator(float(klines.loc[0]['SMA_20']),0.7):
+            if float(klines.loc[n]['close_price'])>float(klines.loc[n]['open_price'])>=float(klines.loc[n+1]['close_price'])>float(klines.loc[n+1]['open_price'])>float(klines.loc[n+1]['SMA_20']) and coinPrice > float(klines.loc[n+1]['SMA_20']):
                 y=True
                 a.append(y)
             else:
@@ -232,12 +230,9 @@ def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool):
 #-------------------------------------------------------------------------------
 
     elif advanced:
-
-        if float(klines.loc[0]['SMA_20'])>float(klines.loc[1]['close_price'])>float(klines.loc[1]['open_price'])>=float(klines.loc[2]['close_price'])<float(klines.loc[2]['open_price']):
-            if float(klines.loc[1]['close_price']) >= percent_calculator(float(klines.loc[2]['open_price']),0.5):
+                #SMA20                      close price du 1er bougie arriere    openprice du 2eme bougie arriere     openprice du 1er bougie arriere     close price du 2eme bougie arriere
+        if float(klines.loc[0]['SMA_20'])>float(klines.loc[1]['close_price'])>float(klines.loc[2]['open_price'])>float(klines.loc[1]['open_price'])>=float(klines.loc[2]['close_price']):
                 bool_answer = True
-            else:
-                bool_answer = False
         else:
             bool_answer = False
 
@@ -250,22 +245,25 @@ def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool):
 
 
 
-def hour1_trend(coin_to_trade:str):
+def hour1_trend(coin_to_trade:str, coinPrice:float):
     """
     tendance d'un crypto dans un timeframe de 1heure
+
+
+
     """
     up_trend = False
     try:
         klines = get_klines(coin_to_trade,'1h','5 days')
 
-        up_trend = price_study(coin_to_trade,klines,False)
+        up_trend = price_study(coin_to_trade,klines,False,coinPrice)
     except:
         up_trend=False
 
     return up_trend
 
 
-def minute5_trend(coin_to_trade:str):
+def minute5_trend(coin_to_trade:str, coinPrice:float):
     """
     tendance d'un crypto dans un timeframe de 1heure
     """
@@ -274,30 +272,12 @@ def minute5_trend(coin_to_trade:str):
     try:
         klines= get_klines(coin_to_trade,'5m','1day')
 
-        up_trend = price_study(coin_to_trade,klines,True)
+        up_trend = price_study(coin_to_trade,klines,True,coinPrice)
     except:
         up_trend=False
     return up_trend
 
 
-def coinPriceChange(coin_to_trade):
-    """Return percent variation price of the the crypto in 24hour roll"""
-    while True:
-        try:
-            print('coinPriceChange')
-            sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
-            was= websocket.create_connection(sockete)
-
-            json_result = was.recv()
-            was.close()
-            dict_result=json.loads(json_result)
-
-            dict_result['k']['priceChange']= percent_change(float(dict_result['k']['o']),float(dict_result['k']['c']))
-
-            break
-        except:
-            pass
-    return float(dict_result['k']['priceChange'])
 
 
 
@@ -318,19 +298,24 @@ def coin_for_trade():
             coin = list_of_crypto[n]
 
             coin_to_trade = coin+baseCoin
-            print(coin_to_trade)
-            price_change = coinPriceChange(coin_to_trade)
+             
         
             if coin not in traded_crypto:
                 
+                print(coin_to_trade)
                 
-                print(coin_to_trade,' : ',price_change)
-                up_trend = hour1_trend(coin_to_trade) #tendance pour 15min
+                dictInfo =coinPriceChange(coin_to_trade)
+
+                coinPrice = dictInfo['price']
+                price_change = dictInfo['priceChange']
+                
+                print(coin_to_trade,' : ',dictInfo)
+                up_trend = hour1_trend(coin_to_trade,coinPrice) #tendance pour 15min
 
 
 
                 if up_trend: #removed the 1hour working with the 15min
-                    price_5min = minute5_trend(coin_to_trade) #price trick
+                    price_5min = minute5_trend(coin_to_trade, coinPrice) #price trick
 
                     if not price_5min:
                         print('no')
@@ -356,15 +341,13 @@ def coin_for_trade():
                 traded_crypto.clear()
 
         if nonePickedUp:
-            time.sleep(300)
+            time.sleep(10)
 
 
-
-
+#-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-----_-_-_-_-_-_-_-_-_-_-
 def get_coin_price(coin_to_trade):
     while True:
         try:
-            print('coinPrice')
             sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"
             was= websocket.create_connection(sockete)
 
@@ -372,6 +355,7 @@ def get_coin_price(coin_to_trade):
             was.close()
             dict_result=json.loads(json_result)
 
+            print('coinPrice')
             break
         except:
             pass
@@ -379,14 +363,24 @@ def get_coin_price(coin_to_trade):
     return float(dict_result['k']['c'])#close price
 
 
+def coinPriceChange(coin_to_trade):
+    """Return percent variation price of the the crypto in 24hour roll"""
+    while True:
+        try:
+            sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
+            was= websocket.create_connection(sockete)
 
+            json_result = was.recv()
+            was.close()
+            dict_result=json.loads(json_result)
 
+            dict_result['k']['priceChange']= percent_change(float(dict_result['k']['o']),float(dict_result['k']['c']))
 
+            print('coinPriceChange')
+            b={'price': float(dict_result['k']['c']) , 'priceChange': float(dict_result['k']['priceChange'])}
+            break
+        except:
+            pass
 
-
-
-
-
-
-
+    return b
 
