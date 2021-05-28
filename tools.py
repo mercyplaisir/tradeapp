@@ -78,11 +78,11 @@ def write_json(text):
 
 
 #calcule du pourcentage
-def percent_calculator(x:float,y:int):
+def percent_calculator(number:float,percentage:float):
     """
     calcule d'un nombre par rapport a un pourcentage du nombre d'origine
     """
-    z=x+((x*y)/100)
+    z=number+((number*percentage)/100)
     return z
 
 
@@ -108,6 +108,7 @@ def margin_balance_of(coin:str):
         elif i['asset']==coin:
             balance = (float(str(i['free'])[:5]))
     return balance
+
 
 def order_quantity_of(balance:float,coin:str):
     """
@@ -210,8 +211,8 @@ def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool, coinPrice:f
     if not advanced:
 
         a=[]
-        for n in range(0,4):
-            if float(klines.loc[n]['close_price'])>float(klines.loc[n]['open_price'])>=float(klines.loc[n+1]['close_price'])>float(klines.loc[n+1]['open_price'])>float(klines.loc[n+1]['SMA_20']) and coinPrice > float(klines.loc[n+1]['SMA_20']):
+        for n in range(0,3):
+            if float(klines.loc[n]['close_price'])>float(klines.loc[n]['SMA_20']) and float(klines.loc[n]['open_price'])>float(klines.loc[n]['SMA_20']):
                 y=True
                 a.append(y)
             else:
@@ -232,6 +233,7 @@ def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool, coinPrice:f
     elif advanced:
                 #SMA20                      close price du 1er bougie arriere    openprice du 2eme bougie arriere     openprice du 1er bougie arriere     close price du 2eme bougie arriere
         if float(klines.loc[0]['SMA_20'])>float(klines.loc[1]['close_price'])>float(klines.loc[2]['open_price'])>float(klines.loc[1]['open_price'])>=float(klines.loc[2]['close_price']):
+            if float(klines.loc[2]['open_price'])<=percent_calculator(float(klines.loc[1]['close_price']),-2):
                 bool_answer = True
         else:
             bool_answer = False
@@ -245,7 +247,7 @@ def price_study(coin_to_trade:str,klines:pd.DataFrame,advanced:bool, coinPrice:f
 
 
 
-def hour1_trend(coin_to_trade:str, coinPrice:float):
+def minute15_trend(coin_to_trade:str, coinPrice:float):
     """
     tendance d'un crypto dans un timeframe de 1heure
 
@@ -254,9 +256,15 @@ def hour1_trend(coin_to_trade:str, coinPrice:float):
     """
     up_trend = False
     try:
-        klines = get_klines(coin_to_trade,'1h','5 days')
+        klines = get_klines(coin_to_trade,'15m','1 day')
 
         up_trend = price_study(coin_to_trade,klines,False,coinPrice)
+
+        if up_trend:
+            print('uptrend for 15min')
+        else:
+            print('no trend for 15min')
+
     except:
         up_trend=False
 
@@ -273,6 +281,11 @@ def minute5_trend(coin_to_trade:str, coinPrice:float):
         klines= get_klines(coin_to_trade,'5m','1day')
 
         up_trend = price_study(coin_to_trade,klines,True,coinPrice)
+
+        if up_trend:
+            print('uptrend for 5min')
+        else:
+            print('no trend for 5min')
     except:
         up_trend=False
     return up_trend
@@ -290,8 +303,11 @@ def coin_for_trade():
     redo_search = True
 
     while redo_search:
+
+        print('\n')
+        print(str(datetime.datetime.now()).split(' ')[1])
+
         nonePickedUp = True
-        print('coin for trade')
 
         for n in range(0,(len(list_of_crypto)-1)):
 
@@ -310,20 +326,13 @@ def coin_for_trade():
                 price_change = dictInfo['priceChange']
                 
                 print(coin_to_trade,' : ',dictInfo)
-                up_trend = hour1_trend(coin_to_trade,coinPrice) #tendance pour 15min
+                #up_trend = minute15_trend(coin_to_trade,coinPrice) #tendance pour 15min
+
+                price_5min = minute5_trend(coin_to_trade, coinPrice) #price trick
 
 
-
-                if up_trend: #removed the 1hour working with the 15min
-                    price_5min = minute5_trend(coin_to_trade, coinPrice) #price trick
-
-                    if not price_5min:
-                        print('no')
-                    elif price_5min:
-                        print('good one')
-
-
-                if up_trend and price_5min :
+                #if up_trend and price_5min :
+                if price_5min:
                     redo_search=False
                     nonePickedUp = False
 
