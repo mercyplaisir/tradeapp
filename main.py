@@ -1,56 +1,10 @@
-
-#import numpy as np
-#import pandas as pd
-#from binance.client import Client
-#from binance.enums import *
-#import math
-import datetime
 import time
-#import json
-#import random
-from tools import *
+import datetime
+from BinanceApi import Binance
 
-apikey='eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b'
-secretkey='hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo'
+from tools import Tool as tl
 
 
-
-
-baseCoin = 'BTC'
-
-
-
-
-
-
-haveBaseCoin = True # have basecoin
-Have_other_coin = False #don't have basecoin,meaning i have a crypto
-
-show_trade_info = False #pour montrer les infos sur le terminal
-
-sell_order = False
-buy_order = False
-
-coinGoodForUse = False
-
-
-profit_target_price = 0 #mon take profit price
-loss_target_price = 0 #mon stop loss price
-bought_at= 0 #le prix auxquelle j'ai achete
-now_price = 0 #prix actuelle
-percent_of_profit = 0 #percent iim making in a trade
-
-
-
-search_coin = True
-
-#---------------------------------------------------------------
-
-#---------------------------------------------------------------
-
-time_when_passing_order = 0
-time_now =0
-time_passed_in_trade =  0
 
 while True:
     print(datetime.datetime.now())
@@ -60,10 +14,10 @@ while True:
         
 
 
-        info_for_coin = coin_for_trade()
+        info_for_coin = Binance.coin_for_trade()
 
         coin_to_trade = info_for_coin['coin to trade']
-        coin = str(coin_to_trade.replace(baseCoin,''))# coin that i am using
+        coin = str(coin_to_trade.replace(tl.baseCoin,''))# coin that i am using
         
         #price change percent
         price_change = info_for_coin['price change']
@@ -80,7 +34,7 @@ while True:
 
 
     #---------------pour recuperer le prix-------------
-    coin_price = get_coin_price(coin_to_trade)
+    coin_price = Binance.get_coin_price(coin_to_trade)
 
     print('prix recuperer')
     #---------------------------------------------------------------
@@ -103,12 +57,12 @@ while True:
 
     if buy_order and haveBaseCoin:
 
-        balance = margin_balance_of(baseCoin)
+        balance = Binance.margin_balance_of(tl.baseCoin)
         
-        order_quantity = order_quantity_of(balance,coin)
+        order_quantity = Binance.order_quantity_of(balance,coin)
 
         
-        margin_buy_order(coin_to_trade,order_quantity)
+        Binance.margin_buy_order(coin_to_trade,order_quantity)
         #-------------------------
         print(f' {datetime.datetime.now()} bought {order_quantity}{coin} of {float(order_quantity*coin_price)} at {coin_price} \n')
         Have_other_coin = True #don't have basecoin
@@ -124,8 +78,8 @@ while True:
         operation = 'Buy'
 
 
-        profit_target_price = percent_calculator(coin_price,1)#target profit price
-        loss_target_price = percent_calculator(coin_price,-0.7)#stop loss
+        profit_target_price = tl.percent_calculator(coin_price,1)#target profit price
+        loss_target_price = tl.percent_calculator(coin_price,-0.7)#stop loss
 
         show_trade_info = True
 
@@ -135,10 +89,10 @@ while True:
         #--------------------------------------------
 
         trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
-        write_json(trade_details)
+        tl.write_json(trade_details)
 
 
-        traded_crypto.append(coin)
+        Binance.traded_crypto.append(coin)
 
         #except:
 
@@ -147,18 +101,18 @@ while True:
         #    pass
 
     elif buy_order and Have_other_coin:
-        print(f'No {baseCoin} for BUY ORDER')
+        print(f'No {tl.baseCoin} for BUY ORDER')
 
     #-------------------------------------
 
 
 
     if sell_order and Have_other_coin:
-        balance = margin_balance_of(coin)
+        balance = Binance.margin_balance_of(coin)
         order_quantity = balance
         print(f'sell_order of {coin}')
         #sell order
-        margin_sell_order(coin_to_trade,order_quantity)
+        Binance.margin_sell_order(coin_to_trade,order_quantity)
         #sell_order
         print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
         haveBaseCoin = True # have basecoin
@@ -174,7 +128,7 @@ while True:
         now_time = now_time.strftime("%d-%b-%Y (%H:%M:%S.%f)")
         #--------------------------------------------
         trade_details = {'time':now_time,'symbol':coin,'operation':operation,'quantity':order_quantity,'price':coin_price}
-        write_json(trade_details)
+        tl.write_json(trade_details)
 
         show_trade_info = False
 
@@ -213,7 +167,7 @@ while True:
         #-------------------------------
         time_passed_in_trade =  time_now - time_when_passing_order
         print(f"bought at {bought_at}\ntake profit at {profit_target_price}\nstop loss at {loss_target_price}\nnow price{coin_price}\n")
-        percent_of_profit = percent_change(bought_at,coin_price)
+        percent_of_profit = tl.percent_change(bought_at,coin_price)
         print(percent_of_profit)
 
 
