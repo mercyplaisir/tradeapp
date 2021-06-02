@@ -342,8 +342,8 @@ class Binance:
 
     #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-----_-_-_-_-_-_-_-_-_-_-
 
-
-    def coinPriceChange(self,coin_to_trade):
+    @staticmethod
+    def coinPriceChange(coin_to_trade):
         """Return percent variation price of the the crypto in 24hour roll"""
         while True:
             try:
@@ -365,8 +365,8 @@ class Binance:
 
         return b
 
-    
-    def get_coin_price(self, coin_to_trade):
+    @staticmethod
+    def get_coin_price(coin_to_trade):
         while True:
             try:
                 sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"

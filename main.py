@@ -33,7 +33,8 @@ buy_order = False
 
 
 
-
+#initialize Binance(class)
+plaisir = Binance()
 
 
 while True:
@@ -44,10 +45,10 @@ while True:
         
 
 
-        info_for_coin = Binance.coin_for_trade()
+        info_for_coin = plaisir.coin_for_trade()
 
         coin_to_trade = info_for_coin['coin to trade']
-        coin = str(coin_to_trade.replace(Binance.baseCoin,''))# coin that i am using
+        coin = str(coin_to_trade.replace(plaisir.baseCoin,''))# coin that i am using
         
         #price change percent
         price_change = info_for_coin['price change']
@@ -64,7 +65,7 @@ while True:
 
 
     #---------------pour recuperer le prix-------------
-    coin_price = Binance.get_coin_price(coin_to_trade)
+    coin_price = plaisir.get_coin_price(coin_to_trade)
 
     print('prix recuperer')
     #---------------------------------------------------------------
@@ -87,12 +88,12 @@ while True:
 
     if buy_order and haveBaseCoin:
 
-        balance = Binance.margin_balance_of(tl.baseCoin)
+        balance = plaisir.margin_balance_of(tl.baseCoin)
         
-        order_quantity = Binance.order_quantity_of(balance,coin)
+        order_quantity = plaisir.order_quantity_of(balance,coin)
 
         
-        Binance.margin_buy_order(coin_to_trade,order_quantity)
+        plaisir.margin_buy_order(coin_to_trade,order_quantity)
         #-------------------------
         print(f' {datetime.datetime.now()} bought {order_quantity}{coin} of {float(order_quantity*coin_price)} at {coin_price} \n')
         Have_other_coin = True #don't have basecoin
@@ -122,7 +123,7 @@ while True:
         tl.write_json(trade_details)
 
 
-        Binance.traded_crypto.append(coin)
+        plaisir.traded_crypto.append(coin)
 
         #except:
 
@@ -138,12 +139,15 @@ while True:
 
 
     if sell_order and Have_other_coin:
-        balance = Binance.margin_balance_of(coin)
+        balance = plaisir.margin_balance_of(coin)
+
         order_quantity = balance
         print(f'sell_order of {coin}')
+
         #sell order
-        Binance.margin_sell_order(coin_to_trade,order_quantity)
+        plaisir.margin_sell_order(coin_to_trade,order_quantity)
         #sell_order
+        
         print(f'{datetime.datetime.now()} sold {order_quantity}{coin} of {(float(order_quantity*coin_price))} at {coin_price} ')
         haveBaseCoin = True # have basecoin
         Have_other_coin = False #don't have basecoin,meaning i have a crypto
