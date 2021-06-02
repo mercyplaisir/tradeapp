@@ -37,22 +37,16 @@ class Binance:
 
     cryptoListe_filepath = './cryptoliste.json'
 
-    @classmethod
-    def set_list_of_crypto(cls):
-        taille = Tool.input_int("entrer la taille du tableau")
-        for i in range(taille):
-            Binance.list_of_crypto[i] = Tool.input_str("entrer le crypto " +i+": ")
-        
-
-        print(Binance.list_of_crypto)
 
 
+    
 
     def __init__(self):
         self.apikeys = Tool.read_json("./files/apikey.json")
         self.apiPublicKey = self.apikeys["public key"]
         self.apiSecretKey = self.apikeys["secret key"]
         self.baseCoin = 'BTC'
+        self.liste_of_crypto = self.get_list_of_crypto()
         
 
         self.connect()
@@ -65,9 +59,18 @@ class Binance:
             except:
                 pass
 
+    
+    def set_list_of_crypto(self,taille):
+        taille = Tool.input_int("entrer le nombre de crypto a entrez")
+        z=[]
+        for i in range(taille):
+            z = Tool.input_str("entrer le crypto " +i+": ")
+        
 
+        print(self.list_of_crypto)
     def get_list_of_crypto(self):
         return Tool.read_json(Binance.cryptoListe_filepath)
+
 
 
     #placer un ordre d'achat

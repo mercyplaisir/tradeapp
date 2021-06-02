@@ -1,4 +1,8 @@
 import json
+from json.decoder import JSONDecodeError
+import os
+
+
 
 
 
@@ -10,36 +14,56 @@ functions in  this file:
                         - read_json
                         - percent_calculator
                         - percent_change
+                        - input_int
+                        - input_str
 
 """
-
-
-
-BASECOIN ="BTC"
-
-
-
 
 
 
 
 class Tool:
 
+
     @staticmethod
-    def write_json(filename:str ,text):
-        """ Write in a json file
+    def create_json(filename):
+        if os.path.exists(filename):
+            print("le fichier existe deja")
+            
+        else:
+            
+            with open(f"./{filename}", "x") as f:
+                i = []
+                j = json.dumps(i)
+                f.write(j)
+
+    @staticmethod
+    def rewrite_json(filename, text):
+        try:
+            with open(f'./{filename}', 'w+') as f:
+                j = json.dumps(text)
+                f.write(j)
+        except FileNotFoundError:
+            print(FileNotFoundError)
+
+    @staticmethod
+    def append_json(filename:str ,text):
+        """ append a json file
 
             give parameters:
-                            -filename(and path)
-                            -text to put in the file
+                            - filename(and path)
+                            - text to put in the file
+                            
         
         """
 
-        with open(f'./{filename}', 'r') as f:
+        with open(f'./{filename}', 'r+') as f:
+            i=[]
             j = json.load(f)
-            j.append(text)
-        with open(f'./{filename}', 'w') as f:
-            json.dump(j, f, indent=4)
+            i.append(j)
+            i.append(text)
+        with open(f'./{filename}', 'w+') as f:
+            json.dump(i, f, indent=4)
 
         print(f"saved in {filename} ")
 
@@ -52,11 +76,15 @@ class Tool:
         give parameters:
                         -filename(with path)
         """
-        with open(f'./{filename}', 'r') as f:
-            j = json.load(f)
+        try:
+            with open(f'./{filename}', 'r+') as f:
+                j = json.load(f)
+            return j
+        except FileNotFoundError:
+            print(FileNotFoundError)
+        except JSONDecodeError:
+            print(JSONDecodeError)
         
-        return j
-
 
     @staticmethod
     def percent_calculator(number: float, percentage: float):
