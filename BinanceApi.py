@@ -53,6 +53,7 @@ class Binance:
         self.apiPublicKey = self.apikeys["public key"]
         self.apiSecretKey = self.apikeys["secret key"]
         self.baseCoin = 'BTC'
+        
 
         self.connect()
 
@@ -66,7 +67,7 @@ class Binance:
 
 
     def get_list_of_crypto(self):
-        return Binance.list_of_crypto
+        return Tool.read_json(Binance.cryptoListe_filepath)
 
 
     #placer un ordre d'achat

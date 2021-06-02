@@ -5,6 +5,36 @@ from BinanceApi import Binance
 from tools import Tool as tl
 
 
+coinGoodForUse = False
+
+profit_target_price = 0  # mon take profit price
+loss_target_price = 0  # mon stop loss price
+bought_at = 0  # le prix auxquelle j'ai achete
+now_price = 0  # prix actuelle
+percent_of_profit = 0  # percent iim making in a trade
+
+search_coin = True
+
+#---------------------------------------------------------------
+
+#---------------------------------------------------------------
+
+time_when_passing_order = 0
+time_now = 0
+time_passed_in_trade = 0
+
+haveBaseCoin = True  # have basecoin
+Have_other_coin = False  # don't have basecoin,meaning i have a crypto
+
+show_trade_info = False  # pour montrer les infos sur le terminal
+
+sell_order = False
+buy_order = False
+
+
+
+
+
 
 while True:
     print(datetime.datetime.now())
@@ -17,7 +47,7 @@ while True:
         info_for_coin = Binance.coin_for_trade()
 
         coin_to_trade = info_for_coin['coin to trade']
-        coin = str(coin_to_trade.replace(tl.baseCoin,''))# coin that i am using
+        coin = str(coin_to_trade.replace(Binance.baseCoin,''))# coin that i am using
         
         #price change percent
         price_change = info_for_coin['price change']

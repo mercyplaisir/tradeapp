@@ -25,45 +25,13 @@ BASECOIN ="BTC"
 
 class Tool:
 
-    baseCoin = "BTC"
-
-
-    haveBaseCoin = True  # have basecoin
-    Have_other_coin = False  # don't have basecoin,meaning i have a crypto
-
-    show_trade_info = False  # pour montrer les infos sur le terminal
-
-    sell_order = False
-    buy_order = False
-
-    coinGoodForUse = False
-
-
-    profit_target_price = 0  # mon take profit price
-    loss_target_price = 0  # mon stop loss price
-    bought_at = 0  # le prix auxquelle j'ai achete
-    now_price = 0  # prix actuelle
-    percent_of_profit = 0  # percent iim making in a trade
-
-
-    search_coin = True
-
-    #---------------------------------------------------------------
-
-    #---------------------------------------------------------------
-
-    time_when_passing_order = 0
-    time_now = 0
-    time_passed_in_trade = 0
-
-
     @staticmethod
     def write_json(filename:str ,text):
         """ Write in a json file
 
             give parameters:
                             -filename(and path)
-                            -text put in the file
+                            -text to put in the file
         
         """
 
