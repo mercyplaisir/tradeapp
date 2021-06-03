@@ -295,13 +295,6 @@ class Binance:
                 json_result = was.recv()
                 was.close()
                 dict_result = json.loads(json_result)
-
-
-
-
-                
-
-                print('coinPrice')
                 break
             except:
                 pass

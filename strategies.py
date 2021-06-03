@@ -1,3 +1,4 @@
+from os import name, sendfile
 from BinanceApi import Binance
 import pandas as pd
 import json
@@ -6,10 +7,12 @@ from tools import Tool
 
 
 """
-functions in this file:
-                        - price_study
+methods in Strategie:
                         - minute15_trend
                         - minute5_trend
+
+methods in bollinger bands:
+                            
 """
 
 
@@ -29,54 +32,36 @@ class Strategie:
 
 
         """
-        up_trend = False
-        try:
-            klines = self.client.get_klines(coin_to_trade, '15m', '1 day')
+    
+    
+        klines = self.client.get_klines(coin_to_trade, '15m', '1 day')
+        
 
-            up_trend = self.price_study(coin_to_trade, klines, False, coinPrice)
-
-            if up_trend:
-                print('uptrend for 15min')
-            else:
-                print('no trend for 15min')
-
-        except:
-            up_trend = False
-
-        return up_trend
+        return klines
 
     def minute5_trend(self, coin_to_trade: str, coinPrice: float):
         """
         tendance d'un crypto dans un timeframe de 1heure
         """
-
-        up_trend = False
-        try:
-            klines = self.client.get_klines(coin_to_trade, '5m', '1day')
-
-            up_trend = self.price_study(coin_to_trade, klines, True, coinPrice)
-
-            if up_trend:
-                print('uptrend for 5min')
-            else:
-                print('no trend for 5min')
-        except:
-            up_trend = False
-        return up_trend
-    pass    
-
+        klines = self.client.get_klines(coin_to_trade, '5m', '1 day')
+        
+        return klines
 
 
 
 class Bollingerbands(Strategie):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
 
-    def price_study(self, coin_to_trade: str, klines: pd.DataFrame, advanced: bool, coinPrice: float):
+    
+
+    def price_study(self, klines: pd.DataFrame, advanced: bool):
         """
             study made on klines(dataframe)
             """
+
+        
         if not advanced:
 
             a = []
@@ -111,8 +96,19 @@ class Bollingerbands(Strategie):
 
 
 class Sma(Strategie):
-    pass
+
+    
+    def __init__(self):
+        super().__init__(self)
+    
+
+    
+        
+
+            
 
 
 class Macd(Strategie):
-    pass
+    
+    def __init__(self):
+        super().__init__(self)
