@@ -41,6 +41,7 @@ class Tool:
                 print(FileNotFoundError)
             except JSONDecodeError:
                 print(JSONDecodeError)
+    
     @staticmethod
     def rewrite_json(filename, text):
         try:
@@ -49,8 +50,10 @@ class Tool:
                 f.write(j)
         except FileNotFoundError:
             print(FileNotFoundError)
-        except JSONDecodeError:
-            print(JSONDecodeError)
+        except JSONDecodeError:#en cas d'erreur
+            os.remove(filename)#efface le fichier
+            Tool.create_json(filename)#creez en une autre de meme nom
+            Tool.rewrite_json(filename,text)#et refait l'ecriture
 
     @staticmethod
     def append_json(filename ,text):

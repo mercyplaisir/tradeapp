@@ -35,7 +35,7 @@ functions in  this file:
 
 class Binance:
 
-    cryptoListe_filepath = './cryptoliste.json'
+    cryptoListe_filepath = 'files/cryptoliste.json'
 
 
 
@@ -69,10 +69,10 @@ class Binance:
         taille = Tool.input_int("entrer le nombre de crypto a entrez")
         z=[]
         for i in range(taille):
-            z = Tool.input_str("entrer le crypto " +i+": ")
-        
+            z.append(Tool.input_str("entrer le crypto " + i+": "))
+        Tool.rewrite_json(Binance.cryptoListe_filepath,z)
+        self.get_list_of_crypto()
 
-        print(self.list_of_crypto)
     def get_list_of_crypto(self):
         return Tool.read_json(Binance.cryptoListe_filepath)
 
@@ -150,6 +150,7 @@ class Binance:
 
         colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
 
+        stores the klines in a csv file
         """
         print(1)
         try:
