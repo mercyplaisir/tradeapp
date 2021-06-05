@@ -142,6 +142,9 @@ class Binance:
         Get the klines for the timeframe given and in interval given.
         timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
 
+
+        colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
+
         """
 
         try:
