@@ -46,15 +46,18 @@ class Strategie:
 
 class Bollingerbands(Strategie):
 
+    KLINE_PATH = "./files/klines.csv"
+
     def __init__(self):
         super().__init__(self)
 
 
-    def price_study(self, klines: pd.DataFrame, advanced: bool):
+
+    def price_study(self, advanced: bool):
         """
             study made on klines(dataframe)
             """
-
+        klines = pd.read_csv("files/klines.csv")
         
         if not advanced:
             j = 0
@@ -86,7 +89,9 @@ class Sma(Strategie):
     
 
 
-    def price_study(self, klines: pd.DataFrame):
+    def price_study(self):
+
+        klines = pd.read_csv("files/klines.csv")
 
         j=0
         for n in range(4):
@@ -106,6 +111,7 @@ class Macd(Strategie):
         super().__init__(self)
 
     def price_study(self):
+        klines = pd.read_csv("files/klines.csv")
         pass
 
 

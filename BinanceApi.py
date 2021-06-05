@@ -42,14 +42,19 @@ class Binance:
     
 
     def __init__(self):
-        self.apikeys = Tool.read_json("./files/apikey.json")
-        self.apiPublicKey = self.apikeys["public key"]
-        self.apiSecretKey = self.apikeys["secret key"]
-        self.baseCoin = 'BTC'
-        self.liste_of_crypto = self.get_list_of_crypto()
-        
+        try:
+            self.apikeys = Tool.read_json("files/apikey.json")
+            self.apiPublicKey = self.apikeys["public key"]
+            self.apiSecretKey = self.apikeys["secret key"]
+            self.baseCoin = 'BTC'
 
-        self.connect()
+            self.liste_of_crypto = self.get_list_of_crypto()
+            you = {"id":self.apikeys, "basecoin": self.baseCoin}
+            print(you)
+
+            self.connect()
+        except:
+            print("erreur de connexion")
 
     def connect(self):
         while True:
@@ -57,7 +62,7 @@ class Binance:
                 self.client = Client(self.apiPublicKey, self.apiSecretKey)
                 break
             except:
-                pass
+                print("erreur de connexion\nretry...")
 
     
     def set_list_of_crypto(self,taille):
@@ -146,7 +151,7 @@ class Binance:
         colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
 
         """
-
+        print(1)
         try:
             klines_list = self.client.get_historical_klines(
                 coin_to_trade, timeframe, f"{interval} ago UTC")
@@ -190,14 +195,15 @@ class Binance:
             #supprimer un colonnes pas important
             klines.drop(columns=['index', 'rstd'], inplace=True)
 
-            Tool.rewrite_json(klines)
-
-            return klines
+            print(2)
+            klines.to_csv("files/klines.csv")
+            #return klines
 
         except:
             print('no klines')
+        
 
-        return klines
+        
 
 
     

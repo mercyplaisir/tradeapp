@@ -1,6 +1,7 @@
 import json
 from json.decoder import JSONDecodeError
 import os
+import csv
 
 
 
@@ -31,23 +32,28 @@ class Tool:
             print("le fichier existe deja")
             
         else:
-            
-            with open(f"./{filename}", "x") as f:
-                i = []
-                j = json.dumps(i)
-                f.write(j)
-
+            try:
+                with open(f"./{filename}", "x") as f:
+                    i = []
+                    j = json.dumps(i)
+                    f.write(j)
+            except FileNotFoundError:
+                print(FileNotFoundError)
+            except JSONDecodeError:
+                print(JSONDecodeError)
     @staticmethod
     def rewrite_json(filename, text):
         try:
-            with open(f'./{filename}', 'w+') as f:
+            with open(f'{filename}', 'w+') as f:
                 j = json.dumps(text)
                 f.write(j)
         except FileNotFoundError:
             print(FileNotFoundError)
+        except JSONDecodeError:
+            print(JSONDecodeError)
 
     @staticmethod
-    def append_json(filename:str ,text):
+    def append_json(filename ,text):
         """ append a json file
 
             give parameters:
@@ -56,17 +62,20 @@ class Tool:
                             
         
         """
+        try:
+            with open(f'{filename}', 'r+') as f:
+                i=[]
+                j = json.load(f)
+                i.append(j)
+                i.append(text)
+            with open(f'{filename}', 'w+') as f:
+                json.dump(i, f, indent=4)
 
-        with open(f'./{filename}', 'r+') as f:
-            i=[]
-            j = json.load(f)
-            i.append(j)
-            i.append(text)
-        with open(f'./{filename}', 'w+') as f:
-            json.dump(i, f, indent=4)
-
-        print(f"saved in {filename} ")
-
+            print(f"saved in {filename} ")
+        except FileNotFoundError:
+            print(FileNotFoundError)
+        except JSONDecodeError:
+            print(JSONDecodeError)
     
     @staticmethod
     def read_json(filename:str):
@@ -77,7 +86,7 @@ class Tool:
                         -filename(with path)
         """
         try:
-            with open(f'./{filename}', 'r+') as f:
+            with open(f'{filename}', 'r+') as f:
                 j = json.load(f)
             return j
         except FileNotFoundError:
@@ -122,3 +131,8 @@ class Tool:
             except:
                 pass
     
+    @staticmethod
+    def write_csv(filename, text):
+        with open(f"{filename}","w", newline="") as csvfile:
+            spamwriter = csv.writer(filename, delimiter=" ")
+            spamwriter.writerows(text)
