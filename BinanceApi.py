@@ -190,6 +190,8 @@ class Binance:
             #supprimer un colonnes pas important
             klines.drop(columns=['index', 'rstd'], inplace=True)
 
+            Tool.rewrite_json(klines)
+
             return klines
 
         except:
