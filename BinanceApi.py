@@ -1,12 +1,13 @@
 import pandas as pd
 from binance.client import Client
 from binance.enums import *
+from binance.exceptions import *
 import datetime
 import time
 import json
 import websocket
 
-
+#from strategies import Strategie,Sma,Bollingerbands,Macd
 
 
 
@@ -27,15 +28,20 @@ functions in  this file:
                         - get_coin_price
                         - coinPriceChange
 
+                        - set_list_of_crypto
+                        - get_list_of_crypto
+                        - connect
+
+
 
 
 
 """
 
+CRYPTO_LIST = 'files/cryptoliste.json'
 
 class Binance:
 
-    cryptoListe_filepath = 'files/cryptoliste.json'
 
 
 
@@ -48,11 +54,12 @@ class Binance:
             self.apiSecretKey = self.apikeys["secret key"]
             self.baseCoin = 'BTC'
 
-            self.liste_of_crypto = self.get_list_of_crypto()
+            #self.liste_of_crypto = self.set_list_of_crypto()
             you = {"id":self.apikeys, "basecoin": self.baseCoin}
             print(you)
 
             self.connect()
+            #self.set_list_of_crypto()
         except:
             print("erreur de connexion")
 
@@ -60,21 +67,22 @@ class Binance:
         while True:
             try:
                 self.client = Client(self.apiPublicKey, self.apiSecretKey)
+                
                 break
             except:
                 print("erreur de connexion\nretry...")
 
     
-    def set_list_of_crypto(self,taille):
+    def set_list_of_crypto(self):
         taille = Tool.input_int("entrer le nombre de crypto a entrez")
         z=[]
         for i in range(taille):
-            z.append(Tool.input_str("entrer le crypto " + i+": "))
-        Tool.rewrite_json(Binance.cryptoListe_filepath,z)
-        self.get_list_of_crypto()
+            z.append(Tool.input_str(f"entrer le {i} crypto: "))
+        Tool.rewrite_json(CRYPTO_LIST,z)
+        print("list of crypto we gonna use",self.get_list_of_crypto())
 
     def get_list_of_crypto(self):
-        return Tool.read_json(Binance.cryptoListe_filepath)
+        return Tool.read_json(CRYPTO_LIST)
 
 
 
@@ -156,7 +164,7 @@ class Binance:
         try:
             klines_list = self.client.get_historical_klines(
                 coin_to_trade, timeframe, f"{interval} ago UTC")
-
+            print(2)
             #changer timestamp en date
             for kline in klines_list:
                 kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
@@ -196,12 +204,14 @@ class Binance:
             #supprimer un colonnes pas important
             klines.drop(columns=['index', 'rstd'], inplace=True)
 
-            print(2)
+            print(3)
             klines.to_csv("files/klines.csv")
             #return klines
 
-        except:
-            print('no klines')
+        except BinanceOrderException:
+            print(BinanceOrderException)
+        except BinanceAPIException:
+            print(BinanceAPIException)
         
 
         
@@ -228,9 +238,9 @@ class Binance:
 
             nonePickedUp = True
 
-            for n in range(0, (len(Binance.list_of_crypto)-1)):
+            for n in range(0, (len(CRYPTO_LIST)-1)):
 
-                coin = Binance.list_of_crypto[n]
+                coin = CRYPTO_LIST[n]
 
                 coin_to_trade = coin + self.baseCoin
 
@@ -246,7 +256,7 @@ class Binance:
                     print(coin_to_trade, ' : ', dictInfo)
                     #up_trend = minute15_trend(coin_to_trade,coinPrice) #tendance pour 15min
 
-                    price_5min = self.minute5_trend(
+                    price_5min = minute5_trend(
                         coin_to_trade, coinPrice)  # price trick
 
                     #if up_trend and price_5min :
@@ -257,7 +267,6 @@ class Binance:
                         print('got it')
                         b = {'coin to trade': coin_to_trade,
                             'price change': price_change}
-                        return b
                         break
                     print('-----------------------------')
 
@@ -265,18 +274,21 @@ class Binance:
                     continue
 
                 # delete the list if traded the half of the list
-                if len(Binance.traded_crypto) >= (len(Binance.list_of_crypto)//2):
+                if len(Binance.traded_crypto) >= (len(CRYPTO_LIST)//2):
                     Binance.traded_crypto.clear()
 
             if nonePickedUp:
                 time.sleep(10)
+        return b
 
 
     #-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-----_-_-_-_-_-_-_-_-_-_-
 
     @staticmethod
     def coinPriceChange(coin_to_trade):
-        """Return percent variation price of the the crypto in 24hour roll"""
+        """
+        Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
+        """
         while True:
             try:
                 sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
@@ -288,7 +300,6 @@ class Binance:
 
                 dict_result['k']['priceChange'] = Tool.percent_change(float(dict_result['k']['o']), float(dict_result['k']['c']))
 
-                print('coinPriceChange')
                 b = {'price': float(dict_result['k']['c']), 'priceChange': float(
                     dict_result['k']['priceChange'])}
                 break
@@ -296,22 +307,6 @@ class Binance:
                 pass
 
         return b
-
-    @staticmethod
-    def get_coin_price(coin_to_trade):
-        while True:
-            try:
-                sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1m"
-                was = websocket.create_connection(sockete)
-
-                json_result = was.recv()
-                was.close()
-                dict_result = json.loads(json_result)
-                break
-            except:
-                pass
-
-        return float(dict_result['k']['c'])  # close price
 
 
 

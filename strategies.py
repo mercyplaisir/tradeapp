@@ -23,24 +23,20 @@ class Strategie:
         pass
 
     def klines(self, coin_to_trade, timeframe, interval):
+        """
+        timeframe:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
+        """
         return self.client.get_klines(coin_to_trade,timeframe,interval)
 
 
-    def minute15_trend(self, coin_to_trade: str):
+    def minute15_trend(self):
         """
         tendance d'un crypto dans un timeframe de 15minutes
 
         """
-        klines = self.klines(coin_to_trade, '15m', '1 day')
+        klines = pd.read_csv("files/klines.csv")
         return klines
 
-    def minute5_trend(self, coin_to_trade: str):
-        """
-        tendance d'un crypto dans un timeframe de 1heure
-        """
-        klines = self.klines(coin_to_trade, '5m', '1 day')
-        
-        return klines
 
 
 
