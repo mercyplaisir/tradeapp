@@ -7,8 +7,6 @@ import time
 import json
 import websocket
 
-#from strategies import Strategie,Sma,Bollingerbands,Macd
-
 
 
 
@@ -150,10 +148,13 @@ class Binance:
         return q  # q c'est la quqntite
 
 
-    def get_klines(self, coin_to_trade: str, timeframe: str, interval: str):
+    def get_klines(self, coin_to_trade: str="BNBBTC", timeframe: str="15m", interval: str = "2 days"):
         """
         Get the klines for the timeframe given and in interval given.
         timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
+
+        Default timeframe = 15m
+        Default interval = 2 days
 
 
         colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
@@ -237,10 +238,11 @@ class Binance:
             print(str(datetime.datetime.now()).split(' ')[1])
 
             nonePickedUp = True
+            
+            cryptos = Tool.read_json(CRYPTO_LIST)
+            for n in range(0, (len(cryptos)-1)):
 
-            for n in range(0, (len(CRYPTO_LIST)-1)):
-
-                coin = CRYPTO_LIST[n]
+                coin = cryptos[n]
 
                 coin_to_trade = coin + self.baseCoin
 
@@ -274,7 +276,7 @@ class Binance:
                     continue
 
                 # delete the list if traded the half of the list
-                if len(Binance.traded_crypto) >= (len(CRYPTO_LIST)//2):
+                if len(Binance.traded_crypto) >= (len(cryptos)//2):
                     Binance.traded_crypto.clear()
 
             if nonePickedUp:
