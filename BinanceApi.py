@@ -7,7 +7,7 @@ import time
 import json
 import websocket
 
-
+import btalib
 
 
 from tools import Tool
@@ -177,24 +177,14 @@ class Binance:
             klines.columns = ['open_time', 'open_price',
                             'close_price']  # renommer les colonnes
 
-            #creer un SMA_30
-            klines['SMA_30'] = klines.iloc[:, 1].rolling(window=15).mean()
+            
 
-            #creer un SMA50
-            klines['SMA_50'] = klines.iloc[:, 1].rolling(window=30).mean()
+            
 
-            #calculate sma20
-            klines['SMA_20'] = klines.iloc[:, 1].rolling(window=20).mean()
+            
+        
 
-            # calculate the standar deviation
-            klines['rstd'] = klines.iloc[:, 1].rolling(window=20).std()
-
-            klines['upper_band'] = klines['SMA_20'] + 2 * klines['rstd']
-            #klines['upper_band'] = upper_band.rename(columns={symbol: 'upper'})
-            klines['lower_band'] = klines['SMA_20'] - 2 * klines['rstd']
-            #klines['lower_band'] = lower_band.rename(columns={symbol: 'lower'})
-
-            #klines = klines.join(upper_band).join(lower_band)
+            
 
             #trier les indexes pour que 0 correspondents avec maintenant
             klines.sort_index(ascending=False, inplace=True)

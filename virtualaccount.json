@@ -1,0 +1,11 @@
+[
+    {
+        "usd_balance": 80,
+        "btc_balance": 0
+    },
+    {
+        "usd_balance": 80,
+        "btc_balance": 0,
+        "BNB_balance": 100
+    }
+]

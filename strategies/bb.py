@@ -1,9 +1,17 @@
+from tools import Tool
 import pandas as pd
 
 KLINE_PATH = "../files/klines.csv"
 
 
+
+
+
+
 class Bollingerbands:
+    """
+    Bollinger Bands indicator
+    """
 
     kline = pd.read_csv(KLINE_PATH)
 
@@ -16,6 +24,16 @@ class Bollingerbands:
             study made on klines(dataframe)
         """
         klines = Bollingerbands.kline
+
+        #calculate sma20
+        klines['SMA_20'] = klines.iloc[:, 1].rolling(window=20).mean()
+
+        # calculate the Bollinger Bands
+        klines['rstd'] = klines.iloc[:, 1].rolling(window=20).std()
+        klines['upper_band'] = klines['SMA_20'] + 2 * klines['rstd']
+        klines['lower_band'] = klines['SMA_20'] - 2 * klines['rstd']
+
+
         if not advanced:
             j = 0
             for n in range(4):

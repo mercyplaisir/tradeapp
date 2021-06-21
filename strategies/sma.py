@@ -6,7 +6,9 @@ KLINE_PATH = "../files/klines.csv"
 
 
 class Sma:
-
+    """
+    SMA indicator
+    """
     kline = pd.read_csv(KLINE_PATH)
 
     def __init__(self):
@@ -16,6 +18,13 @@ class Sma:
     def price_study(cls):
 
         klines = Sma.kline
+
+        #creer un SMA_30
+        klines['SMA_30'] = klines.iloc[:, 1].rolling(window=15).mean()
+
+        #creer un SMA50
+        klines['SMA_50'] = klines.iloc[:, 1].rolling(window=30).mean()
+
 
         j = 0
         for n in range(4):
