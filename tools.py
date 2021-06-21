@@ -4,10 +4,6 @@ import os
 import csv
 from csv import Error
 
-
-
-
-
 """
 functions in  this file:
                         - create_json
@@ -28,14 +24,13 @@ FILESTORAGE = "./files/"
 
 class Tool:
 
-
     @staticmethod
-    def create_json(filename:str):
-        assert filename.isalnum(),"Argument 'filename' doit etre alpha numeric"
+    def create_json(filename: str):
+        assert filename.isalnum(), "Argument 'filename' doit etre alpha numeric"
 
         if os.path.exists(filename):
             print("le fichier existe deja")
-            
+
         else:
             try:
                 with open(f"{FILESTORAGE}/{filename}", "x") as f:
@@ -46,23 +41,23 @@ class Tool:
                 print(FileNotFoundError)
             except JSONDecodeError:
                 print(JSONDecodeError)
-    
+
     @staticmethod
     def rewrite_json(filename, text):
         try:
             with open(f"{FILESTORAGE}/{filename}", 'w') as f:
                 j = json.dumps(text, indent=4)
-                #os.remove(f"{FILESTORAGE}/{filename}")
+                # os.remove(f"{FILESTORAGE}/{filename}")
                 f.write(j)
         except FileNotFoundError:
             print(FileNotFoundError)
-        except JSONDecodeError:#en cas d'erreur
-            os.remove(filename)#efface le fichier
-            Tool.create_json(filename)#creez en une autre de meme nom
-            Tool.rewrite_json(filename,text)#et refait l'ecriture
+        except JSONDecodeError:  # en cas d'erreur
+            os.remove(filename)  # efface le fichier
+            Tool.create_json(filename)  # creez en une autre de meme nom
+            Tool.rewrite_json(filename, text)  # et refait l'ecriture
 
     @staticmethod
-    def append_json(filename ,text):
+    def append_json(filename, text):
         """ append a json file
 
             give parameters:
@@ -73,7 +68,7 @@ class Tool:
         """
         try:
             with open(f"{FILESTORAGE}/{filename}", 'r+') as f:
-                i=[]
+                i = []
                 j = json.load(f)
                 i.append(j)
                 i.append(text)
@@ -85,9 +80,9 @@ class Tool:
             print(FileNotFoundError)
         except JSONDecodeError:
             print(JSONDecodeError)
-    
+
     @staticmethod
-    def read_json(filename:str):
+    def read_json(filename: str):
         """
         read a json file
 
@@ -102,7 +97,6 @@ class Tool:
             print(FileNotFoundError)
         except JSONDecodeError:
             print(JSONDecodeError)
-        
 
     @staticmethod
     def percent_calculator(number: float, percentage: float) -> int:
@@ -110,16 +104,16 @@ class Tool:
         return z = z + z*x/100
         ex: 100 + 2% =102
         """
-        z = number+((number*percentage)/100)
+        z = number + ((number * percentage) / 100)
         return z
 
     @staticmethod
-    def percent_change( original_number: float, new_number: float) -> int:
+    def percent_change(original_number: float, new_number: float) -> int:
         """
         percent variation between two numbers
         ex: 100 and 98 -> -2%
         """
-        z = ((new_number-original_number)/original_number)*100
+        z = ((new_number - original_number) / original_number) * 100
         return z
 
     @staticmethod
@@ -129,7 +123,7 @@ class Tool:
         """
         while True:
             try:
-                x=int(input(text))
+                x = int(input(text))
                 break
             except:
                 pass
@@ -148,7 +142,6 @@ class Tool:
                 pass
         return x
 
-
     @staticmethod
     def write_csv(filename, text):
         """
@@ -156,7 +149,7 @@ class Tool:
         """
         if os.path.exists(f"{FILESTORAGE}/{filename}"):
             try:
-                with open(f"{FILESTORAGE}/{filename}","w", newline="") as csvfile:
+                with open(f"{FILESTORAGE}/{filename}", "w", newline="") as csvfile:
                     spamwriter = csv.writer(csvfile, delimiter=" ")
                     spamwriter.writerows(text)
             except FileNotFoundError:
@@ -166,7 +159,6 @@ class Tool:
             except Error:
                 print(Error)
 
-
     @staticmethod
     def read_csv(filename):
         """
@@ -174,16 +166,15 @@ class Tool:
         
         return a list of multilist containing rows
         """
-        
 
         if os.path.exists(f"{FILESTORAGE}/{filename}"):
             try:
-                
+
                 with open(f"{FILESTORAGE}/{filename}", newline='') as csvfile:
                     spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
                     a = [row for row in spamreader]
-                        #print(', '.join(row))
-                #a.append(spamreader.__str__())
+                    # print(', '.join(row))
+                # a.append(spamreader.__str__())
 
             except FileNotFoundError:
                 print(FileNotFoundError)
@@ -193,10 +184,5 @@ class Tool:
             return a
 
         else:
-            #return "fichier n'existe pas"
+            # return "fichier n'existe pas"
             pass
-            
-
-        
-
-        
