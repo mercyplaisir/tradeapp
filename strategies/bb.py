@@ -1,11 +1,7 @@
-from tools import Tool
+from tools import Tool, FILESTORAGE
 import pandas as pd
 
-KLINE_PATH = "../files/klines.csv"
-
-
-
-
+KLINE_PATH = f'../{FILESTORAGE}/klines.csv'
 
 
 class Bollingerbands:
@@ -25,14 +21,13 @@ class Bollingerbands:
         """
         klines = Bollingerbands.kline
 
-        #calculate sma20
+        # calculate sma20
         klines['SMA_20'] = klines.iloc[:, 1].rolling(window=20).mean()
 
         # calculate the Bollinger Bands
         klines['rstd'] = klines.iloc[:, 1].rolling(window=20).std()
         klines['upper_band'] = klines['SMA_20'] + 2 * klines['rstd']
         klines['lower_band'] = klines['SMA_20'] - 2 * klines['rstd']
-
 
         if not advanced:
             j = 0
@@ -42,15 +37,17 @@ class Bollingerbands:
                 j += 1 if diff else 0
 
             bool_answer = True if j == 4 else False
-        #-------------------------------------------------------------------------------
+            return bool_answer
+        # -------------------------------------------------------------------------------
 
         elif advanced:
-            #SMA20                      close price du 1er bougie arriere    openprice du 2eme bougie arriere     openprice du 1er bougie arriere     close price du 2eme bougie arriere
-            dif1 = float(klines.loc[0]['SMA_20']) > float(klines.loc[1]['close_price']) > float(klines.loc[2]['open_price']) > float(
+
+            dif1 = float(klines.loc[0]['SMA_20']) > float(klines.loc[1]['close_price']) > float(
+                klines.loc[2]['open_price']) > float(
                 klines.loc[1]['open_price']) >= float(klines.loc[2]['close_price'])
             dif2 = float(klines.loc[2]['open_price']) <= Tool.percent_calculator(
                 float(klines.loc[1]['close_price']), -2)
 
             bool_answer = True if dif1 and dif2 else False
 
-        return bool_answer
+            return bool_answer
