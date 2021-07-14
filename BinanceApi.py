@@ -34,18 +34,21 @@ functions in  this file:
 
 
 
-CRYPTO_LIST = f'{FILESTORAGE}/cryptoliste.json'
+CRYPTOLIST = 'cryptoliste.json'
 
-APIKEYPATH = f'{FILESTORAGE}/apikey.json'
+APIKEYPATH = '.files/apikey.json'
 
 class Binance:
+    baseCoin = 'BTC'
+
+
+
 
     def __init__(self):
         try:
             self.apikeys = Tool.read_json(APIKEYPATH)
             self.apiPublicKey = self.apikeys["public key"]
             self.apiSecretKey = self.apikeys["secret key"]
-            self.baseCoin = 'BTC'
 
             # self.liste_of_crypto = self.set_list_of_crypto()
             # you = {"id": self.apikeys, "basecoin": self.baseCoin}
@@ -64,17 +67,6 @@ class Binance:
             except:
                 print("erreur de connexion\nretry...")
 
-    def set_list_of_crypto(self):
-        taille = Tool.input_int("entrer le nombre de crypto a entrez")
-        z = []
-        for i in range(taille):
-            z.append(Tool.input_str(f"entrer le {i} crypto: "))
-        Tool.rewrite_json(CRYPTO_LIST, z)
-        print("list of crypto we gonna use", self.get_list_of_crypto())
-
-    @staticmethod
-    def get_list_of_crypto():
-        return Tool.read_json(CRYPTO_LIST)
 
     # placer un ordre d'achat
     def margin_buy_order(self, coin_to_trade: str, order_quantity: float):
@@ -88,9 +80,10 @@ class Binance:
         self.client.create_margin_order(
             symbol=coin_to_trade, side=SIDE_SELL, type=ORDER_TYPE_MARKET, quantity=order_quantity)
 
-    def margin_balance_of(self, coin: str):
+    def margin_balance_of(self, coin: str)->float:
         """
-        recuperer la balance d'un crypto
+        *parameters:- coin. ex:BTC,ETH
+        *return margin balance
         """
 
         info = self.client.get_margin_account()
@@ -103,9 +96,12 @@ class Binance:
                 balance = (float(str(i['free'])[:5]))
                 return balance
 
-    def order_quantity_of(self, balance: float, coin: str):
+    def order_quantity_of(self, balance: float, coin: str)-> float:
         """
-        permet d'avoir une quantite pour placer l'ordre
+        parameters: -balance. ex: 20$
+                    -coin. ex: BTC,ETH
+
+        return quantity(float)
         """
         # il determine la quantite a utiliser pour placer un ordre en analysant so prix
 
@@ -183,7 +179,7 @@ class Binance:
             klines.drop(columns=['index', 'rstd'], inplace=True)
 
             print(3)
-            klines.to_csv("files/klines.csv")
+            klines.to_csv(f"{FILESTORAGE}/klines.csv")
             # return klines
 
         except BinanceOrderException:
@@ -191,7 +187,6 @@ class Binance:
         except BinanceAPIException:
             print(BinanceAPIException)
 
-    traded_crypto = []  # liste des crypto deja trader
 
     @staticmethod
     def coinPriceChange(coin_to_trade: str = "BNBBTC"):
@@ -219,6 +214,8 @@ class Binance:
         return b
 
 
+    traded_crypto = []  # liste des crypto deja trader
+   
 """
     def coin_for_trade(self):
         \"""
@@ -233,7 +230,7 @@ class Binance:
 
             nonePickedUp = True
 
-            cryptos = Tool.read_json(CRYPTO_LIST)
+            cryptos = Tool.read_json(CRYPTOLIST)
             for n in range(0, (len(cryptos) - 1)):
 
                 coin = cryptos[n]

@@ -19,21 +19,21 @@ functions in  this file:
 
 """
 
-FILESTORAGE = "./files/"
+FILESTORAGE = './files'
 
 
 class Tool:
 
     @staticmethod
     def create_json(filename: str):
-        assert filename.isalnum(), "Argument 'filename' doit etre alpha numeric"
-
-        if os.path.exists(filename):
+        
+        STORAGE = f"{FILESTORAGE}/{filename}"
+        if os.path.exists(STORAGE):
             print("le fichier existe deja")
 
         else:
             try:
-                with open(f"{FILESTORAGE}/{filename}", "x") as f:
+                with open(STORAGE, "x") as f:
                     i = []
                     j = json.dumps(i)
                     f.write(j)
@@ -44,17 +44,18 @@ class Tool:
 
     @staticmethod
     def rewrite_json(filename, text):
+        STORAGE = f"{FILESTORAGE}/{filename}"
         try:
-            with open(f"{FILESTORAGE}/{filename}", 'w') as f:
+            with open(STORAGE, 'w') as f:
                 j = json.dumps(text, indent=4)
                 # os.remove(f"{FILESTORAGE}/{filename}")
                 f.write(j)
         except FileNotFoundError:
             print(FileNotFoundError)
         except JSONDecodeError:  # en cas d'erreur
-            os.remove(filename)  # efface le fichier
-            Tool.create_json(filename)  # creez en une autre de meme nom
-            Tool.rewrite_json(filename, text)  # et refait l'ecriture
+            os.remove(STORAGE)  # efface le fichier
+            Tool.create_json(STORAGE)  # creez en une autre de meme nom
+            Tool.rewrite_json(STORAGE, text)  # et refait l'ecriture
 
     @staticmethod
     def append_json(filename, text):
