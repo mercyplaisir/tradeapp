@@ -7,24 +7,33 @@ from binance.client import Client
 from binance.enums import *
 from binance.exceptions import *
 
+import mysql.connector
+
 from tools import Tool, FILESTORAGE
 
 """
+varaibles :
+            - apiPublicKey
+            - apiSecretKey
+            - list_of_crypto
+
+
+
 functions in  this file:
-                        -margin_buy_order
-                        -margin_sell_order
+                        - init
+                        - connect
+                        - margin_buy_order
+                        - margin_sell_order
+                        - buyOrder
+                        - sellOrder
+                        - balance
                         - margin_balance_of
                         - order _quantity_of
                         - get_klines
                         
-                        - coin_for_trade
-                        - get_coin_price
                         - coinPriceChange
-
-                        - set_list_of_crypto
-                        - get_list_of_crypto
-                        - connect
-
+                        - getCryptoList
+                        - saveTrades_DB
 
 
 
@@ -34,27 +43,31 @@ functions in  this file:
 
 
 
-CRYPTOLIST = 'cryptoliste.json'
 
-APIKEYPATH = '.files/apikey.json'
+
+APIKEYPATH = 'apikey.json'
 
 class Binance:
-    baseCoin = 'BTC'
-
+    
 
 
 
     def __init__(self):
         try:
-            self.apikeys = Tool.read_json(APIKEYPATH)
-            self.apiPublicKey = self.apikeys["public key"]
-            self.apiSecretKey = self.apikeys["secret key"]
+            self.apikeys = Tool.read_json(APIKEYPATH)#get all key
+            self.apiPublicKey = self.apikeys["public key"]#public key
+            self.apiSecretKey = self.apikeys["secret key"]#secret key
+            self.list_of_crypto = self.getCryptoList() #list of crypto
+            self.baseCoin = 'BTC'
+            self.connect()#connect to Binance 
 
-            # self.liste_of_crypto = self.set_list_of_crypto()
-            # you = {"id": self.apikeys, "basecoin": self.baseCoin}
-
-            self.connect()
-            # self.set_list_of_crypto()
+            self.mydb = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                passwd='Pl@isir6',
+                database='bot'
+            )
+            
         except:
             print("erreur de connexion")
 
@@ -73,12 +86,66 @@ class Binance:
         """A margin buy order"""
         self.client.create_margin_order(
             symbol=coin_to_trade, side=SIDE_BUY, type=ORDER_TYPE_MARKET, quantity=order_quantity)
+        
+        self.saveTrades_DB(
+            coin_to_trade=coin_to_trade,
+            quantity= order_quantity,
+            orderType= "margin buy"
+        )
 
-    # placer un ordre de vente
+    
     def margin_sell_order(self, coin_to_trade: str, order_quantity: float):
-        """ A margin sell order """
+        """ A margin sell order 
+        coin_to_trade .ex:BNBBTC, BTCUSDT
+        """
         self.client.create_margin_order(
             symbol=coin_to_trade, side=SIDE_SELL, type=ORDER_TYPE_MARKET, quantity=order_quantity)
+        
+        self.saveTrades_DB(
+            coin_to_trade=coin_to_trade,
+            quantity=order_quantity,
+            orderType="margin sell"
+        )
+
+
+    def buyOrder(self,coin_to_trade:str,order_quantity:float):
+        """
+        Market Buy Order
+        coin_to_trade .ex:BNBBTC, BTCUSDT
+        """
+        self.client.order_market_buy(
+            symbol=coin_to_trade,quantity=order_quantity)
+
+        self.saveTrades_DB(
+            coin_to_trade=coin_to_trade,
+            quantity=order_quantity,
+            orderType="market buy"
+        )
+
+    def sellOrder(self, coin_to_trade: str, order_quantity: float):
+        """
+        Market sell Order
+
+        coin_to_trade .ex:BNBBTC, BTCUSDT
+        """
+        self.client.order_market_sell(
+            symbol=coin_to_trade, quantity=order_quantity)
+        
+        self.saveTrades_DB(
+            coin_to_trade=coin_to_trade,
+            quantity=order_quantity,
+            orderType="market sell"
+        )
+
+
+    def balance(self,coin:str):
+        """
+        coin balance
+
+        coin :ex:BTC,ETH
+        """
+        info = self.client.get_asset_balance(asset=coin)
+        return info
 
     def margin_balance_of(self, coin: str)->float:
         """
@@ -153,7 +220,7 @@ class Binance:
 
         stores the klines in a csv file
         """
-        print(1)
+        
         try:
             klines_list = self.client.get_historical_klines(
                 coin_to_trade, timeframe, f"{interval} ago UTC")
@@ -164,10 +231,10 @@ class Binance:
 
             klines = pd.DataFrame(klines_list)  # changer en dataframe
             # supprimer les collonnes qui ne sont pas necessaires
-            klines.drop(columns=[2, 3, 5, 6, 7, 8, 9, 10, 11], inplace=True)
+            klines.drop(columns=[5, 6, 7, 8, 9, 10, 11], inplace=True)
 
-            klines.columns = ['open_time', 'open_price',
-                              'close_price']  # renommer les colonnes
+            klines.columns = ['date', 'open','high','low',
+                              'close']  # renommer les colonnes
 
             # trier les indexes pour que 0 correspondents avec maintenant
             klines.sort_index(ascending=False, inplace=True)
@@ -215,7 +282,35 @@ class Binance:
 
 
     traded_crypto = []  # liste des crypto deja trader
+
+    
+    def getCryptoList(self)->list:
+        """
+        return list of crypto from database
+        """
+        mycursor = self.mydb.cursor()
+        mycursor.execute("select coinName from Coin ")
+        myresult = mycursor.fetchall()
+        listcrypto = []
+        for i in myresult:
+            listcrypto.append(i[0]+self.baseCoin)#get "bnb" and add basecoin and get BNBBTC or BNBUSDT
+        
+        return listcrypto
    
+
+    def saveTrades_DB(self,coin_to_trade:str,orderType:str,quantity:float):
+        coinName = coin_to_trade.replace(self.baseCoin,'')
+        mycursor = self.mydb.cursor()
+
+        mycursor.execute(f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
+
+
+
+
+
+
+
+
 """
     def coin_for_trade(self):
         \"""
