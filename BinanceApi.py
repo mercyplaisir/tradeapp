@@ -57,19 +57,17 @@ class Binance:
             self.apikeys = Tool.read_json(APIKEYPATH)#get all key
             self.apiPublicKey = self.apikeys["public key"]#public key
             self.apiSecretKey = self.apikeys["secret key"]#secret key
+            self.connect()#connect to Binance             
+            self.bdConnect() # connect to database
+
             self.list_of_crypto = self.getCryptoList() #list of crypto
             self.baseCoin = 'BTC'
-            self.connect()#connect to Binance 
-
-            self.mydb = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                passwd='Pl@isir6',
-                database='bot'
-            )
-            
         except:
             print("erreur de connexion")
+        
+        
+
+    
 
     def connect(self):
         while True:
@@ -80,6 +78,16 @@ class Binance:
             except:
                 print("erreur de connexion\nretry...")
 
+    def bdConnect(self):
+        try:
+            self.mydb = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                passwd='Pl@isir6',
+                database='bot'
+            )
+        except:
+            print("BD connection error")
 
     # placer un ordre d'achat
     def margin_buy_order(self, coin_to_trade: str, order_quantity: float):
@@ -231,22 +239,22 @@ class Binance:
 
             klines = pd.DataFrame(klines_list)  # changer en dataframe
             # supprimer les collonnes qui ne sont pas necessaires
-            klines.drop(columns=[5, 6, 7, 8, 9, 10, 11], inplace=True)
+            klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
 
             klines.columns = ['date', 'open','high','low',
-                              'close']  # renommer les colonnes
+                              'close','volume']  # renommer les colonnes
 
             # trier les indexes pour que 0 correspondents avec maintenant
-            klines.sort_index(ascending=False, inplace=True)
+            #klines.sort_index(ascending=False, inplace=True)
 
             # refaire les index
-            klines.reset_index(inplace=True)
+            #klines.reset_index(inplace=True)
 
             # supprimer un colonnes pas important
-            klines.drop(columns=['index', 'rstd'], inplace=True)
+            #klines.drop(columns='index', inplace=True)
 
             print(3)
-            klines.to_csv(f"{FILESTORAGE}/klines.csv")
+            klines.to_csv(f"{FILESTORAGE}/klines.csv",index=False)
             # return klines
 
         except BinanceOrderException:
