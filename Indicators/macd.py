@@ -9,7 +9,7 @@ class Macd:
     MACD indicator
     """
 
-    kline = pd.read_csv(KLINE_PATH)
+    kline = pd.read_csv(KLINE_PATH, index_col='date')
 
     def __init__(self):
         pass
