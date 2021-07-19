@@ -1,3 +1,4 @@
+import btalib
 from tools import Tool, FILESTORAGE
 import pandas as pd
 
@@ -9,15 +10,26 @@ class Bollingerbands:
     Bollinger Bands indicator
     """
 
-    kline = pd.read_csv(KLINE_PATH)
 
     def __init__(self):
-        pass
+        self.createBB()
+        self.setklines()
+
+    def createBB(self,period:int=30):
+        klines = pd.read_csv(KLINE_PATH, index_col='date')
+        bb = btalib.bbands(klines,period,devs=2.0)
+        klines.append(bb.df)
+        klines.to_csv(f"{KLINE_PATH}")#enregistrer dans le fichier
+        self.setklines()
 
     @classmethod
     def price_study(cls, advanced: bool = True):
         """
             study made on klines(dataframe)
+
+            columns = ["mid","top","bot"]
+
+
         """
         klines = Bollingerbands.kline
 
@@ -51,3 +63,6 @@ class Bollingerbands:
             bool_answer = True if dif1 and dif2 else False
 
             return bool_answer
+
+    def setklines(self):
+        self.kline = pd.read_csv(KLINE_PATH, index_col='date')
