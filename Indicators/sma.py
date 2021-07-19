@@ -1,7 +1,8 @@
 
 import pandas as pd
+import btalib
 
-KLINE_PATH = "../files/klines.csv"
+KLINE_PATH = "./files/klines.csv"
 
 
 
@@ -9,16 +10,30 @@ class Sma:
     """
     SMA indicator
     """
-    kline = pd.read_csv(KLINE_PATH)
 
     def __init__(self):
-        pass
+        self.createSMA()
+        self.setklines()
+        
+    
+    def createSMA(self,period:int =20 ):
+        klines = pd.read_csv(KLINE_PATH, index_col='date')
+        sma = btalib.sma(klines,period)
+        sma.klines.columns = [f"sma{period}"]
+        klines.append(sma.klines)
+        klines.to_csv(f"{KLINE_PATH}")  # enregistrer dans le fichier
 
-    @classmethod
-    def price_study(cls):
+        self.setklines()
 
-        klines = Sma.kline
+            
+    def price_study(self):
+        """
+        columns = ["sma{period}"]
+        """
 
+        klines = self.kline
+
+        """
         #creer un SMA_30
         klines['SMA_30'] = klines.iloc[:, 1].rolling(window=15).mean()
 
@@ -37,3 +52,9 @@ class Sma:
         bool_answer = True if j == 4 else False
 
         return bool_answer
+        """
+
+
+
+    def setklines(self):
+        self.kline = pd.read_csv(KLINE_PATH, index_col='date')
