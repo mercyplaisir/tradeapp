@@ -19,7 +19,12 @@ functions in  this file:
 
 """
 
-FILESTORAGE = './files'
+FILESTORAGE:str = 'files'
+
+BINANCEKLINES:str = f"{FILESTORAGE}/binanceklines.csv"
+KLINEPATH = f"{FILESTORAGE}/klines.csv"
+
+
 
 
 class Tool:

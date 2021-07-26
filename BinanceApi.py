@@ -9,7 +9,7 @@ from binance.exceptions import *
 
 import mysql.connector
 
-from tools import Tool, FILESTORAGE
+from tools import BINANCEKLINES, Tool, FILESTORAGE
 
 """
 varaibles :
@@ -254,7 +254,7 @@ class Binance:
             #klines.drop(columns='index', inplace=True)
 
             print(3)
-            klines.to_csv(f"{FILESTORAGE}/klines.csv",index=False)
+            klines.to_csv(BINANCEKLINES,index=False)
             # return klines
 
         except BinanceOrderException:

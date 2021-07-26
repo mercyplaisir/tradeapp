@@ -1,8 +1,10 @@
 
+from tools import BINANCEKLINES, FILESTORAGE, KLINEPATH
 import pandas as pd
 import btalib
 
-KLINE_PATH = "./files/klines.csv"
+
+
 
 
 
@@ -17,11 +19,11 @@ class Sma:
         
     
     def createSMA(self,period:int =20 ):
-        klines = pd.read_csv(KLINE_PATH, index_col='date')
+        klines = pd.read_csv(BINANCEKLINES, index_col='date')
         sma = btalib.sma(klines,period)
         sma.klines.columns = [f"sma{period}"]
-        klines.append(sma.klines)
-        klines.to_csv(f"{KLINE_PATH}")  # enregistrer dans le fichier
+        s = klines.append(sma.klines)
+        s.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
 
         self.setklines()
 
@@ -57,4 +59,4 @@ class Sma:
 
 
     def setklines(self):
-        self.kline = pd.read_csv(KLINE_PATH, index_col='date')
+        self.kline = pd.read_csv(KLINEPATH, index_col='date')

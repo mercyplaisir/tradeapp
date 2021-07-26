@@ -4,35 +4,32 @@ import pandas as pd
 
 
 
-class Bollingerbands:
+class Stochastic:
     """
-    Bollinger Bands indicator
+    Stochastic indicator
     """
-
 
     def __init__(self):
-        self.createBB()
+        self.createSTOCHASTIC()
         self.setklines()
 
-    def createBB(self,period:int=30):
+    def createSTOCHASTIC(self):
         klines = pd.read_csv(BINANCEKLINES, index_col='date')
-        bb = btalib.bbands(klines,period,devs=2.0)
-        s = klines.append(bb.df)
-        s.to_csv(f"{KLINEPATH}")#enregistrer dans le fichier
+        stoch = btalib.stochastic(klines)
+        s = klines.append(stoch.df)
+        s.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
         self.setklines()
 
-    
-    def price_study(self, advanced: bool = True):
+    def price_study(self):
         """
             study made on klines(dataframe)
 
-            columns = ["mid","top","bot"]
+            columns = ["k","d"]
 
 
         """
         self.setklines()
         klines = self.kline
 
-       
     def setklines(self):
         self.kline = pd.read_csv(KLINEPATH, index_col='date')
