@@ -1,0 +1,69 @@
+
+#-le depot se fera par le biais de cryptomonnaies
+-faudra recuperer les transactions et les enregisstrer pour les comparer
+avec la base de donnee
+
+
+
+
+
+
+
+
+
+
+
+
+1)creer une base de donnee:
+    1.1)creer une table contenant:
+        1)les infos personnnel:
+            -ID de l'utilisateur     #genere automatiquement
+            -nom de l'utilisateur
+            -age
+            -e-mail
+    1.2)creer une table pour leurs portefeuilles:
+            -ID relie a l'utilisateur
+            -le montant qu'il a investi
+            -numero du depot de l'argent
+            -date de l'investissement
+
+
+
+    1.3)creer une table des depots pas encore confirme:
+            -ID de l'utilisateur    #entrez automatiquement apres l'envoie ddu numero et date et heure du depot
+            -numero du depot       #ils sont entrez par les utilisateurs
+            -date et heure du depot     #entrez par l'utilisateurs
+
+    1.4)creer une table contenant les transactions effectuer:
+
+        #depot de bitcoin
+        les transactions passer la veille.
+            -numero du transaction #
+            -date et heure du transaction
+
+
+
+
+
+
+
+
+
+
+
+
+    idee
+-------------
+-Pour se connecter il devra entrer son ID donner au moment de creation et mot de passe
+
+-Pour creer son compte il devra se procurer de son email.
+
+-S'il oublie son ID ou mot de passe l devra entrer son email ets la procedurer de recuperation commencera.
+
+-creer une fonction qui comparer (le numero du depot et le numero du transaction) et (date et heure du transaction et date et heure du depot)
+
+-creer une classe pour utilisateur utilisant mon algorithme
+    propriete de l'utilisateur:
+            -modifier son profil(nom,age,e-mail)
+            -deposer l'argent # faudra attendre jusqu'a 2jours pour confirmation du depot
+            -

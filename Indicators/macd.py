@@ -1,6 +1,11 @@
-from tools import BINANCEKLINES, FILESTORAGE, KLINEPATH
-import pandas as pd
+import sys
+
 import btalib
+import pandas as pd
+import numpy as np
+
+sys.path.append("..")
+from main.tools import BINANCEKLINES, KLINEPATH
 
 
 
@@ -19,9 +24,9 @@ class Macd:
         self.setklines()
         pass
 
-    def createMACD(self, period: int = 30):
+    def createMACD(self, periode: int = 30):
         klines = pd.read_csv(BINANCEKLINES, index_col='date')
-        macd = btalib.macd(klines)
+        macd = btalib.macd(klines,period=periode)
         s =  klines.append(macd.df)
         s.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
         self.setklines()
