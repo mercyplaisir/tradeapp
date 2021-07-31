@@ -1,15 +1,18 @@
+from random import randint
+from tools import BINANCEKLINES, Tool, FILESTORAGE, APIKEYPATH
 import datetime
-import json
+import sys
 
+import json
 import pandas as pd
 import websocket
 from binance.client import Client
 from binance.enums import *
 from binance.exceptions import *
-
 import mysql.connector
 
-from tools import BINANCEKLINES, Tool, FILESTORAGE
+sys.path.append("..")
+from Indicators.study import Study
 
 """
 varaibles :
@@ -45,7 +48,7 @@ functions in  this file:
 
 
 
-APIKEYPATH = 'apikey.json'
+
 
 class Binance:
     
@@ -54,14 +57,19 @@ class Binance:
 
     def __init__(self):
         try:
-            self.apikeys = Tool.read_json(APIKEYPATH)#get all key
-            self.apiPublicKey = self.apikeys["public key"]#public key
-            self.apiSecretKey = self.apikeys["secret key"]#secret key
+            self.apikeys:dict = Tool.read_json(APIKEYPATH)#get all key
+            self.apiPublicKey:str = self.apikeys["public key"]#public key
+            self.apiSecretKey:str = self.apikeys["secret key"]#secret key
+
+            self.lastOrderWasBuy = False
+
             self.connect()#connect to Binance             
             self.bdConnect() # connect to database
+            self.saveBalances_BD()
 
             self.list_of_crypto = self.getCryptoList() #list of crypto
-            self.baseCoin = 'BTC'
+            self.baseCoin:str = 'BTC'
+            self.timeframe:str = "15m"
         except:
             print("erreur de connexion")
         
@@ -86,12 +94,16 @@ class Binance:
                 passwd='Pl@isir6',
                 database='bot'
             )
+            
         except:
             print("BD connection error")
 
     # placer un ordre d'achat
-    def margin_buy_order(self, coin_to_trade: str, order_quantity: float):
+    def margin_buy_order(self, coin_to_trade: str):
         """A margin buy order"""
+        coinName:str = coin_to_trade.replace(self.baseCoin, '')
+        order_quantity:int = self.orderQuantity(coinName)
+
         self.client.create_margin_order(
             symbol=coin_to_trade, side=SIDE_BUY, type=ORDER_TYPE_MARKET, quantity=order_quantity)
         
@@ -100,12 +112,16 @@ class Binance:
             quantity= order_quantity,
             orderType= "margin buy"
         )
+        self.saveBalances_BD()
 
     
-    def margin_sell_order(self, coin_to_trade: str, order_quantity: float):
+    def margin_sell_order(self, coin_to_trade: str):
         """ A margin sell order 
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
+        coinName: str = coin_to_trade.replace(self.baseCoin, '')
+        order_quantity: int = self.orderQuantity(coinName)
+
         self.client.create_margin_order(
             symbol=coin_to_trade, side=SIDE_SELL, type=ORDER_TYPE_MARKET, quantity=order_quantity)
         
@@ -114,13 +130,18 @@ class Binance:
             quantity=order_quantity,
             orderType="margin sell"
         )
+        self.saveBalances_BD()
 
 
-    def buyOrder(self,coin_to_trade:str,order_quantity:float):
+    def buyOrder(self,coin_to_trade:str):
         """
         Market Buy Order
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
+
+        coinName: str = coin_to_trade.replace(self.baseCoin, '')
+        order_quantity: int = self.orderQuantity(coinName)
+
         self.client.order_market_buy(
             symbol=coin_to_trade,quantity=order_quantity)
 
@@ -129,13 +150,17 @@ class Binance:
             quantity=order_quantity,
             orderType="market buy"
         )
+        self.saveBalances_BD()
 
-    def sellOrder(self, coin_to_trade: str, order_quantity: float):
+    def sellOrder(self, coin_to_trade: str):
         """
         Market sell Order
 
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
+        coinName:str = coin_to_trade.replace(self.baseCoin, '')
+        order_quantity:int = self.orderQuantity(coinName)
+
         self.client.order_market_sell(
             symbol=coin_to_trade, quantity=order_quantity)
         
@@ -145,8 +170,10 @@ class Binance:
             orderType="market sell"
         )
 
+        self.saveBalances_BD()
 
-    def balance(self,coin:str):
+
+    def assetBalance(self,coin:str):
         """
         coin balance
 
@@ -155,23 +182,8 @@ class Binance:
         info = self.client.get_asset_balance(asset=coin)
         return info
 
-    def margin_balance_of(self, coin: str)->float:
-        """
-        *parameters:- coin. ex:BTC,ETH
-        *return margin balance
-        """
 
-        info = self.client.get_margin_account()
-        for i in info['userAssets']:
-            if coin == 'BTC':
-                if i['asset'] == coin:
-                    balance = float(str(i['free'])[:7])
-                    return balance
-            elif i['asset'] == coin:
-                balance = (float(str(i['free'])[:5]))
-                return balance
-
-    def order_quantity_of(self, balance: float, coin: str)-> float:
+    def orderQuantity(self,coin: str)-> float:
         """
         parameters: -balance. ex: 20$
                     -coin. ex: BTC,ETH
@@ -179,28 +191,32 @@ class Binance:
         return quantity(float)
         """
         # il determine la quantite a utiliser pour placer un ordre en analysant so prix
+        mycursor = self.mydb.cursor()
+        mycursor.execute("select quantity from Balance where coinName = 'DOGE'")
+        resultat = mycursor.fetchall()
+        balance = resultat[0][0]
 
         coinInfo_USD = Binance.coinPriceChange(coin + 'USDT')
-        coinInfo_BTC = Binance.coinPriceChange(coin + self.baseCoin)
+        coinInfo = Binance.coinPriceChange(coin + self.baseCoin)
 
         coin_price_usd = coinInfo_USD['price']
-        coin_price = coinInfo_BTC['price']
+        coin_price = coinInfo['price']
         if coin == 'ETH':
             q = balance / coin_price
             q = float(str(q)[:5])
             return q
-        if coin != 'ETH':
+        elif coin != 'ETH':
             if coin_price_usd >= 5000:  # si le prix est superieur a 5000
                 q = balance / coin_price
                 q = float(str(q)[:6])
                 return q
 
-            if 50 <= coin_price_usd<5000:  # si le prix est entre 50
+            elif 50 <= coin_price_usd<5000:  # si le prix est entre 50
                 q = balance / coin_price
                 q = float(str(q)[:5])
                 return q
 
-            elif 16 <= coin_price_usd <= 49:  # si le prix est entre 16 et 49
+            elif 16 <= coin_price_usd <= 49 or coin_price < 0.18:  # si le prix est entre 16 et 49
                 q = balance / coin_price
                 q = float(str(q)[:3])
                 return q
@@ -209,13 +225,50 @@ class Binance:
                 q = balance / coin_price
                 q = float(str(q)[:2])
                 return q
-            elif coin_price < 0.18:
-                q = balance / coin_price
-                q = float(str(q)[:3])
-                return q
-        # q c'est la quqntite
+            
+        # q c'est la quantite
 
-    def get_klines(self, coin_to_trade: str = "BNBBTC", timeframe: str = "15m", interval: str = "2 days"):
+
+
+
+
+
+
+    
+    def getCryptoList(self)->list:
+        """
+        return list of crypto from database
+        """
+        mycursor = self.mydb.cursor()
+        mycursor.execute("select coinName from Coin ")
+        myresult = mycursor.fetchall()
+        listcrypto = []
+        for i in myresult:
+            listcrypto.append(i[0].upper()+self.baseCoin)#get "bnb" and add basecoin and get BNBBTC or BNBUSDT
+        
+        return listcrypto
+   
+
+    def saveTrades_DB(self,coin_to_trade:str,orderType:str,quantity:float):
+        coinName = coin_to_trade.replace(self.baseCoin,'')
+        mycursor = self.mydb.cursor()
+
+        mycursor.execute(
+            f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
+
+
+    def saveBalances_BD(self)->None:
+        accountInfo = self.client.get_account()
+        mycursor = self.mydb.cursor()
+
+        for i in range(accountInfo['balances'].__len__()):
+            value = accountInfo['balances'][i]
+            mycursor.execute(
+                f"insert into Balance(coinName,quantity) values({value['asset']},{value['free']})")
+
+
+    @classmethod
+    def get_klines(self, coin_to_trade: str = "BNBBTC", interval: str = "2 days"):
         """
         Get the klines for the timeframe given and in interval given.
         timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
@@ -231,7 +284,7 @@ class Binance:
         
         try:
             klines_list = self.client.get_historical_klines(
-                coin_to_trade, timeframe, f"{interval} ago UTC")
+                coin_to_trade, self.timeframe, f"{interval} ago UTC")
             print(2)
             # changer timestamp en date
             for kline in klines_list:
@@ -262,8 +315,7 @@ class Binance:
         except BinanceAPIException:
             print(BinanceAPIException)
 
-
-    @staticmethod
+    @classmethod
     def coinPriceChange(coin_to_trade: str = "BNBBTC"):
         """
         Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
@@ -288,94 +340,17 @@ class Binance:
 
         return b
 
+    def cryptoToTrade(self):
+        """
+        Return a crypto to trade
+        """
+        self.list_of_crypto = self.getCryptoList()
 
-    traded_crypto = []  # liste des crypto deja trader
+        listLength = self.list_of_crypto.__len__()
+        cryptoIndex = randint(0,listLength)
+        cryptoToUse = self.list_of_crypto[cryptoIndex]
+        
+        return cryptoToUse
+
 
     
-    def getCryptoList(self)->list:
-        """
-        return list of crypto from database
-        """
-        mycursor = self.mydb.cursor()
-        mycursor.execute("select coinName from Coin ")
-        myresult = mycursor.fetchall()
-        listcrypto = []
-        for i in myresult:
-            listcrypto.append(i[0]+self.baseCoin)#get "bnb" and add basecoin and get BNBBTC or BNBUSDT
-        
-        return listcrypto
-   
-
-    def saveTrades_DB(self,coin_to_trade:str,orderType:str,quantity:float):
-        coinName = coin_to_trade.replace(self.baseCoin,'')
-        mycursor = self.mydb.cursor()
-
-        mycursor.execute(
-            f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
-
-
-
-
-
-
-
-
-"""
-    def coin_for_trade(self):
-        \"""
-        fonction pour recuperer le coin for trade et son price change
-        \"""
-        redo_search = True
-
-        while redo_search:
-
-            print('\n')
-            print(str(datetime.datetime.now()).split(' ')[1])
-
-            nonePickedUp = True
-
-            cryptos = Tool.read_json(CRYPTOLIST)
-            for n in range(0, (len(cryptos) - 1)):
-
-                coin = cryptos[n]
-
-                coin_to_trade = coin + self.baseCoin
-
-                if coin not in Binance.traded_crypto:
-
-                    print(coin_to_trade)
-
-                    dictInfo = self.coinPriceChange(coin_to_trade)
-
-                    coinPrice = dictInfo['price']
-                    price_change = dictInfo['priceChange']
-
-                    print(coin_to_trade, ' : ', dictInfo)
-                    # up_trend = minute15_trend(coin_to_trade,coinPrice) #tendance pour 15min
-
-                    price_5min = minute5_trend(
-                        coin_to_trade, coinPrice)  # price trick
-
-                    # if up_trend and price_5min :
-                    if price_5min:
-                        redo_search = False
-                        nonePickedUp = False
-
-                        print('got it')
-                        b = {'coin to trade': coin_to_trade,
-                             'price change': price_change}
-                        break
-                    print('-----------------------------')
-
-                elif coin in Binance.traded_crypto:
-                    continue
-
-                # delete the list if traded the half of the list
-                if len(Binance.traded_crypto) >= (len(cryptos) // 2):
-                    Binance.traded_crypto.clear()
-
-            if nonePickedUp:
-                time.sleep(10)
-        return b
-"""
-# -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-----_-_-_-_-_-_-_-_-_-_-

@@ -17,6 +17,7 @@ class Bollingerbands:
 
     def __init__(self):
         pass
+    
     def createBB(self,periode:int=30):
         kline = pd.read_csv(BINANCEKLINES, index_col='date')
         
@@ -55,12 +56,12 @@ class Bollingerbands:
         closePrices.reverse()
         closePrices = np.array(closePrices[0:9])
 
-        topMean = topColumns.mean()
-        midMean = midColumns.mean()
-        botMean = botColumns.mean()
-        priceMean = closePrices.mean()
+        self.topMean = topColumns.mean()
+        self.midMean = midColumns.mean()
+        self.botMean = botColumns.mean()
+        self.priceMean = closePrices.mean()
 
-        decision = "buy" if topMean>priceMean>midMean else "sell"
+        decision = "buy" if self.topMean>self.priceMean>self.midMean else "sell"
 
         return decision
 

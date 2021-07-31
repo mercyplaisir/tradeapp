@@ -19,9 +19,7 @@ class Macd:
     
 
     def __init__(self):
-      
-        self.createMACD()
-        self.setklines()
+    
         pass
 
     def createMACD(self, periode: int = 30):

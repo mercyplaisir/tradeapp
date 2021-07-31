@@ -12,7 +12,8 @@ create TABLE Coin(coinName VARCHAR(20) PRIMARY KEY not null,
                 fullName varchar(50) not null,
                 marketCap INT(30) not null);
 
-
+create TABLE Balance(coinName VARCHAR(20) PRIMARY KEY not null,
+                    quantity INT(30) )
 
 INSERT INTO Coin(coinName,fullName,marketCap)
 VALUES ('BTC','BITCOIN',0),('ETH','ETHEREUM',0),('BNB','BINANCE COIN',0),('DOGE','DOGECOIN',0);

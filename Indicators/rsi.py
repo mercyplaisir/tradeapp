@@ -43,10 +43,10 @@ class Rsi:
         closePrices.reverse()
         closePrices = np.array(closePrices[0:9])
 
-        rsiMean = rsiList.mean()#calcule la moyenne
-        priceMean = closePrices.mean()
+        self.rsiMean = rsiList.mean()#calcule la moyenne
+        self.priceMean = closePrices.mean()
 
-        decision = "buy" if rsiList[0]>(rsiMean+3) and closePrices[0]>priceMean else "sell"
+        decision = "buy" if rsiList[0]>self.rsiMean and closePrices[0]>self.priceMean else "sell"
         
         return decision
 

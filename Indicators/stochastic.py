@@ -10,8 +10,7 @@ class Stochastic:
     """
 
     def __init__(self):
-        self.createSTOCHASTIC()
-        self.setklines()
+        pass
 
     def createSTOCHASTIC(self):
         klines = pd.read_csv(BINANCEKLINES, index_col='date')

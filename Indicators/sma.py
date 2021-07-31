@@ -54,9 +54,9 @@ class Sma:
         closePrices.reverse()
         closePrices = np.array(closePrices[0:9])
 
-        mean = list(closePrices > smaValues)
+        self.mean = list(closePrices > smaValues)
         
-        decision= 'buy' if mean.count(True) == closePrices.__len__() else 'sell'
+        decision= 'buy' if self.mean.count(True) == closePrices.__len__() else 'sell'
 
         return decision
         
