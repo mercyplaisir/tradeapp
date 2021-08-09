@@ -26,25 +26,27 @@ while True:
             client.buyOrder(coin_to_trade=crypto)
             client.lastOrderWasBuy = True
             break
-        elif decision == 'sell' and client.lastOrderWasBuy:
-            client.sellOrder(crypto)
-            client.lastOrderWasBuy = False
-            break
+        # elif decision == 'sell' and client.lastOrderWasBuy:
+        #     client.sellOrder(crypto)
+        #     client.lastOrderWasBuy = False
+        #     break
         elif decision == 'wait':
             pass
 
     while True:
         decisionAfter = study.Decision()
-        if decisionAfter == 'buy' and not client.lastOrderWasBuy:
-            client.buyOrder(coin_to_trade=crypto)
-            client.lastOrderWasBuy = True
-            break
-        elif decisionAfter == 'sell' and client.lastOrderWasBuy:
+        # if decisionAfter == 'buy' and not client.lastOrderWasBuy:
+        #     client.buyOrder(coin_to_trade=crypto)
+        #     client.lastOrderWasBuy = True
+        #     break
+        if decisionAfter == 'sell' and client.lastOrderWasBuy:
             client.sellOrder(crypto)
             client.lastOrderWasBuy = False
             break
         elif decisionAfter == 'wait':
             pass
+    
+    time.sleep(120)
 
 
 

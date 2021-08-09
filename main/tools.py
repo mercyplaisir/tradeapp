@@ -19,22 +19,20 @@ functions in  this file:
 
 """
 
-FILESTORAGE:str = '../files'
+FILESTORAGE: str = '../files'
 
-BINANCEKLINES:str = f"{FILESTORAGE}/binanceklines.csv"
+BINANCEKLINES: str = f"{FILESTORAGE}/binanceklines.csv"
 
-KLINEPATH:str = f"{FILESTORAGE}/klines.csv"
+KLINEPATH: str = f"{FILESTORAGE}/klines.csv"
 
-APIKEYPATH:str = f'{FILESTORAGE}/apikey.json'
-
-
+APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
 
 class Tool:
 
     @staticmethod
     def create_json(filename: str):
-        
+
         STORAGE = f"{FILESTORAGE}/{filename}"
         if os.path.exists(STORAGE):
             print("le fichier existe deja")

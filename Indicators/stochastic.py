@@ -1,7 +1,12 @@
+import sys
+
 import btalib
-from tools import BINANCEKLINES, KLINEPATH, Tool, FILESTORAGE
+import numpy as np
+from pandas.core.frame import DataFrame
 import pandas as pd
 
+sys.path.append("..")
+from main.tools import BINANCEKLINES, KLINEPATH
 
 
 class Stochastic:
@@ -13,11 +18,10 @@ class Stochastic:
         pass
 
     def createSTOCHASTIC(self):
-        klines = pd.read_csv(BINANCEKLINES, index_col='date')
-        stoch = btalib.stochastic(klines)
-        s = klines.append(stoch.df)
-        s.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
-        self.setklines()
+        kline = pd.read_csv(BINANCEKLINES, index_col='date')
+
+        stoch = btalib.stochastic(kline)
+        stoch.df.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
 
     def price_study(self):
         """
@@ -27,8 +31,12 @@ class Stochastic:
 
 
         """
-        self.setklines()
-        klines = self.kline
+    
+        self.createSTOCHASTIC()
 
-    def setklines(self):
-        self.kline = pd.read_csv(KLINEPATH, index_col='date')
+        kline = pd.read_csv(KLINEPATH, index_col='date')
+        binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')
+
+        
+
+    
