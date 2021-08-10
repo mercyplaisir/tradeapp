@@ -2,11 +2,10 @@ import sys
 
 import btalib
 import numpy as np
-from pandas.core.frame import DataFrame
 import pandas as pd
 
 sys.path.append("..")
-from main.tools import BINANCEKLINES, KLINEPATH
+from view.tools import BINANCEKLINES, KLINEPATH
 
 
 class Stochastic:

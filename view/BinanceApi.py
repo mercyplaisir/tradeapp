@@ -11,8 +11,7 @@ from binance.enums import *
 from binance.exceptions import *
 import mysql.connector
 
-sys.path.append("..")
-from Indicators.study import Study
+
 
 """
 varaibles :
