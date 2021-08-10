@@ -1,6 +1,7 @@
 from random import randint
 import datetime
 import sys
+sys.path.append("..")
 
 import json
 import pandas as pd
@@ -10,8 +11,8 @@ from binance.enums import *
 from binance.exceptions import *
 import mysql.connector
 
-from .tools import BINANCEKLINES, Tool, APIKEYPATH
-from .VirtualAccount import VirtualAccount
+from view.tools import BINANCEKLINES, Tool, APIKEYPATH
+from view.VirtualAccount import VirtualAccount
 
 
 """
@@ -53,18 +54,20 @@ class Binance:
             self.apiSecretKey: str = self.apikeys["secret key"]  # secret key
 
             self.lastOrderWasBuy = False
+            self.mydb = None
 
             self.connect()  # connect to Binance
             self.bdConnect()  # connect to database
             self.saveBalances_BD()
 
-            self.list_of_crypto = self.getCryptoList()  # list of crypto
-            self.baseCoin: str = 'BTC'
-            self.timeframe: str = "15m"
+            
 
             self.virtualAccount = VirtualAccount(self.baseCoin)
         except:
             print("erreur de connexion")
+        
+        self.baseCoin: str = 'BTC'
+        self.timeframe: str = "15m"
 
     def connect(self):
         while True:
