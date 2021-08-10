@@ -27,6 +27,8 @@ KLINEPATH: str = f"{FILESTORAGE}/klines.csv"
 
 APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
+FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
+
 
 class Tool:
 

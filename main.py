@@ -1,11 +1,11 @@
 import sys
 import time
 
-from btalib.indicators.stochastic import stochastic
 
 
-from BinanceApi import Binance
-sys.path.append("..")
+
+from view.BinanceApi import Binance
+
 from Indicators.study import Study
 
 #=========initialize binance connection==========

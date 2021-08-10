@@ -1,56 +1,53 @@
 import datetime
-import json
-from tools import FILESTORAGE, Tool as tl
 
 from BinanceApi import Binance as bnc
 
-
-FILEPATH = "virtualaccount.json"
+from .tools import FILEPATH, Tool as tl
 
 
 """
 {
-    "usd_balance": 80,
-    "btc_balance": 0,
-    "bnb_balance": 100
+    "USDT": 80,
+    "BTC": 0,
+    "BNB": 100
 }
 """
 
+
 class VirtualAccount:
 
-    def __init__(self):
-        self.dicte:dict = tl.read_json(FILEPATH)
-
-        self.usdtBalance:float = self.dicte["usdt_balance"]
-        self.btcBalance:float = self.dicte["btc_balance"]
-        self.have_usdt = True
-         
-
-
-
-    def setUsdtBalance(self, usdBalance:float):
-        self.dicte["usd_balance"] = usdBalance
-        tl.rewrite_json(FILEPATH,self.dicte)
-    
-    def getUsdBalance(self):
+    def __init__(self,baseCoin:str):
         self.dicte: dict = tl.read_json(FILEPATH)
-        self.usdtBalance: float = self.dicte["usdt_balance"]
-        return self.usdtBalance
-    
-    def setBtcBalance(self, btcBalance):
-        self.dicte["btc_balance"] = btcBalance
+        self.baseCoin = baseCoin
+
+    def setBalance(self, coin: str, balance: float):
+        """
+        Parameters:
+
+        -coin: str. ex:BTC
+        -balance: float
+        """
+        self.dicte[f"{coin}"] = balance
         tl.rewrite_json(FILEPATH, self.dicte)
 
-    def getBtcBalance(self):
-        self.dicte: dict = tl.read_json(FILEPATH)
-        self.btcBalance: float = self.dicte["btc_balance"]
-        return self.usdBalance
+    def getBalance(self, coin: str):
+        """
+        Parameters:
 
-    def virtualBuy(self, coin_to_trade: str, order_quantity:float):
+        -coin: str. ex:BTC
+        """
+        self.dicte: dict = tl.read_json(FILEPATH)
+        balance: float = self.dicte[f"{coin}"]
+        return balance
+
+    def virtualBuy(self, coin_to_trade: str, order_quantity: float):
         coinName = coin_to_trade.replace(self.baseCoin, '')
-        self.dicte[f"{coinName}_balance"] = order_quantity
-        tl.rewrite_json(FILEPATH,self.dicte)
-        self.have_usdt = False
+        
+        self.dicte[f"{coinName}"] = order_quantity
+        self.dicte[f"{self.baseCoin}"] = 0
+
+        tl.rewrite_json(FILEPATH, self.dicte)
+        
 
         self.saveTrades_DB(
             coin_to_trade=coin_to_trade,
@@ -59,19 +56,19 @@ class VirtualAccount:
         )
         pass
 
-    def virtualSell(self, coin_to_trade: str, order_quantity: float):
+    def virtualSell(self, coin_to_trade: str, order_quantity: float,coinPrice:float):
         coinName = coin_to_trade.replace(self.baseCoin, '')
-        if not self.have_usdt:
-            self.have_usdt = True
-            
-            coin = bnc.coinPriceChange(coin_to_trade)
-            self.dicte["usdt_balance"] = order_quantity * coin["price"]
+    
+        self.dicte[f"{self.baseCoin}"] = order_quantity * coinPrice
+        self.dicte[f"{coinName}"] = self.dicte[f"{coinName}"] - order_quantity
 
-            self.saveTrades_DB(
-                coin_to_trade=coin_to_trade,
-                quantity=order_quantity,
-                orderType="market sell"
-            )
+        tl.rewrite_json(FILEPATH, self.dicte)
+
+        self.saveTrades_DB(
+            coin_to_trade=coin_to_trade,
+            quantity=order_quantity,
+            orderType="market sell"
+        )
         pass
 
     def saveTrades_DB(self, coin_to_trade: str, orderType: str, quantity: float):
@@ -80,5 +77,3 @@ class VirtualAccount:
 
         mycursor.execute(
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
-
-    

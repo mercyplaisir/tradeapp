@@ -1,5 +1,4 @@
 from random import randint
-from tools import BINANCEKLINES, Tool, FILESTORAGE, APIKEYPATH
 import datetime
 import sys
 
@@ -11,6 +10,8 @@ from binance.enums import *
 from binance.exceptions import *
 import mysql.connector
 
+from .tools import BINANCEKLINES, Tool, APIKEYPATH
+from .VirtualAccount import VirtualAccount
 
 
 """
@@ -60,6 +61,8 @@ class Binance:
             self.list_of_crypto = self.getCryptoList()  # list of crypto
             self.baseCoin: str = 'BTC'
             self.timeframe: str = "15m"
+
+            self.virtualAccount = VirtualAccount(self.baseCoin)
         except:
             print("erreur de connexion")
 
@@ -123,7 +126,7 @@ class Binance:
         Market Buy Order
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
-
+        """
         # coinName: str = coin_to_trade.replace(self.baseCoin, '')
         order_quantity: int = self.orderQuantity(self.baseCoin)
 
@@ -136,6 +139,14 @@ class Binance:
             orderType="market buy"
         )
         self.saveBalances_BD()
+        """
+
+        self.virtualAccount.virtualBuy(
+            coin_to_trade=coin_to_trade,
+            order_quantity=self.orderQuantity(self.baseCoin)
+        )
+
+
 
     def sellOrder(self, coin_to_trade: str):
         """
@@ -144,6 +155,7 @@ class Binance:
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
         coinName: str = coin_to_trade.replace(self.baseCoin, '')
+        """
         order_quantity: int = self.orderQuantity(coinName)
 
         self.client.order_market_sell(
@@ -155,7 +167,15 @@ class Binance:
             orderType="market sell"
         )
 
-        self.saveBalances_BD()
+        self.saveBalances_BD()"""
+        coinInfo = Binance.coinPriceChange(coinName + self.baseCoin)
+        coin_price = coinInfo['price']
+        
+        self.virtualAccount.virtualSell(
+            coin_to_trade = coin_to_trade,
+            order_quantity = self.orderQuantity(coinName),
+            coinPrice = coin_price
+        )
 
     def assetBalance(self, coin: str):
         """
@@ -166,7 +186,7 @@ class Binance:
         info = self.client.get_asset_balance(asset=coin)
         return info
 
-    def orderQuantity(self, coin: str) -> float:
+    def orderQuantity(self, coin: str) :
         """
         parameters: -balance. ex: 20$
                     -coin. ex: BTC,ETH
@@ -175,43 +195,54 @@ class Binance:
 
         return quantity(float)
         """
-        # il determine la quantite a utiliser pour placer un ordre en analysant so prix
-        mycursor = self.mydb.cursor()
-        mycursor.execute(f"select quantity from Balance where coinName = {coin}")
-        resultat = mycursor.fetchall()
-        balance = resultat[0][0]
+        if coin==self.baseCoin:
+            # il determine la quantite a utiliser pour placer un ordre en analysant so prix
+            mycursor = self.mydb.cursor()
+            mycursor.execute(f"select quantity from Balance where coinName = {coin}")
+            resultat = mycursor.fetchall()
+            balance = resultat[0][0]
 
-        coinInfo_USD = Binance.coinPriceChange(coin + 'USDT')
-        coinInfo = Binance.coinPriceChange(coin + self.baseCoin)
+            coinInfo_USD = Binance.coinPriceChange(coin + 'USDT')
+            coinInfo = Binance.coinPriceChange(coin + self.baseCoin)
 
-        coin_price_usd = coinInfo_USD['price']
-        coin_price = coinInfo['price']
-        if coin == 'ETH':
-            q = balance / coin_price
-            q = float(str(q)[:5])
-            return q
-        elif coin != 'ETH':
-            if coin_price_usd >= 5000:  # si le prix est superieur a 5000
-                q = balance / coin_price
-                q = float(str(q)[:6])
-                return q
-
-            elif 50 <= coin_price_usd < 5000:  # si le prix est entre 50
+            coin_price_usd = coinInfo_USD['price']
+            coin_price = coinInfo['price']
+            if coin == 'ETH':
                 q = balance / coin_price
                 q = float(str(q)[:5])
                 return q
+            elif coin != 'ETH':
+                if coin_price_usd >= 5000:  # si le prix est superieur a 5000
+                    q = balance / coin_price
+                    q = float(str(q)[:6])
+                    return q
 
-            elif 16 <= coin_price_usd <= 49 or coin_price < 0.18:  # si le prix est entre 16 et 49
-                q = balance / coin_price
-                q = float(str(q)[:3])
-                return q
+                elif 50 <= coin_price_usd < 5000:  # si le prix est entre 50
+                    q = balance / coin_price
+                    q = float(str(q)[:5])
+                    return q
 
-            elif 0.18 <= coin_price_usd <= 15:  # si le prix est entre 0 et 15
-                q = balance / coin_price
-                q = float(str(q)[:2])
-                return q
+                elif 16 <= coin_price_usd <= 49 or coin_price < 0.18:  # si le prix est entre 16 et 49
+                    q = balance / coin_price
+                    q = float(str(q)[:3])
+                    return q
 
-        # q c'est la quantite
+                elif 0.18 <= coin_price_usd <= 15:  # si le prix est entre 0 et 15
+                    q = balance / coin_price
+                    q = float(str(q)[:2])
+                    return q
+
+            # q c'est la quantite
+        elif coin != self.baseCoin:
+            mycursor = self.mydb.cursor()
+            mycursor.execute(
+                f"select quantity from Balance where coinName = {coin}")
+
+            resultat = mycursor.fetchall()
+            balance:float = resultat[0][0]
+
+            return balance
+
 
     def getCryptoList(self) -> list:
         """
@@ -236,6 +267,7 @@ class Binance:
     def saveBalances_BD(self) -> None:
         accountInfo = self.client.get_account()
         mycursor = self.mydb.cursor()
+        mycursor.execute("delete from Balance")
 
         for i in range(accountInfo['balances'].__len__()):
             value = accountInfo['balances'][i]
