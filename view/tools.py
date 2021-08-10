@@ -3,6 +3,8 @@ from json.decoder import JSONDecodeError
 import os
 import csv
 from csv import Error
+import sys
+sys.path.append("..")
 
 """
 functions in  this file:
