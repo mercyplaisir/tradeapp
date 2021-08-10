@@ -1,7 +1,5 @@
 import datetime
 
-from BinanceApi import Binance as bnc
-
 from .tools import FILEPATH, Tool as tl
 
 
