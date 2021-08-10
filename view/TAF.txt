@@ -1,5 +1,0 @@
-- in tool : create readCSV function -> DONE
-
--in strategies : MACD strategie -> LOADING
-
--

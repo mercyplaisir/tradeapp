@@ -13,13 +13,13 @@ from view.BinanceApi import Binance
 class Study:
 
     def __init__(self, crypto: str) -> None:
-        pass
+        self.crypto = crypto
         # =======================================
 
     # ==========Decision================
     def Decision(self):
         # ==========update klines============
-        Binance.get_klines(coin_to_trade=crypto)
+        Binance.get_klines(coin_to_trade = self.crypto)
         # =================================
 
         # ======create indicators==============
