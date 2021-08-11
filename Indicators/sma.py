@@ -1,3 +1,4 @@
+from view.tools import BINANCEKLINES, KLINEPATH
 import sys
 
 import btalib
@@ -5,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 sys.path.append("..")
-from view.tools import BINANCEKLINES, KLINEPATH
+
 
 class Sma:
     """
@@ -14,19 +15,15 @@ class Sma:
 
     def __init__(self):
         pass
-        
-        
-    
-    def createSMA(self,periode:int=20):
+
+    def createSMA(self, periode: int = 20):
         kline = pd.read_csv(BINANCEKLINES, index_col='date')
-        sma = btalib.sma(kline,period = periode)
+        sma = btalib.sma(kline, period=periode)
         sma.df.columns = [f"sma{periode}"]
-        sma.df.to_csv(f"{KLINEPATH}",na_rep=0,index=True)  # enregistrer dans le fichier
+        # enregistrer dans le fichier
+        sma.df.to_csv(f"{KLINEPATH}", na_rep=0, index=True)
 
-       
-
-            
-    def priceStudy(self,period:int=20):
+    def priceStudy(self, period: int = 20):
         """
         -Parameters
         -------------
@@ -37,29 +34,20 @@ class Sma:
         """
 
         self.createSMA(periode=period)
-        
-        kline = pd.read_csv(KLINEPATH,index_col='date')
+
+        kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES)
 
+        smaValues = kline[f'sma{period}'][-9:-1]
 
-        smaValues = list(kline[f'sma{period}'])
-        smaValues.reverse()
-        smaValues = np.array(smaValues[0:9])
+        closePrices = binanceKlines['close'][-9:-1]
 
-        closePrices = list(binanceKlines['close'])
-        closePrices.reverse()
-        closePrices = np.array(closePrices[0:9])
+        dec = list(closePrices > smaValues)
 
-        self.mean = list(closePrices > smaValues)
-        
-        decision= 'buy' if self.mean.count(True) == closePrices.__len__() else 'sell'
+        decision = 'buy' if dec.count(True) == len(closePrices) else 'sell'
 
         return decision
-        
-        
-        
 
     def klines(self):
-        kline=pd.read_csv(KLINEPATH,index_col='date')
+        kline = pd.read_csv(KLINEPATH, index_col='date')
         return kline
-    

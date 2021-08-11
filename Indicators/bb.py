@@ -40,28 +40,15 @@ class Bollingerbands:
         kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')
 
-        topColumns = [xx for xx in kline['top']]
-        topColumns.reverse()
-        topColumns = np.array(topColumns[0:9])
-
-        midColumns = [xx for xx in kline['mid']]
-        midColumns.reverse()
-        midColumns = np.array(midColumns[0:9])
-
-        botColumns:np.ndarray = [xx for xx in kline['bot']]
-        botColumns.reverse()
-        botColumns:np.ndarray = np.array(botColumns[0:9])
+        topColumns = kline['top'][-9:-1]
         
-        closePrices = list(binanceKlines['close'])
-        closePrices.reverse()
-        closePrices = np.array(closePrices[0:9])
+        midColumns = kline['mid'][-9:-1]
 
-        self.topMean = topColumns.mean()
-        self.midMean = midColumns.mean()
-        self.botMean = botColumns.mean()
-        self.priceMean = closePrices.mean()
+        botColumns = kline['bot'][-9:-1]
+        
+        closePrices = binanceKlines['close'][-9:-1]
 
-        decision = "buy" if self.topMean>self.priceMean>self.midMean else "sell"
+        decision = "buy" if topColumns.mean() > closePrices.mean() > midColumns.mean() >botColumns.mean() else "sell"
 
         return decision
 

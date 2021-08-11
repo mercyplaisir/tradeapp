@@ -38,13 +38,13 @@ class Study(Binance):
         stochInd = stochInd.price_study()
         macdInd = macdInd.price_study()
 
-        self.studyList = [rsiStudy, bbStudy, smaStudy,stochInd]
+        self.studyList = [rsiStudy, bbStudy, smaStudy,stochInd,macdInd]
 
         
 
         if self.studyList.count('buy') == len(self.studyList):
             return 'buy'
-        elif self.studyList.count('sell') >= len(self.studyList):
+        elif self.studyList.count('sell') >= range(3,(len(self.studyList)+1)):
             return 'sell'
         else:
             return 'wait'

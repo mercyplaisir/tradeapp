@@ -23,7 +23,7 @@ functions in  this file:
 
 """
 
-FILESTORAGE: str = f'{sys.path[0]}'+'/../files'
+FILESTORAGE: str = f'{sys.path[0]}'+'/files'
 """
 pour que ca marche il faut lancer a partir du fichier main si faudra ajouter 
 
