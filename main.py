@@ -1,10 +1,10 @@
-import sys
+
 import time
-sys.path.append("..")
 
 
 
 from view.BinanceApi import Binance
+
 
 from Indicators.study import Study
 

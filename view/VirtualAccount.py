@@ -1,6 +1,9 @@
+import sys 
+sys.path.append("../tradeapp")
+
 import datetime
 
-from .tools import FILEPATH, Tool as tl
+from view.tools import FILEPATH, Tool as tl
 
 
 """

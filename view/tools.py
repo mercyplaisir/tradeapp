@@ -4,7 +4,9 @@ import os
 import csv
 from csv import Error
 import sys
-sys.path.append("..")
+
+import mysql.connector
+
 
 """
 functions in  this file:
@@ -21,7 +23,12 @@ functions in  this file:
 
 """
 
-FILESTORAGE: str = '../files'
+FILESTORAGE: str = f'{sys.path[0]}'+'/files'
+"""
+pour que ca marche il faut lancer a partir du fichier main si faudra ajouter 
+
+FILESTORAGE: str = f'{sys.path[0]}'+'/../files'
+"""
 
 BINANCEKLINES: str = f"{FILESTORAGE}/binanceklines.csv"
 
@@ -37,7 +44,7 @@ class Tool:
     @staticmethod
     def create_json(filename: str):
 
-        STORAGE = f"{FILESTORAGE}/{filename}"
+        STORAGE = f"{filename}"
         if os.path.exists(STORAGE):
             print("le fichier existe deja")
 
@@ -53,12 +60,12 @@ class Tool:
                 print(JSONDecodeError)
 
     @staticmethod
-    def rewrite_json(filename, text):
-        STORAGE = f"{FILESTORAGE}/{filename}"
+    def rewrite_json(filePath, text):
+        STORAGE = filePath
         try:
             with open(STORAGE, 'w') as f:
                 j = json.dumps(text, indent=4)
-                # os.remove(f"{FILESTORAGE}/{filename}")
+                # os.remove(f"{filename}")
                 f.write(j)
         except FileNotFoundError:
             print(FileNotFoundError)
@@ -78,15 +85,15 @@ class Tool:
         
         """
         try:
-            with open(f"{FILESTORAGE}/{filename}", 'r+') as f:
+            with open(f"{filename}", 'r+') as f:
                 i = []
                 j = json.load(f)
                 i.append(j)
                 i.append(text)
-            with open(f"{FILESTORAGE}/{filename}", 'w+') as f:
+            with open(f"{filename}", 'w+') as f:
                 json.dump(i, f, indent=4)
 
-            print(f"saved in {FILESTORAGE}/{filename}")
+            print(f"saved in {filename}")
         except FileNotFoundError:
             print(FileNotFoundError)
         except JSONDecodeError:
@@ -100,15 +107,15 @@ class Tool:
         give parameters:
                         -filename(with path)
         """
-        try:
-            with open(f"{FILESTORAGE}/{filename}", 'r+') as f:
-                j = json.load(f)
-            return j
-        except FileNotFoundError:
+        #try:
+        with open(f"{filename}", 'r+') as f:
+            j = json.load(f)
+        return j
+        """except FileNotFoundError:
             print(FileNotFoundError)
         except JSONDecodeError:
             print(JSONDecodeError)
-
+"""
     @staticmethod
     def percent_calculator(number: float, percentage: float) -> int:
         """
@@ -158,9 +165,9 @@ class Tool:
         """
         write a csv file
         """
-        if os.path.exists(f"{FILESTORAGE}/{filename}"):
+        if os.path.exists(f"{filename}"):
             try:
-                with open(f"{FILESTORAGE}/{filename}", "w", newline="") as csvfile:
+                with open(f"{filename}", "w", newline="") as csvfile:
                     spamwriter = csv.writer(csvfile, delimiter=" ")
                     spamwriter.writerows(text)
             except FileNotFoundError:
@@ -178,10 +185,10 @@ class Tool:
         return a list of multilist containing rows
         """
 
-        if os.path.exists(f"{FILESTORAGE}/{filename}"):
+        if os.path.exists(f"{filename}"):
             try:
 
-                with open(f"{FILESTORAGE}/{filename}", newline='') as csvfile:
+                with open(f"{filename}", newline='') as csvfile:
                     spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
                     a = [row for row in spamreader]
                     # print(', '.join(row))
@@ -197,3 +204,9 @@ class Tool:
         else:
             # return "fichier n'existe pas"
             pass
+    
+    @staticmethod
+    def requestBD(requete,**kwargs):
+        mydb = mysql.connector.connect(**kwargs)
+        mycursor = mydb.cursor()
+        mycursor.execute(requete)

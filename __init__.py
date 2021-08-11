@@ -1,3 +1,3 @@
-from . import Indicators
+from .Indicators import *
 
-from . import main
+from .view import *

@@ -1,13 +1,19 @@
+from random import randint
+import datetime
 import sys
+sys.path.append(sys.path[0] +'/..')
 
-import numpy as np
 import pandas as pd
+from view.tools import BINANCEKLINES, Tool, APIKEYPATH
+from view.VirtualAccount import VirtualAccount
 
 
-import btalib
-
-sys.path.append("..")
-import Indicators.stochastic.Stochastic
+x = Tool.read_json(APIKEYPATH)
+y= pd.read_csv(BINANCEKLINES)
 
 
-print(btalib.stochastic.params)
+
+print(APIKEYPATH)
+print(x)
+
+

@@ -10,16 +10,17 @@ sys.path.append("..")
 from view.BinanceApi import Binance
 
 
-class Study:
+class Study(Binance):
 
     def __init__(self, crypto: str) -> None:
+        super().__init__()
         self.crypto = crypto
         # =======================================
 
     # ==========Decision================
     def Decision(self):
         # ==========update klines============
-        Binance.get_klines(coin_to_trade = self.crypto)
+        self.get_klines(coin_to_trade = self.crypto)
         # =================================
 
         # ======create indicators==============

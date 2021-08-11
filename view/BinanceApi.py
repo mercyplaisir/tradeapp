@@ -1,7 +1,7 @@
 from random import randint
 import datetime
 import sys
-sys.path.append("..")
+sys.path.append(sys.path[0] + '/..')
 
 import json
 import pandas as pd
@@ -11,7 +11,7 @@ from binance.enums import *
 from binance.exceptions import *
 import mysql.connector
 
-from view.tools import BINANCEKLINES, Tool, APIKEYPATH
+from view.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 from view.VirtualAccount import VirtualAccount
 
 
@@ -48,26 +48,34 @@ functions in  this file:
 class Binance:
 
     def __init__(self):
-        try:
-            self.apikeys: dict = Tool.read_json(APIKEYPATH)  # get all key
-            self.apiPublicKey: str = self.apikeys["public key"]  # public key
-            self.apiSecretKey: str = self.apikeys["secret key"]  # secret key
-
-            self.lastOrderWasBuy = False
-            self.mydb = None
-
-            self.connect()  # connect to Binance
-            self.bdConnect()  # connect to database
-            self.saveBalances_BD()
-
-            
-
-            self.virtualAccount = VirtualAccount(self.baseCoin)
-        except:
-            print("erreur de connexion")
+        #try:
         
-        self.baseCoin: str = 'BTC'
+        self.apikeys: dict = tl.read_json(APIKEYPATH)  # get all key
+        
+        self.apiPublicKey: str = self.apikeys["public key"]  # public key
+        self.apiSecretKey: str = self.apikeys["secret key"]  # secret key
+
+        self.lastOrderWasBuy = False
+        
+
+        
+        self.connect()  # connect to Binance
+        #self.bdConnect()  # connect to database
+        #self.saveBalances_BD()
+
+        self.baseCoin: str = "BTC"
         self.timeframe: str = "15m"
+        self.virtualAccount = VirtualAccount(baseCoin= self.baseCoin)
+        #except:
+        #    print("erreur de connexion")
+
+        self.db = {'host' : 'localhost',
+                   'user' : 'root',
+                   'passwd' : 'Pl@isir6',
+                   'database' : 'bot'}
+
+        print(">>>connection a BINANCE effectue avec succes")
+        
 
     def connect(self):
         while True:
@@ -105,7 +113,7 @@ class Binance:
             quantity=order_quantity,
             orderType="margin buy"
         )
-        self.saveBalances_BD()
+        #self.saveBalances_BD()
 
     def margin_sell_order(self, coin_to_trade: str):
         """ A margin sell order 
@@ -122,7 +130,7 @@ class Binance:
             quantity=order_quantity,
             orderType="margin sell"
         )
-        self.saveBalances_BD()
+        #self.saveBalances_BD()
 
     def buyOrder(self, coin_to_trade: str):
         """
@@ -201,7 +209,8 @@ class Binance:
         if coin==self.baseCoin:
             # il determine la quantite a utiliser pour placer un ordre en analysant so prix
             mycursor = self.mydb.cursor()
-            mycursor.execute(f"select quantity from Balance where coinName = {coin}")
+            mycursor.execute(
+                f"select Balance.quantity from Balance where Balance.coinName = {coin}")
             resultat = mycursor.fetchall()
             balance = resultat[0][0]
 
@@ -257,27 +266,35 @@ class Binance:
         listcrypto = []
         for i in myresult:
             listcrypto.append(i[0].upper() + self.baseCoin)  # get "bnb" and add basecoin and get BNBBTC or BNBUSDT
-
+        print(">>>got the list of crypto")
         return listcrypto
 
     def saveTrades_DB(self, coin_to_trade: str, orderType: str, quantity: float):
         coinName = coin_to_trade.replace(self.baseCoin, '')
-        mycursor = self.mydb.cursor()
+        """mycursor = self.mydb.cursor()
 
         mycursor.execute(
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
+        """
+        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})"
+        tl.requestBD(requete=requete,kwargs=self.db)
+        print(">>>Trade saved")
 
     def saveBalances_BD(self) -> None:
         accountInfo = self.client.get_account()
-        mycursor = self.mydb.cursor()
-        mycursor.execute("delete from Balance")
+        #mycursor = self.mydb.cursor()
+        #mycursor.execute("delete from Balance")
 
-        for i in range(accountInfo['balances'].__len__()):
-            value = accountInfo['balances'][i]
-            mycursor.execute(
-                f"insert into Balance(coinName,quantity) values({value['asset']},{value['free']})")
+        for i in range(1,accountInfo['balances'].__len__()):
+            value:dict = accountInfo['balances'][i]
+            coin:str = value['asset']
+            quantity:int = value['free']
 
-    @classmethod
+            #mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
+            requete = f"insert into Balance(coinName,quantity) values({coin},{quantity})"
+            tl.requestBD(requete=requete, kwargs=self.db)
+
+    
     def get_klines(self, coin_to_trade: str = "BNBBTC", interval: str = "2 days"):
         """
         Get the klines for the timeframe given and in interval given.
@@ -295,7 +312,7 @@ class Binance:
         try:
             klines_list = self.client.get_historical_klines(
                 coin_to_trade, self.timeframe, f"{interval} ago UTC")
-            print(2)
+            
             # changer timestamp en date
             for kline in klines_list:
                 kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
@@ -316,9 +333,10 @@ class Binance:
             # supprimer un colonnes pas important
             # klines.drop(columns='index', inplace=True)
 
-            print(3)
+        
             klines.to_csv(BINANCEKLINES, index=False)
             # return klines
+            print(">>>klines telecharger")
 
         except BinanceOrderException:
             print(BinanceOrderException)
@@ -339,7 +357,7 @@ class Binance:
                 was.close()
                 dict_result = json.loads(json_result)
 
-                dict_result['k']['priceChange'] = Tool.percent_change(float(dict_result['k']['o']),
+                dict_result['k']['priceChange'] = tl.percent_change(float(dict_result['k']['o']),
                                                                       float(dict_result['k']['c']))
 
                 b = {'price': float(dict_result['k']['c']), 'priceChange': float(
@@ -357,7 +375,7 @@ class Binance:
         self.list_of_crypto = self.getCryptoList()
 
         listLength = self.list_of_crypto.__len__()
-        cryptoIndex = randint(0, listLength)
+        cryptoIndex = randint(0, listLength-1)
         cryptoToUse = self.list_of_crypto[cryptoIndex]
 
         return cryptoToUse
