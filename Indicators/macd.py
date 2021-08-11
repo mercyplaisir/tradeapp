@@ -22,23 +22,37 @@ class Macd:
     
         pass
 
-    def createMACD(self, periode: int = 30):
+    def createMACD(self):
         klines = pd.read_csv(BINANCEKLINES, index_col='date')
-        macd = btalib.macd(klines,period=periode)
-        s =  klines.append(macd.df)
-        s.to_csv(f"{KLINEPATH}")  # enregistrer dans le fichier
-        self.setklines()
+        macd = btalib.macd(klines)
+        macd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
 
 
     def price_study(self):
         """
         colums = ["macd","signal","histogram"]
         """
-        self.setklines()
-        klines = self.kline
+        self.createMACD()
         #calculate the MACD
-        
-        pass
 
-    def setklines(self):
-        self.kline = pd.read_csv(KLINEPATH, index_col='date')
+        kline = pd.read_csv(KLINEPATH, index_col='date')
+        binanceKlines = pd.read_csv(BINANCEKLINES)
+
+        kline['decision'] = kline['macd'] > kline['signal']
+
+        listD = list(kline['decision'][-4:-1])
+
+        if listD.count(True) == 3:
+            return "buy"
+        elif listD.count(True) == 2 or listD.count(False) == 2:
+            return "wait"
+        else:
+            return "sell"
+
+
+
+
+        
+        
+
+    

@@ -1,7 +1,7 @@
 import sys
 
-# from Indicators.stochastic import Stochastic
-# from Indicators.macd import Macd
+from Indicators.stochastic import Stochastic
+from Indicators.macd import Macd
 from Indicators.sma import Sma
 from Indicators.bb import Bollingerbands
 from Indicators.rsi import Rsi
@@ -27,24 +27,24 @@ class Study(Binance):
         rsiInd = Rsi()
         bbInd = Bollingerbands()
         smaInd = Sma()
-        # stochInd = Stochastic()
-        # macdInd = Macd()
+        stochInd = Stochastic()
+        macdInd = Macd()
         # =====================================
 
         # ======make price study=================
         rsiStudy = rsiInd.priceStudy
         bbStudy = bbInd.priceStudy()
         smaStudy = smaInd.priceStudy()
-        # stochInd = stochInd.price_study()
-        # macdInd = macdInd.price_study()
+        stochInd = stochInd.price_study()
+        macdInd = macdInd.price_study()
 
-        self.studyList = [rsiStudy, bbStudy, smaStudy]
+        self.studyList = [rsiStudy, bbStudy, smaStudy,stochInd]
 
-        listLen: int = self.studyList.__len__()
+        
 
-        if self.studyList.count('buy') == listLen:
+        if self.studyList.count('buy') == len(self.studyList):
             return 'buy'
-        elif self.studyList.count('sell') >= (listLen - 1):
+        elif self.studyList.count('sell') >= len(self.studyList):
             return 'sell'
         else:
             return 'wait'

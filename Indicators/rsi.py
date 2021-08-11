@@ -21,7 +21,7 @@ class Rsi:
         rsiInd = btalib.rsi(kline, period=periode)
         rsiInd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
 
-    @property
+    
     def priceStudy(self):
         """
             study made on klines(dataframe)
@@ -35,21 +35,19 @@ class Rsi:
         kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')
 
-        rsiList = [xx for xx in kline['rsi']]  # mets les valeurs du dataframe dans la liste
-        rsiList.reverse()  # renverse la liste pour que les derniers donnes soit les premier
-        rsiList = np.array((rsiList[0:9]))  # je garde les 9 premieres et convertisse en array
+        kline
+        rsiList = kline['rsi'][-9:-1]  # recupere les 9 dernieres valeurs
+        
+        closePrices = binanceKlines['close'][-9:-1] # recupere les 9 dernieres valeurs
 
-        closePrices = list(binanceKlines['close'])
-        closePrices.reverse()
-        closePrices = np.array(closePrices[0:9])
+        rsiMean = rsiList.mean()  # calcule la moyenne
+        priceMean = closePrices.mean()
 
-        self.rsiMean = rsiList.mean()  # calcule la moyenne
-        self.priceMean = closePrices.mean()
-
-        decision = "buy" if rsiList[0] > self.rsiMean and closePrices[0] > self.priceMean else "sell"
+        decision = "buy" if rsiList[-1] > rsiMean and closePrices[-1] > priceMean else "sell"
 
         return decision
 
+    
     def klines(self):
         kline = pd.read_csv(KLINEPATH, index_col='date')
         return kline

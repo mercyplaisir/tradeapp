@@ -23,7 +23,7 @@ functions in  this file:
 
 """
 
-FILESTORAGE: str = f'{sys.path[0]}'+'/files'
+FILESTORAGE: str = f'{sys.path[0]}'+'/../files'
 """
 pour que ca marche il faut lancer a partir du fichier main si faudra ajouter 
 
@@ -37,6 +37,8 @@ KLINEPATH: str = f"{FILESTORAGE}/klines.csv"
 APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
 FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
+
+INDICATORPERIOD : int = 14
 
 
 class Tool:
@@ -210,3 +212,11 @@ class Tool:
         mydb = mysql.connector.connect(**kwargs)
         mycursor = mydb.cursor()
         mycursor.execute(requete)
+    
+    @staticmethod
+    def selectDB(arg,**kwargs):
+        mydb = mysql.connector.connect(**kwargs)
+        mycursor = mydb.cursor()
+        mycursor.execute(arg)
+
+        return mycursor
