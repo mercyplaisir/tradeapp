@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/model",
+        "./src/model/Indicators"
+    ]
+}

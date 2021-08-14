@@ -1,4 +1,6 @@
-BINANCE TRADING ALGORITHM it 's a algorithm that trade automatically cryptocurrency for you
+BINANCE TRADING APP
+
+it 's a algorithm that trade automatically cryptocurrency for you
 using a confident strategy
 
 Execute this line to install all libraries
