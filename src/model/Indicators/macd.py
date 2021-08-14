@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-from src.view.tools import BINANCEKLINES, KLINEPATH
+from src.controller.tools import BINANCEKLINES, KLINEPATH
 
 
 

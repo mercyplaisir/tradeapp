@@ -5,7 +5,7 @@ import btalib
 import pandas as pd
 
 #sys.path.append("..")
-from src.view.tools import BINANCEKLINES, KLINEPATH
+from src.controller.tools import BINANCEKLINES, KLINEPATH
 
 
 class Stochastic:

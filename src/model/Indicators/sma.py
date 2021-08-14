@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 #sys.path.append("..")
-from src.view.tools import BINANCEKLINES, KLINEPATH
+from src.controller.tools import BINANCEKLINES, KLINEPATH
 
 
 class Sma:
