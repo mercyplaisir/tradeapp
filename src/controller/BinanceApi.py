@@ -10,8 +10,8 @@ from binance.exceptions import *
 from binance.enums import *
 from binance.client import Client
 
-from src.view.VirtualAccount import VirtualAccount
-from src.view.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
+from src.controller.VirtualAccount import VirtualAccount
+from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 """
 varaibles :
             - apiPublicKey

@@ -4,7 +4,7 @@ import sys
 sys.path.append(sys.path[0]+'/../..')
 
 
-from src.view.BinanceApi import Binance
+from src.controller.BinanceApi import Binance
 from src.model.Indicators.study import Study
 
 #=========initialize binance connection==========
