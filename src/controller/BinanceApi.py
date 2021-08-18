@@ -10,6 +10,7 @@ from binance.exceptions import *
 from binance.enums import *
 from binance.client import Client
 
+from src.controller.mysqlDB import mysqlDB
 from src.controller.VirtualAccount import VirtualAccount
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 """
@@ -64,11 +65,12 @@ class Binance:
         #except:
         #    print("erreur de connexion")
 
-        self.db = {'host': 'localhost',
+        db = {'host': 'localhost',
                    'user': 'root',
                    'passwd': 'Pl@isir6',
                    'database': 'bot'}
 
+        self.mysqldb = mysqlDB(db)
         print(">>>Initialisation terminee")
 
 
@@ -82,18 +84,7 @@ class Binance:
             except:
                 print("erreur de connexion\nretry...")
 
-    def bdConnect(self):
-        try:
-            self.mydb = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                passwd='Pl@isir6',
-                database='bot'
-            )
-            print(">>>connexion au DB effectue")
-
-        except:
-            print("BD connection error")
+    
 
     # placer un ordre d'achat
     def margin_buy_order(self, coin_to_trade: str):
@@ -210,7 +201,7 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            mycursor = tl.selectDB(requete, self.db)
+            mycursor = self.mysqldb.selectDB(requete)
             resultat = mycursor.fetchall()
             balance: float = resultat[0][0]
 
@@ -251,7 +242,7 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            mycursor = tl.selectDB(requete,self.db)
+            mycursor = self.mysqldb.selectDB(requete)
             resultat = mycursor.fetchall()
             balance: float = resultat[0][0]
 
@@ -264,7 +255,7 @@ class Binance:
         #mycursor = self.mydb.cursor()
         #mycursor.execute("select coinName from Coin ")
         requete = "select coinName from Coin "
-        mycursor = tl.selectDB(requete, self.db)
+        mycursor = self.mysqldb.selectDB(requete)
         myresult = mycursor.fetchall()
         listcrypto = []
         for i in myresult:
@@ -282,7 +273,7 @@ class Binance:
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
         """
         requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})"
-        tl.requestBD(requete, self.db)
+        self.mysqldb.requestBD(requete)
 
         print(">>>Trade enregistre")
 
@@ -298,7 +289,7 @@ class Binance:
 
             #mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
             requete = f"insert into Balance(coinName,quantity) values({coin},{quantity})"
-            tl.requestBD(requete, self.db)
+            self.mysqldb.requestBD(requete)
         
         print(">>>Balances saved")
 

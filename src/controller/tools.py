@@ -207,7 +207,7 @@ class Tool:
             # return "fichier n'existe pas"
             pass
     
-    @staticmethod
+     @staticmethod
     def requestBD(requete,**kwargs):
         mydb = mysql.connector.connect(**kwargs)
         mycursor = mydb.cursor()
@@ -220,3 +220,4 @@ class Tool:
         mycursor.execute(requete)
 
         return mycursor
+

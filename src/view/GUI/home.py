@@ -28,6 +28,16 @@ cryptoChooseRadio = tkinter.Radiobutton(cryptoChooseFrame,text="BTC",value=1)
 cryptoChooseRadio1 = tkinter.Radiobutton(cryptoChooseFrame,text="USDT",value=0)
 
 
+
+
+
+
+
+
+
+
+
+
 #======================pack process=============
 apikeyFrame.grid(sticky="nw")
 apiLabel.grid(row=0)
@@ -42,7 +52,7 @@ cryptoChooseLabel.grid(row=0)
 cryptoChooseRadio.grid(row=1,column=1)
 cryptoChooseRadio1.grid(row = 2,column = 1)
 
-
+#==========================================
 
 
 
