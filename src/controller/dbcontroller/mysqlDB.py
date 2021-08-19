@@ -4,8 +4,12 @@ import mysql.connector
 
 
 class mysqlDB:
-    def __init__(self,**kwargs):
-        self.bdConnect(**kwargs)
+    def __init__(self):
+        db = {'host': 'localhost',
+                   'user': 'root',
+                   'passwd': 'Pl@isir6',
+                   'database': 'bot'}
+        self.bdConnect(db)
         
     def bdConnect(self,**kwargs):
         try:
@@ -18,8 +22,11 @@ class mysqlDB:
     def requestDB(self,requete):
         mycursor = self.mydb.cursor()
         mycursor.execute(requete)
+
+        
     def selectDB(self,requete):
         mycursor = self.mydb.cursor()
         mycursor.execute(requete)
+        return mycursor
     
 

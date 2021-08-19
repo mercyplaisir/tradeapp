@@ -38,7 +38,13 @@ APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
 FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
 
+DBSTORAGE:str = f'{sys.path[0]}'+'/../databases/appBD.db3'
+
+
 INDICATORPERIOD : int = 14
+
+
+
 
 
 class Tool:
@@ -207,17 +213,5 @@ class Tool:
             # return "fichier n'existe pas"
             pass
     
-     @staticmethod
-    def requestBD(requete,**kwargs):
-        mydb = mysql.connector.connect(**kwargs)
-        mycursor = mydb.cursor()
-        mycursor.execute(requete)
-    
-    @staticmethod
-    def selectDB(requete,**kwargs):
-        mydb = mysql.connector.connect(**kwargs)
-        mycursor = mydb.cursor()
-        mycursor.execute(requete)
-
-        return mycursor
+     
 

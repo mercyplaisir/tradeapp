@@ -10,7 +10,7 @@ from binance.exceptions import *
 from binance.enums import *
 from binance.client import Client
 
-from src.controller.mysqlDB import mysqlDB
+from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.VirtualAccount import VirtualAccount
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 """
@@ -64,13 +64,8 @@ class Binance:
         self.virtualAccount = VirtualAccount(baseCoin=self.baseCoin)
         #except:
         #    print("erreur de connexion")
-
-        db = {'host': 'localhost',
-                   'user': 'root',
-                   'passwd': 'Pl@isir6',
-                   'database': 'bot'}
-
-        self.mysqldb = mysqlDB(db)
+        
+        self.mysqldb = mysqlDB()
         print(">>>Initialisation terminee")
 
 
