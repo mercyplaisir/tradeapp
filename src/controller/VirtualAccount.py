@@ -3,6 +3,7 @@ import sys
 import datetime
 
 from src.controller.tools import FILEPATH, Tool as tl
+from src.controller.dbcontroller.sqliteDB import sqliteDB
 
 
 """
@@ -19,6 +20,8 @@ class VirtualAccount:
     def __init__(self,baseCoin:str):
         self.dicte: dict = tl.read_json(FILEPATH)
         self.baseCoin = baseCoin
+
+        self.sqliteDB =sqliteDB()
 
     def setBalance(self, coin: str, balance: float):
         """
@@ -72,8 +75,7 @@ class VirtualAccount:
         pass
 
     def saveTrades_DB(self, coin_to_trade: str, orderType: str, quantity: float):
-        coinName = coin_to_trade.replace(self.baseCoin, '')
-        mycursor = self.mydb.cursor()
-
-        mycursor.execute(
+        requete=(
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
+
+        self.sqliteDB.requestDB(requete)

@@ -10,7 +10,7 @@ from binance.exceptions import *
 from binance.enums import *
 from binance.client import Client
 
-from src.controller.dbcontroller.mysqlDB import mysqlDB
+from src.controller.dbcontroller.sqliteDB import sqliteDB
 from src.controller.VirtualAccount import VirtualAccount
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 """
@@ -65,7 +65,7 @@ class Binance:
         #except:
         #    print("erreur de connexion")
         
-        self.mysqldb = mysqlDB()
+        self.sqliteDB =sqliteDB()
         print(">>>Initialisation terminee")
 
 
@@ -196,9 +196,9 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            mycursor = self.mysqldb.selectDB(requete)
-            resultat = mycursor.fetchall()
-            balance: float = resultat[0][0]
+            resultat = self.sqliteDB.selectDB(requete)
+            
+            balance: float = resultat[0]
 
             coinInfo_USD = Binance.coinPriceChange(coin + 'USDT')
             coinInfo = Binance.coinPriceChange(coin + self.baseCoin)
@@ -237,9 +237,8 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            mycursor = self.mysqldb.selectDB(requete)
-            resultat = mycursor.fetchall()
-            balance: float = resultat[0][0]
+            resultat = self.sqliteDB.selectDB(requete)
+            balance: float = resultat[0]
 
             return balance
 
@@ -250,8 +249,8 @@ class Binance:
         #mycursor = self.mydb.cursor()
         #mycursor.execute("select coinName from Coin ")
         requete = "select coinName from Coin "
-        mycursor = self.mysqldb.selectDB(requete)
-        myresult = mycursor.fetchall()
+        myresult = self.sqliteDB.selectDB(requete)
+        
         listcrypto = []
         for i in myresult:
             # get "bnb" and add basecoin and get BNBBTC or BNBUSDT
@@ -268,7 +267,7 @@ class Binance:
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
         """
         requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})"
-        self.mysqldb.requestBD(requete)
+        self.sqliteDB.requestBD(requete)
 
         print(">>>Trade enregistre")
 
@@ -284,7 +283,7 @@ class Binance:
 
             #mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
             requete = f"insert into Balance(coinName,quantity) values({coin},{quantity})"
-            self.mysqldb.requestBD(requete)
+            self.sqliteDB.requestBD(requete)
         
         print(">>>Balances saved")
 
