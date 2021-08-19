@@ -329,10 +329,8 @@ class Binance:
             # return klines
             print(">>>klines telecharger")
 
-        except BinanceOrderException:
-            print(BinanceOrderException)
-        except BinanceAPIException:
-            print(BinanceAPIException)
+        except Exception as e:
+            print(e)
 
     @classmethod
     def coinPriceChange(coin_to_trade: str = "BNBBTC"):
