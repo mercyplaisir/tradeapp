@@ -6,8 +6,7 @@ import datetime
 import pandas as pd
 import mysql.connector
 import websocket
-from binance.exceptions import *
-from binance.enums import *
+
 from binance.client import Client
 
 from src.controller.dbcontroller.sqliteDB import sqliteDB
