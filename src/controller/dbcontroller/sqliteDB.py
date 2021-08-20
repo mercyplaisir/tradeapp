@@ -4,20 +4,23 @@ from src.controller.tools import DBSTORAGE
 
 class sqliteDB:
     def requestDB(self,requete):
-        mydb = sqlite3.connect(DBSTORAGE)
-        mycursor = mydb.cursor()
+        con = sqlite3.connect(DBSTORAGE)
+        mycursor = con.cursor()
+
 
         mycursor.execute(requete)
-        
-        mydb.close()
+       
+       #Save(commit) changes
+        con.commit()
+        con.close()
         return True
 
 
     def selectDB(self,requete):
-        mydb = sqlite3.connect(DBSTORAGE)
+        con = sqlite3.connect(DBSTORAGE)
         mycursor = mydb.cursor()
 
         mycursor.execute(requete)
         resultat = mycursor.fetchall()
-        mydb.close()
+        con.close()
         return resultat
