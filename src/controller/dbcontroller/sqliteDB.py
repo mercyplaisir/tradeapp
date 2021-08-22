@@ -10,7 +10,7 @@ class sqliteDB:
 
         mycursor.execute(requete)
        
-       #Save(commit) changes
+        #Save(commit) changes
         con.commit()
         con.close()
         return True

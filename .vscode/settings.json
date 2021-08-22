@@ -2,5 +2,8 @@
     "python.analysis.extraPaths": [
         "./src/model",
         "./src/model/Indicators"
-    ]
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylamaEnabled": false,
+    "python.linting.enabled": true
 }

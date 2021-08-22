@@ -11,3 +11,4 @@ pip3 install pandas
 pip3 install numpy
 pip3 install mysql-connector
 pip3 install websocket
+pip3 install tkinter

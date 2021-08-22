@@ -5,28 +5,48 @@ import mysql.connector
 
 class mysqlDB:
     def __init__(self):
-        db = {'host': 'localhost',
+        self.db = {'host': 'localhost',
                    'user': 'root',
                    'passwd': 'Pl@isir6',
                    'database': 'bot'}
-        self.bdConnect(db)
+        self.connected = True
+
         
-    def bdConnect(self,**kwargs):
+        
+    def _bdConnect(self,**kwargs):
         try:
-            self.mydb = mysql.connector.connect(**kwargs)
+            self.con = mysql.connector.connect(**kwargs)
             print(">>>connexion au DB effectue")
 
         except:
             print("BD connection error")
+    
+    def _connect(self):
+        self.bdConnect(self.db)
+    def _disconnect(self):
+        if self.connected:
+            self.con.close()
+        
 
     def requestDB(self,requete):
-        mycursor = self.mydb.cursor()
+        self._connect()
+
+        mycursor = self.con.cursor()
         mycursor.execute(requete)
+        mycursor.close()
+        
+        self._disconnect()
 
         
     def selectDB(self,requete):
-        mycursor = self.mydb.cursor()
-        mycursor.execute(requete)
-        return mycursor
+        self._connect()
+        
+        cursor = self.con.cursor()
+        cursor.execute(requete)
+        result = cursor
+        cursor.close()
+
+        self._disconnect()
+        return result
     
 
