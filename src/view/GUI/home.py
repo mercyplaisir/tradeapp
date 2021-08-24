@@ -18,7 +18,6 @@ privateKeyLabel = tkinter.Label(apikeyFrame, text="Private key :")
 privateKeyEntry = tkinter.Entry(apikeyFrame, width=apiLabelWidth)
 
 #=========================for choosing crypto
-cryptoChooseFrame = tkinter.LabelFrame(mainapp,text = "choose crypto")
 #crypto
 cryptoChooseLabel = tkinter.Label(apikeyFrame,text="choose your Basecoin:")
 cryptoChooseRadio = tkinter.Radiobutton(apikeyFrame,text="BTC",value=1)
@@ -36,6 +35,17 @@ ltcCheck = tkinter.Checkbutton(apikeyFrame,
 				 text= "LTC",offvalue = False,onvalue =True)
 bchCheck = tkinter.Checkbutton(apikeyFrame,
 				 text= "BCH",offvalue = False,onvalue =True)
+
+
+
+
+#=======Profit/Loss=========================
+plFrame = tkinter.LabelFrame(mainapp,text= "P/L")
+plLabel = tkinter.Label(plFrame, text = "Profit/Loss")
+
+
+
+
 
 #======================pack process=============
 apikeyFrame.place(x=100)
