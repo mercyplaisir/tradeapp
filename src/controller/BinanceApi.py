@@ -66,7 +66,9 @@ class Binance:
         
         self.sqliteDB =sqliteDB()
         print(">>>Initialisation terminee")
-
+        
+        self.boughtAt = 0
+        self.soldAt = 0
 
     def connect(self):
         while True:
@@ -138,6 +140,10 @@ class Binance:
             coin_to_trade=coin_to_trade,
             order_quantity=self.orderQuantity(self.baseCoin)
         )
+        coinInfo = Binance.coinPriceChange(coin_to_trade)
+        self.boughtAt = coinInfo['price']
+        
+        self.lastOrderWasBuy = True
         print(">>>Buy Order passed")
 
     def sellOrder(self, coin_to_trade: str):
@@ -160,7 +166,7 @@ class Binance:
         )
 
         self.saveBalances_BD()"""
-        coinInfo = Binance.coinPriceChange(coinName + self.baseCoin)
+        coinInfo = Binance.coinPriceChange(coin_to_trade)
         coin_price = coinInfo['price']
 
         self.virtualAccount.virtualSell(
@@ -168,6 +174,9 @@ class Binance:
             order_quantity=self.orderQuantity(coinName),
             coinPrice=coin_price
         )
+        self.soldAt=coin_price
+
+        self.lastOrderWasBuy = False
         print(">>>Sell Order passed")
 
     def assetBalance(self, coin: str):
@@ -368,3 +377,7 @@ class Binance:
 
         print(">>>liste recuperer")
         return cryptoToUse
+
+    def PLcalculator(self):
+        if not lastOrderWasBuy:
+            return tl.percent_change(self.boughtAt,self.soldAt)

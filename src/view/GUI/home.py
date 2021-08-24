@@ -41,14 +41,14 @@ bchCheck = tkinter.Checkbutton(apikeyFrame,
 
 #=======Profit/Loss=========================
 plFrame = tkinter.LabelFrame(mainapp,text= "P/L")
-plLabel = tkinter.Label(plFrame, text = "Profit/Loss")
+plFrameLabel = tkinter.Label(plFrame, text = "Profit/Loss")
 
-
+plshowLabel = tkinter.Label(plFrame, text = "{+2}%")
 
 
 
 #======================pack process=============
-apikeyFrame.place(x=100)
+apikeyFrame.place(x=100,y=100)
 apiLabel.grid(row=0)
 publicKeyLabel.grid(row=1,column=0,columnspan=2)
 publicKeyEntry.grid(row=1, column=2)
@@ -67,7 +67,10 @@ dogeCheck.grid(column =checkcol)
 ethCheck.grid(column =checkcol)
 ltcCheck.grid(column = checkcol)
 bchCheck.grid(column = checkcol)
-
+#=========================================
+plFrame.place(x=700,y=100)
+plFrameLabel.grid()
+plshowLabel.grid()
 
 
 
