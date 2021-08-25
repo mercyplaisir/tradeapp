@@ -1,8 +1,11 @@
 import tkinter
 
 
+minWidth = 700
+minHeigth = 400
+
 mainapp = tkinter.Tk()
-mainapp.minsize(1000,600)
+mainapp.minsize(minWidth,minHeigth)
 mainapp.title("Trade app")
 
 #==========for entering apikeys
@@ -18,11 +21,15 @@ privateKeyLabel = tkinter.Label(apikeyFrame, text="Private key :")
 privateKeyEntry = tkinter.Entry(apikeyFrame, width=apiLabelWidth)
 
 #=========================for choosing crypto
-cryptoChooseFrame = tkinter.LabelFrame(mainapp,text = "choose crypto")
 #crypto
 cryptoChooseLabel = tkinter.Label(apikeyFrame,text="choose your Basecoin:")
 cryptoChooseRadio = tkinter.Radiobutton(apikeyFrame,text="BTC",value=1)
 cryptoChooseRadio1 = tkinter.Radiobutton(apikeyFrame,text="USDT",value=0)
+
+buttonFrame = tkinter.Frame(mainapp)
+startButton = tkinter.Button(buttonFrame,text = "start")
+stopButton = tkinter.Button(buttonFrame,text = "stop")
+quitButton = tkinter.Button(buttonFrame,text = "stop and quit")
 
 #====================crypto to trade===================
 
@@ -37,21 +44,24 @@ ltcCheck = tkinter.Checkbutton(apikeyFrame,
 bchCheck = tkinter.Checkbutton(apikeyFrame,
 				 text= "BCH",offvalue = False,onvalue =True)
 #======================P/L========================
-plFrame = tkinter.LabelFrame(mainapp,text= "P/L",width=160)
-plLabel=tkinter.Label(plFrame, text="Profit/Loss")
+plFrame = tkinter.LabelFrame(mainapp,text= "P/L")
+
+plLabel=tkinter.Label(plFrame, text="Profit/Loss",width=20)
 
 showPlLabel=tkinter.Label(plFrame, text="{+2}%")
+#==============================Buttons==============================
 
 
 
-yValue = 100
+yValue = 10
 #======================pack process=============
-apikeyFrame.place(x=100,y=yValue)
+apikeyFrame.place(x=10,y=yValue)
 apiLabel.grid(row=0)
 publicKeyLabel.grid(row=1,column=0,columnspan=2)
 publicKeyEntry.grid(row=1, column=2)
 privateKeyLabel.grid ( row=2,column=0,columnspan=2)
 privateKeyEntry.grid(row=2,column=2)
+
 #=============================================
 
 cryptoChooseLabel.grid()
@@ -65,12 +75,16 @@ dogeCheck.grid(column =checkcol)
 ethCheck.grid(column =checkcol)
 ltcCheck.grid(column = checkcol)
 bchCheck.grid(column = checkcol)
+
+buttonFrame.place(x=465,y=365)
+startButton.grid(row=0,column=0)
+stopButton.grid(row=0,column=1)
+quitButton.grid(row=0,column=3)
 #============================================
-plFrame.place(x=600,y=yValue)
+plFrame.place(x=500,y=yValue)
 plLabel.grid()
 showPlLabel.grid()
-
-
+#===============================
 
 
 mainapp.mainloop()
