@@ -23,7 +23,7 @@ functions in  this file:
 
 """
 
-FILESTORAGE: str = f'{sys.path[0]}'+'/../model/files'
+FILESTORAGE: str = f'{sys.path[0]}'+'/../../model/files'
 """
 pour que ca marche il faut lancer a partir du fichier main si faudra ajouter 
 
@@ -37,6 +37,9 @@ KLINEPATH: str = f"{FILESTORAGE}/klines.csv"
 APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
 FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
+
+USERINPUTS:str = f"{FILESTORAGE}/userInputs.json"
+
 
 DBSTORAGE:str = f'{sys.path[0]}'+'/../databases/appBD.db3'
 

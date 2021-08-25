@@ -1,0 +1,11 @@
+{
+    "public key": "fdsgrfd",
+    "secret key": "nhjdcsbhd",
+    "basecoin": "USDT",
+    "crypto": [
+        "DOGE",
+        "LTC",
+        "BCH",
+        "ETH"
+    ]
+}
