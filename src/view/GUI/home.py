@@ -18,6 +18,7 @@ privateKeyLabel = tkinter.Label(apikeyFrame, text="Private key :")
 privateKeyEntry = tkinter.Entry(apikeyFrame, width=apiLabelWidth)
 
 #=========================for choosing crypto
+cryptoChooseFrame = tkinter.LabelFrame(mainapp,text = "choose crypto")
 #crypto
 cryptoChooseLabel = tkinter.Label(apikeyFrame,text="choose your Basecoin:")
 cryptoChooseRadio = tkinter.Radiobutton(apikeyFrame,text="BTC",value=1)
@@ -35,20 +36,17 @@ ltcCheck = tkinter.Checkbutton(apikeyFrame,
 				 text= "LTC",offvalue = False,onvalue =True)
 bchCheck = tkinter.Checkbutton(apikeyFrame,
 				 text= "BCH",offvalue = False,onvalue =True)
+#======================P/L========================
+plFrame = tkinter.LabelFrame(mainapp,text= "P/L",width=160)
+plLabel=tkinter.Label(plFrame, text="Profit/Loss")
+
+showPlLabel=tkinter.Label(plFrame, text="{+2}%")
 
 
 
-
-#=======Profit/Loss=========================
-plFrame = tkinter.LabelFrame(mainapp,text= "P/L")
-plFrameLabel = tkinter.Label(plFrame, text = "Profit/Loss")
-
-plshowLabel = tkinter.Label(plFrame, text = "{+2}%")
-
-
-
+yValue = 100
 #======================pack process=============
-apikeyFrame.place(x=100,y=100)
+apikeyFrame.place(x=100,y=yValue)
 apiLabel.grid(row=0)
 publicKeyLabel.grid(row=1,column=0,columnspan=2)
 publicKeyEntry.grid(row=1, column=2)
@@ -67,10 +65,10 @@ dogeCheck.grid(column =checkcol)
 ethCheck.grid(column =checkcol)
 ltcCheck.grid(column = checkcol)
 bchCheck.grid(column = checkcol)
-#=========================================
-plFrame.place(x=700,y=100)
-plFrameLabel.grid()
-plshowLabel.grid()
+#============================================
+plFrame.place(x=600,y=yValue)
+plLabel.grid()
+showPlLabel.grid()
 
 
 
