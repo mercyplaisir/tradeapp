@@ -75,6 +75,7 @@ class VirtualAccount:
         pass
 
     def saveTrades_DB(self, coin_to_trade: str, orderType: str, quantity: float):
+        coinName = coin_to_trade.split(self.baseCoin)[0]
         requete=(
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
 
