@@ -1,10 +1,11 @@
 {
     "crypto": [
+        "DOGE",
         "ETH",
         "LTC",
         "BCH"
     ],
-    "basecoin": "USDT",
-    "public key": "bnbmvghftftuj",
-    "secret key": "bnbhbgyhkgfvgb"
+    "basecoin": "BTC",
+    "public key": "",
+    "secret key": ""
 }

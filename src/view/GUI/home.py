@@ -1,6 +1,7 @@
 import tkinter
 import sys
 from typing import List,Dict
+import time
 
 sys.path.append(sys.path[0]+"/../../..")
 from src.controller.tools import Tool as tl,USERINPUTS
@@ -153,6 +154,7 @@ def crypto_to_trade(appframe:tkinter.Frame):
 
 
 def main_button(appframe:tkinter.Frame):
+    
     buttonFrame = tkinter.Frame(appframe)
     startButton = tkinter.Button(buttonFrame,text = "start")
     stopButton = tkinter.Button(buttonFrame,text = "stop")
