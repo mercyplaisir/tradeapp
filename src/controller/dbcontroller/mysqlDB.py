@@ -9,25 +9,10 @@ class mysqlDB:
                    'user': 'root',
                    'passwd': 'Pl@isir6',
                    'database': 'bot'}
-        self.connected = True
+        self.connected = False
 
         
         
-    def _bdConnect(self,**kwargs):
-        try:
-            self.con = mysql.connector.connect(**kwargs)
-            print(">>>connexion au DB effectue")
-
-        except:
-            print("BD connection error")
-    
-    def _connect(self):
-        self.bdConnect(self.db)
-    def _disconnect(self):
-        if self.connected:
-            self.con.close()
-        
-
     def requestDB(self,requete):
         self._connect()
 
@@ -48,5 +33,26 @@ class mysqlDB:
 
         self._disconnect()
         return result
+
+
+
+    def _bdConnect(self,**kwargs):
+        try:
+            self.con = mysql.connector.connect(**kwargs)
+            self.connected = True
+            print(">>>connexion au DB effectue")
+
+        except:
+            print("BD connection error")
+    
+    def _connect(self):
+        self._bdConnect(self.db)
+
+    def _disconnect(self):
+        if self.connected:
+            self.con.close()
+            self.connected = False
+        
+
     
 

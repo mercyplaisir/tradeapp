@@ -18,7 +18,7 @@ class sqliteDB:
 
     def selectDB(self,requete):
         con = sqlite3.connect(DBSTORAGE)
-        mycursor = mydb.cursor()
+        mycursor = con.cursor()
 
         mycursor.execute(requete)
         resultat = mycursor.fetchall()
