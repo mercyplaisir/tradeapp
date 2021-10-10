@@ -2,7 +2,7 @@ import sqlite3
 from src.controller.tools import DBSTORAGE
 
 
-class sqliteDB:
+class SqliteDB:
     def requestDB(self,requete):
         con = sqlite3.connect(DBSTORAGE)
         mycursor = con.cursor()

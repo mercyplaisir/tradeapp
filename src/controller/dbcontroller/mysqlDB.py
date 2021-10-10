@@ -36,9 +36,9 @@ class mysqlDB:
 
 
 
-    def _bdConnect(self,**kwargs):
+    def _bdConnect(self,dbinfo:dict):
         try:
-            self.con = mysql.connector.connect(**kwargs)
+            self.con = mysql.connector.connect(**dbinfo)
             self.connected = True
             print(">>>connexion au DB effectue")
 
