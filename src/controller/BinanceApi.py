@@ -1,56 +1,38 @@
 import json
 from random import randint
 import datetime
+import os
 
 
 import pandas as pd
-import mysql.connector
 import websocket
 
 from binance.client import Client
 
-from src.controller.dbcontroller.sqliteDB import sqliteDB
-from src.controller.VirtualAccount import VirtualAccount
+from src.controller.dbcontroller.sqliteDB import SqliteDB
+
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
-"""
-varaibles :
-            - apiPublicKey
-            - apiSecretKey
-            - list_of_crypto
 
 
 
-functions in  this file:
-                      - 'connect',
-                      - 'assetBalance',
-                      - 'cryptoToTrade',
-                      - 'getCryptoList',
-                      - 'get_klines',
-                      - 'orderQuantity',
-                      - 'coinPriceChange',
-
-                      - 'sellOrder'
-                      - 'buyOrder',
-                      - 'margin_buy_order',
-                      - 'margin_sell_order',
-
-                      - 'bdConnect',
-                      - 'saveBalances_BD',
-                      - 'saveTrades_DB',
-
-
-"""
 
 
 class Binance:
 
+
+    __all__ = ["PLcalculator",
+                        'assetBalance', 'buyOrder', 'coinPriceChange',
+                        'connect', 'cryptoToTrade', 'getCryptoList',
+                        'get_klines', 'orderQuantity',
+                        'saveBalances_BD', 'saveTrades_DB', 'sellOrder']
+    
     def __init__(self):
         #try:
+        # get all key
+        self.apikeys: dict = tl.read_json(APIKEYPATH)  
 
-        self.apikeys: dict = tl.read_json(APIKEYPATH)  # get all key
-
-        self.apiPublicKey: str = self.apikeys["public key"]  # public key
-        self.apiSecretKey: str = self.apikeys["secret key"]  # secret key
+        self.apiPublicKey: str = os.getenv("BINANCE_PUBLIC_KEY")  # public key
+        self.apiSecretKey: str = os.getenv("BINANCE_PRIVATE_KEY") # secret key
 
         self.lastOrderWasBuy = False
 
@@ -64,7 +46,7 @@ class Binance:
         #except:
         #    print("erreur de connexion")
         
-        self.sqliteDB =sqliteDB()
+        self.database =SqliteDB()
         print(">>>Initialisation terminee")
         
         self.boughtAt = 0
@@ -77,44 +59,9 @@ class Binance:
 
                 print(">>>connection a BINANCE effectue avec succes")
                 break
-            except:
+            except Exception:
                 print("erreur de connexion\nretry...")
 
-    
-
-    # placer un ordre d'achat
-    def margin_buy_order(self, coin_to_trade: str):
-        """A margin buy order"""
-
-        # coinName: str = coin_to_trade.replace(self.baseCoin, '')
-        order_quantity: int = self.orderQuantity(self.baseCoin)
-
-        self.client.create_margin_order(
-            symbol=coin_to_trade, side=SIDE_BUY, type=ORDER_TYPE_MARKET, quantity=order_quantity)
-
-        self.saveTrades_DB(
-            coin_to_trade=coin_to_trade,
-            quantity=order_quantity,
-            orderType="margin buy"
-        )
-        #self.saveBalances_BD()
-
-    def margin_sell_order(self, coin_to_trade: str):
-        """ A margin sell order 
-        coin_to_trade .ex:BNBBTC, BTCUSDT
-        """
-        coinName: str = coin_to_trade.replace(self.baseCoin, '')
-        order_quantity: int = self.orderQuantity(coinName)
-
-        self.client.create_margin_order(
-            symbol=coin_to_trade, side=SIDE_SELL, type=ORDER_TYPE_MARKET, quantity=order_quantity)
-
-        self.saveTrades_DB(
-            coin_to_trade=coin_to_trade,
-            quantity=order_quantity,
-            orderType="margin sell"
-        )
-        #self.saveBalances_BD()
 
     def buyOrder(self, coin_to_trade: str):
         """
@@ -153,7 +100,7 @@ class Binance:
         coin_to_trade .ex:BNBBTC, BTCUSDT
         """
         coinName: str = coin_to_trade.replace(self.baseCoin, '')
-        """
+        
         order_quantity: int = self.orderQuantity(coinName)
 
         self.client.order_market_sell(
@@ -165,7 +112,8 @@ class Binance:
             orderType="market sell"
         )
 
-        self.saveBalances_BD()"""
+        self.saveBalances_BD()
+        """
         coinInfo = Binance.coinPriceChange(coin_to_trade)
         coin_price = coinInfo['price']
 
@@ -173,8 +121,8 @@ class Binance:
             coin_to_trade=coin_to_trade,
             order_quantity=self.orderQuantity(coinName),
             coinPrice=coin_price
-        )
-        self.soldAt=coin_price
+        )"""
+        self.soldAt = Binance.coinPriceChange()['price']
 
         self.lastOrderWasBuy = False
         print(">>>Sell Order passed")
@@ -204,7 +152,7 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            resultat = self.sqliteDB.selectDB(requete)
+            resultat = self.database.selectDB(requete)
             
             balance: float = resultat[0]
 
@@ -245,7 +193,7 @@ class Binance:
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
-            resultat = self.sqliteDB.selectDB(requete)
+            resultat = self.database.selectDB(requete)
             balance: float = resultat[0]
 
             return balance
@@ -257,7 +205,7 @@ class Binance:
         #mycursor = self.mydb.cursor()
         #mycursor.execute("select coinName from Coin ")
         requete = "select coinName from Coin "
-        myresult = self.sqliteDB.selectDB(requete)
+        myresult = self.database.selectDB(requete)
         
         listcrypto = []
         for i in myresult:
@@ -275,7 +223,7 @@ class Binance:
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
         """
         requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})"
-        self.sqliteDB.requestBD(requete)
+        self.database.requestDB(requete)
 
         print(">>>Trade enregistre")
 
@@ -291,7 +239,7 @@ class Binance:
 
             #mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
             requete = f"insert into Balance(coinName,quantity) values({coin},{quantity})"
-            self.sqliteDB.requestBD(requete)
+            self.database.requestDB(requete)
         
         print(">>>Balances saved")
 
@@ -340,7 +288,7 @@ class Binance:
         except Exception as e:
             print(e)
 
-    @classmethod
+    @staticmethod
     def coinPriceChange(coin_to_trade: str = "BNBBTC"):
         """
         Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
@@ -348,7 +296,7 @@ class Binance:
         while True:
             try:
                 sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
-                was = websocket.create_connection(sockete)
+                was = websocket.WebSocket.receive(sockete)
 
                 json_result = was.recv()
                 was.close()
@@ -360,8 +308,8 @@ class Binance:
                 b = {'price': float(dict_result['k']['c']), 'priceChange': float(
                     dict_result['k']['priceChange'])}
                 break
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
         return b
 
@@ -373,11 +321,15 @@ class Binance:
 
         listLength = self.list_of_crypto.__len__()
         cryptoIndex = randint(0, listLength-1)
-        cryptoToUse = self.list_of_crypto[cryptoIndex]
+        crypto_to_Use = self.list_of_crypto[cryptoIndex]
 
         print(">>>liste recuperer")
-        return cryptoToUse
+        return crypto_to_Use
 
     def PLcalculator(self):
-        if not lastOrderWasBuy:
+        """
+        PROFIT/LOSS calculator
+        """
+        if not self.lastOrderWasBuy:
             return tl.percent_change(self.boughtAt,self.soldAt)
+    
