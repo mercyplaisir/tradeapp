@@ -4,26 +4,13 @@ import os
 import csv
 from csv import Error
 import sys
+from pathlib import Path
 
-import mysql.connector
+
+SRCFOLDER = str(Path(__file__).resolve().parent.parent)
 
 
-"""
-functions in  this file:
-                        - create_json
-                        - rewrite_json
-                        - append_json
-                        - write_json
-                        - read_json
-                        - percent_calculator
-                        - percent_change
-                        - input_int
-                        - input_str
-                        - 
-
-"""
-
-FILESTORAGE: str = f'{sys.path[0]}'+'/../../model/files'
+FILESTORAGE: str = f'{SRCFOLDER}/model/files'
 """
 pour que ca marche il faut lancer a partir du fichier main si faudra ajouter 
 
@@ -41,7 +28,7 @@ FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
 USERINPUTS:str = f"{FILESTORAGE}/userInputs.json"
 
 
-DBSTORAGE:str = f'{sys.path[0]}'+'/../databases/appBD.db3'
+DBSTORAGE:str = f'{SRCFOLDER}/databases/appBD.db3'
 
 
 INDICATORPERIOD : int = 14
@@ -51,6 +38,12 @@ INDICATORPERIOD : int = 14
 
 
 class Tool:
+    """
+    necessary tools to accomplish some task
+    """
+    __all__ = ['append_json', 'create_json','read_json', 'rewrite_json', 'input_int',
+                 'input_str', 'percent_calculator', 'percent_change', 
+                 'read_csv', 'write_csv']
 
     @staticmethod
     def create_json(filename: str):
@@ -122,11 +115,7 @@ class Tool:
         with open(f"{filename}", 'r+') as f:
             j = json.load(f)
         return j
-        """except FileNotFoundError:
-            print(FileNotFoundError)
-        except JSONDecodeError:
-            print(JSONDecodeError)
-"""
+        
     @staticmethod
     def percent_calculator(number: float, percentage: float) -> int:
         """
@@ -216,5 +205,4 @@ class Tool:
             # return "fichier n'existe pas"
             pass
     
-     
 
