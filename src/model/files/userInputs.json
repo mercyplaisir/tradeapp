@@ -1,11 +1,6 @@
 {
-    "crypto": [
-        "DOGE",
-        "ETH",
-        "LTC",
-        "BCH"
-    ],
+    "crypto": [],
     "basecoin": "BTC",
-    "public key": "",
-    "secret key": ""
+    "public key": "bhb",
+    "secret key": "hbvhn"
 }
