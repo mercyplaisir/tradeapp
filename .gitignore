@@ -2,4 +2,4 @@ venv/
 __pycache__/
 .vscode/
 .vscode/settings.json
-src/sensitive.py
+sensitive.py
