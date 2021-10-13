@@ -1,1 +1,3 @@
-Contains the view and the GUI
+CRYPTO BOT APP
+
+Contains the GUI of the app
