@@ -7,7 +7,7 @@ from src.model.Indicators.bb import Bollingerbands
 from src.model.Indicators.rsi import Rsi
 
 #sys.path.append("..")
-from src.controller.BinanceApi import Binance
+from src.api.BinanceApi import Binance
 
 
 class Study(Binance):
