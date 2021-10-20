@@ -1,5 +1,6 @@
 import asyncio
 import json
+from pathlib import Path
 from random import randint
 import datetime
 import os
@@ -43,14 +44,14 @@ class BinanceWebsocket:
 
 class Binance(BinanceWebsocket):
 
-
+    PATH = str(Path(__file__).resolve().parent)
     __all__ = ["PLcalculator",
                         'assetBalance', 'buyOrder', 'coinPriceChange',
                         'connect', 'cryptoToTrade', 'getCryptoList',
                         'get_klines', 'orderQuantity',
                         'saveBalances_BD', 'saveTrades_DB', 'sellOrder']
     
-    def __init__(self,publickey:str=None,secretkey:str=None):
+    def __init__(self,publickey:str=None,secretkey:str=None,coin:str=None):
         super().__init__()
         #try:
         # get all key
@@ -65,7 +66,9 @@ class Binance(BinanceWebsocket):
         #self.bdConnect()  # connect to database
         #self.saveBalances_BD()
 
-        self.coin: str = None
+        self._coin: str = coin #coin that i possess in initialization
+        #assert coin , "coin can't be empty"
+
         self.timeframe: str = "15m"
         
         #except:
@@ -153,22 +156,18 @@ class Binance(BinanceWebsocket):
 
         return quantity(float)
         """
-        if coin == self.coin:
+        if coin != self.coin:
             # il determine la quantite a utiliser pour placer un ordre en analysant so prix
             #mycursor = self.mydb.cursor()
             #mycursor.execute(
             #    f"select quantity from Balance where coinName = {coin}")
 
-            requete = f"select quantity from Balance where coinName = {coin}"
+            requete = f"select quantity from Balance where coinName = {self.coin}"
             resultat = self.database.selectDB(requete)
-            
             balance: float = resultat[0]
 
-            coinInfo_USD = self.coinPriceChange(coin + 'USDT')
-            coinInfo = self.coinPriceChange(coin + self.coin)
-
-            coin_price_usd = coinInfo_USD['price']
-            coin_price = coinInfo['price']
+            coin_price_usd = self._get_price(coin + 'USDT') # prix en dollar
+            coin_price = self._get_price(coin + self.coin) # prix avec le quotecoin
             if coin == 'ETH':
                 q = balance / coin_price
                 q = float(str(q)[:5])
@@ -195,7 +194,7 @@ class Binance(BinanceWebsocket):
                     return q
 
             # q c'est la quantite
-        elif coin != self.coin:
+        elif coin == self.coin:
             #mycursor = self.mydb.cursor()
             #mycursor.execute(
             #    f"select quantity from Balance where coinName = {coin}")
@@ -296,10 +295,25 @@ class Binance(BinanceWebsocket):
         """
         #For an exception that could stop the running process
         #so it can close smoothly before quiting"""
+        
+
         pass
 
+    def _get_price(self,cryptopair:str=None):
+        return self.coinPriceInfo(cryptopair)['price']
 
+    def _get_price_change(self,cryptopair:str=None):
+        return self.coinPriceInfo(cryptopair)['priceChange']
 
-
-
+    @property
+    def coin(self):
+        with open(f"{self.PATH}/coin.json",'r') as f:
+            self._coin =  json.loads(f)
+        return self._coin
+    @coin.setter
+    def coin(self,newvalue):
+        with open(f"{self.PATH}/coin.json",'w') as f:
+            newvalue =  json.dumps(newvalue)
+            f.write(newvalue)
+        self._coin = newvalue
 

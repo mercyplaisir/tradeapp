@@ -4,9 +4,9 @@ import os
 
 import websockets
 
-from src.api.BinanceApi import Binance
+from src.api.binanceApi import Binance
 from src.model.Indicators.study import Study
-"""
+
 #=========initialize binance connection==========
 client = Binance()
 
@@ -27,10 +27,11 @@ while True:
         
     elif decision == 'wait':
         pass
-    client.PLcalculator()
-time.sleep(120)
+    #client.PLcalculator()
 
-"""
+    time.sleep(120)
+
+
 
 # import sys
 # import subprocess
