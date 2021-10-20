@@ -8,8 +8,9 @@ class mysqlDB:
         self.db = {'host': 'localhost',
                    'user': 'root',
                    'passwd': 'Pl@isir6',
-                   'database': 'bot'}
+                   'database': 'tradeapp'}
         self.connected = False
+        self.con = None #for connection
 
         
         
@@ -28,7 +29,7 @@ class mysqlDB:
         
         cursor = self.con.cursor()
         cursor.execute(requete)
-        result = cursor
+        result = cursor.fetchall()
         cursor.close()
 
         self._disconnect()
@@ -46,7 +47,10 @@ class mysqlDB:
             print("BD connection error")
     
     def _connect(self):
-        self._bdConnect(self.db)
+        try:
+            self._bdConnect(self.db)
+        except Exception as e:
+            print(e)
 
     def _disconnect(self):
         if self.connected:
