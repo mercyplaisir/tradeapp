@@ -1,26 +1,47 @@
-from __future__ import absolute_import 
-
-
-
+import asyncio
 import json
 from random import randint
 import datetime
 import os
 
 
+from binance import AsyncClient
 import pandas as pd
 import websockets
 
 from binance.client import Client
-
+from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.dbcontroller.sqliteDB import SqliteDB
-
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
 from src.api.sensitive import BINANCE_PRIVATE_KEY,BINANCE_PUBLIC_KEY
 
 
 
-class Binance:
+class BinanceWebsocket:
+
+    def coinPriceInfo(self,cryptopair: str = None)->dict[str,float]:
+        """
+        Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
+        """
+        async def main():
+            client = await AsyncClient.create()
+            klines = await client.get_klines(symbol=cryptopair,interval='1d')
+            await client.close_connection()            
+            kline = klines[-1]#today's klines
+
+            kline[0] = str(datetime.datetime.fromtimestamp(int(kline[0]/1000)))#open date
+            kline[6] = str(datetime.datetime.fromtimestamp(int(kline[6]/1000)))#close date
+            return {'price':float(kline[4]),'priceChange': tl.percent_change(float(kline[1]),float(kline[4])) }
+
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(main())
+
+
+
+
+
+
+class Binance(BinanceWebsocket):
 
 
     __all__ = ["PLcalculator",
@@ -29,13 +50,14 @@ class Binance:
                         'get_klines', 'orderQuantity',
                         'saveBalances_BD', 'saveTrades_DB', 'sellOrder']
     
-    def __init__(self):
+    def __init__(self,publickey:str=None,secretkey:str=None):
+        super().__init__()
         #try:
         # get all key
         #self.apikeys: dict = tl.read_json(APIKEYPATH)  
 
-        self.apiPublicKey: str = BINANCE_PUBLIC_KEY  # public key
-        self.apiSecretKey: str = BINANCE_PRIVATE_KEY # secret key
+        self.apiPublicKey: str = publickey  # public key
+        self.apiSecretKey: str = secretkey # secret key
 
         self.lastOrderWasBuy = False
 
@@ -43,13 +65,13 @@ class Binance:
         #self.bdConnect()  # connect to database
         #self.saveBalances_BD()
 
-        self.baseCoin: str = "BTC"
+        self.coin: str = None
         self.timeframe: str = "15m"
         
         #except:
         #    print("erreur de connexion")
         
-        self.database =SqliteDB()
+        self.database =mysqlDB()
         print(">>>Initialisation terminee")
         
         self.boughtAt = 0
@@ -66,66 +88,49 @@ class Binance:
                 print("erreur de connexion\nretry...")
 
 
-    def buyOrder(self, coin_to_trade: str):
+    def buyOrder(self, cryptopair: str):
         """
         Market Buy Order
-        coin_to_trade .ex:BNBBTC, BTCUSDT
+        cryptopair .ex:BNBBTC, BTCUSDT
         """
-        """
-        # coinName: str = coin_to_trade.replace(self.baseCoin, '')
-        order_quantity: int = self.orderQuantity(self.baseCoin)
+        
+        # coinName: str = cryptopair.replace(self.coin, '')
+        order_quantity: int = self.orderQuantity(self.coin)
 
         self.client.order_market_buy(
-            symbol=coin_to_trade, quantity=order_quantity)
+            symbol=cryptopair, quantity=order_quantity)
 
         self.saveTrades_DB(
-            coin_to_trade=coin_to_trade,
+            cryptopair=cryptopair,
             quantity=order_quantity,
             orderType="market buy"
         )
         self.saveBalances_BD()
-        """
-
-        self.virtualAccount.virtualBuy(
-            coin_to_trade=coin_to_trade,
-            order_quantity=self.orderQuantity(self.baseCoin)
-        )
-        coinInfo = Binance.coinPriceChange(coin_to_trade)
-        self.boughtAt = coinInfo['price']
         
         self.lastOrderWasBuy = True
         print(">>>Buy Order passed")
 
-    def sellOrder(self, coin_to_trade: str):
+    def sellOrder(self, cryptopair: str):
         """
         Market sell Order
 
-        coin_to_trade .ex:BNBBTC, BTCUSDT
+        cryptopair .ex:BNBBTC, BTCUSDT
         """
-        coinName: str = coin_to_trade.replace(self.baseCoin, '')
+        coinName: str = cryptopair.replace(self.coin, '')
         
         order_quantity: int = self.orderQuantity(coinName)
 
         self.client.order_market_sell(
-            symbol=coin_to_trade, quantity=order_quantity)
+            symbol=cryptopair, quantity=order_quantity)
 
         self.saveTrades_DB(
-            coin_to_trade=coin_to_trade,
+            cryptopair=cryptopair,
             quantity=order_quantity,
             orderType="market sell"
         )
 
         self.saveBalances_BD()
-        """
-        coinInfo = Binance.coinPriceChange(coin_to_trade)
-        coin_price = coinInfo['price']
-
-        self.virtualAccount.virtualSell(
-            coin_to_trade=coin_to_trade,
-            order_quantity=self.orderQuantity(coinName),
-            coinPrice=coin_price
-        )"""
-        self.soldAt = Binance.coinPriceChange()['price']
+       
 
         self.lastOrderWasBuy = False
         print(">>>Sell Order passed")
@@ -148,7 +153,7 @@ class Binance:
 
         return quantity(float)
         """
-        if coin == self.baseCoin:
+        if coin == self.coin:
             # il determine la quantite a utiliser pour placer un ordre en analysant so prix
             #mycursor = self.mydb.cursor()
             #mycursor.execute(
@@ -159,8 +164,8 @@ class Binance:
             
             balance: float = resultat[0]
 
-            coinInfo_USD = Binance.coinPriceChange(coin + 'USDT')
-            coinInfo = Binance.coinPriceChange(coin + self.baseCoin)
+            coinInfo_USD = self.coinPriceChange(coin + 'USDT')
+            coinInfo = self.coinPriceChange(coin + self.coin)
 
             coin_price_usd = coinInfo_USD['price']
             coin_price = coinInfo['price']
@@ -190,7 +195,7 @@ class Binance:
                     return q
 
             # q c'est la quantite
-        elif coin != self.baseCoin:
+        elif coin != self.coin:
             #mycursor = self.mydb.cursor()
             #mycursor.execute(
             #    f"select quantity from Balance where coinName = {coin}")
@@ -201,29 +206,14 @@ class Binance:
 
             return balance
 
-    def getCryptoList(self) -> list:
-        """
-        return list of crypto from database
-        """
-        requete = "select coinName from Coin "
-        myresult = self.database.selectDB(requete)
-        
-        listcrypto = []
-        for i in myresult:
-            # get "bnb" and add basecoin and get BNBBTC or BNBUSDT
-            listcrypto.append(i[0].upper() + self.baseCoin)
-
-        print(">>>got the list of crypto")
-        return listcrypto
-
-    def saveTrades_DB(self, coin_to_trade: str, orderType: str, quantity: float):
-        coinName = coin_to_trade.replace(self.baseCoin, '')
+    def saveTrades_DB(self, cryptopair: str, orderType: str, quantity: float):
+        coinName = cryptopair.replace(self.coin, '')
         """mycursor = self.mydb.cursor()
 
         mycursor.execute(
-            f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})")
+            f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})")
         """
-        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{coin_to_trade},{quantity},{orderType},{datetime.datetime.now()})"
+        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})"
         self.database.requestDB(requete)
 
         print(">>>Trade enregistre")
@@ -244,7 +234,7 @@ class Binance:
         
         print(">>>Balances saved")
 
-    def get_klines(self, coin_to_trade: str = "BNBBTC", interval: str = "2 days"):
+    def get_klines(self, cryptopair: str = "BNBBTC", interval: str = "2 days"):
         """
         Get the klines for the timeframe given and in interval given.
         timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
@@ -260,7 +250,7 @@ class Binance:
 
         try:
             klines_list = self.client.get_historical_klines(
-                coin_to_trade, self.timeframe, f"{interval} ago UTC")
+                cryptopair, self.timeframe, f"{interval} ago UTC")
 
             # changer timestamp en date
             for kline in klines_list:
@@ -279,31 +269,8 @@ class Binance:
         except Exception as e:
             print(e)
 
-    @staticmethod
-    def coinPriceChange(coin_to_trade: str = "BNBBTC"):
-        """
-        Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
-        """
-        while True:
-            try:
-                sockete = f"wss://stream.binance.com:9443/ws/{coin_to_trade.lower()}@kline_1d"
-                #was = websocket.WebSocket.receive(sockete)
-                
+    
 
-                json_result = was.recv()
-                was.close()
-                dict_result = json.loads(json_result)
-
-                dict_result['k']['priceChange'] = tl.percent_change(float(dict_result['k']['o']),
-                                                                    float(dict_result['k']['c']))
-
-                b = {'price': float(dict_result['k']['c']), 'priceChange': float(
-                    dict_result['k']['priceChange'])}
-                break
-            except Exception as e:
-                print(e)
-
-        return b
 
     def cryptoToTrade(self):
         """
@@ -325,3 +292,14 @@ class Binance:
         if not self.lastOrderWasBuy:
             return tl.percent_change(self.boughtAt,self.soldAt)
     
+    def closingApi(self):
+        """
+        #For an exception that could stop the running process
+        #so it can close smoothly before quiting"""
+        pass
+
+
+
+
+
+
