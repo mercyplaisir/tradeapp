@@ -1,0 +1,57 @@
+===Database tradeapp
+
+== Table structure for table Balance
+
+|------
+|Column|Type|Null|Default
+|------
+|shortname|varchar(20)|Yes|NULL
+|quantity|int|Yes|NULL
+== Dumping data for table Balance
+
+== Table structure for table Coin
+
+|------
+|Column|Type|Null|Default
+|------
+|//**shortname**//|varchar(20)|No|
+|fullname|varchar(50)|No|
+== Dumping data for table Coin
+
+|BNB|BINANCE COIN
+|BTC|BITCOIN
+|DOGE|DOGECOIN
+|ETH|ETHEREUM
+== Table structure for table Trades
+
+|------
+|Column|Type|Null|Default
+|------
+|shortname|varchar(10)|Yes|NULL
+|orderType|varchar(20)|Yes|NULL
+|quantity|double|No|
+|tradeTime|datetime|Yes|NULL
+|basecoin|varchar(20)|Yes|NULL
+== Dumping data for table Trades
+
+== Table structure for table virtualbalance
+
+|------
+|Column|Type|Null|Default
+|------
+|shortname|varchar(30)|Yes|NULL
+|Balance|double|Yes|NULL
+== Dumping data for table virtualbalance
+
+== Table structure for table virtualtrade
+
+|------
+|Column|Type|Null|Default
+|------
+|basecoin|varchar(30)|Yes|NULL
+|quotecoin|varchar(30)|Yes|NULL
+|ordertype|varchar(30)|Yes|NULL
+|quantity|double|Yes|NULL
+|tradetime|datetime|Yes|NULL
+== Dumping data for table virtualtrade
+
