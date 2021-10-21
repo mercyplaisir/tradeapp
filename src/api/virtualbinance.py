@@ -1,5 +1,5 @@
 from datetime import datetime
-from binanceApi import Binance
+from .binanceApi import Binance
 
 
 
@@ -12,7 +12,7 @@ class VirtualClient(Binance):
     def passOrder(self,cryptopair:str):
         cryptopair=cryptopair
         basecoin_or_quotecoin = self._basecoin_or_quotecoin(cryptopair = cryptopair,coin=self.coin)
-        priceInfo  =  self._get_price(cryptopair=cryptopair)
+        price  =  self._get_price(cryptopair=cryptopair)
         coin_for_order = self._getBasecoin_cryptopair(cryptopair)
         quantity = self.orderQuantity(coin_for_order)
 
@@ -22,7 +22,8 @@ class VirtualClient(Binance):
             self._buyOrder(
                 quantity=quantity,
                 coin_for_order=coin_for_order,
-                action='buy'
+                action='buy',
+                price = price
             )
         elif basecoin_or_quotecoin=='basecoin':
 
@@ -30,10 +31,13 @@ class VirtualClient(Binance):
             self._sellOrder(
                 quantity=quantity,
                 coin_for_order=coin_for_order,
-                action= 'sell'
+                action= 'sell',
+                price = price
             )
     
     
+
+
 
     def _buyOrder(self,**kwargs):
         """Virtual buy"""

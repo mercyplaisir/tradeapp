@@ -12,4 +12,4 @@ client = VirtualClient(publickey=BINANCE_PUBLIC_KEY,
 client.coin = 'BTC'
 
 while True:
-    
+    pass
