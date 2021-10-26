@@ -1,7 +1,10 @@
 from datetime import datetime
+import asyncio
+import  aiohttp
+
+
+from src.model.Indicators.study import Study
 from .binanceApi import Binance
-
-
 
 class VirtualClient(Binance):
 
@@ -112,5 +115,24 @@ class VirtualClient(Binance):
             
             return 'quotecoin'
     
+    def run(self):
+        coin = self.coin
+        cryptopair_related = self._get_crypto_pair_related(coin=coin)
     
+
+    async def get_tasks(self,session):
+        cryptopair_related = self._get_crypto_pair_related(self.coin)
+        tasks = []
+        
+        data  = {}
+        for cryptopair in cryptopair_related:
+            tasks.append(asyncio.create_task(session.get(url=url)))
+        return tasks
     
+    async def studycryptos(self):
+        async with aiohttp.ClientSession() as session:
+            tasks = await self.get_tasks(session)
+        #print(tasks)
+        responses = await asyncio.gather(*tasks)    
+        
+        return responses

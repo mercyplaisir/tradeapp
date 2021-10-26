@@ -7,20 +7,19 @@ from src.model.Indicators.bb import Bollingerbands
 from src.model.Indicators.rsi import Rsi
 
 #sys.path.append("..")
-from src.api.BinanceApi import Binance
+from src.api.binanceApi import Binance
 
 
-class Study(Binance):
+class Study:
 
-    def __init__(self, crypto: str) -> None:
-        Binance.__init__()
-        self.crypto = crypto
+    def __init__(self, binanceObj:Binance) -> None:
+        self.binance = binanceObj
         # =======================================
 
     # ==========Decision================
-    def Decision(self):
+    def Decision(self,cryptopair:str):
         # ==========update klines============
-        self.get_klines(coin_to_trade = self.crypto)
+        self.binance.get_klines(cryptopair)
         # =================================
 
         # ======create indicators==============
@@ -32,7 +31,7 @@ class Study(Binance):
         # =====================================
 
         # ======make price study=================
-        rsiStudy = rsiInd.priceStudy
+        rsiStudy = rsiInd.priceStudy()
         bbStudy = bbInd.priceStudy()
         smaStudy = smaInd.priceStudy()
         stochInd = stochInd.price_study()

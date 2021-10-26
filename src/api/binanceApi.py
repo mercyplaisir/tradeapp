@@ -5,7 +5,6 @@ from random import randint
 import datetime
 import os
 
-
 from binance import AsyncClient
 import pandas as pd
 import websockets
@@ -14,69 +13,62 @@ from binance.client import Client
 from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.dbcontroller.sqliteDB import SqliteDB
 from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
-from src.api.sensitive import BINANCE_PRIVATE_KEY,BINANCE_PUBLIC_KEY
-
+from src.api.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
 
 class BinanceWebsocket:
 
-    def coinPriceInfo(self,cryptopair: str = None)->dict[str,float]:
+    def coinPriceInfo(self, cryptopair: str = None) -> dict[str, float]:
         """
         Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
         """
+
         async def main():
             client = await AsyncClient.create()
-            klines = await client.get_klines(symbol=cryptopair,interval='1d')
-            await client.close_connection()            
-            kline = klines[-1]#today's klines
+            klines = await client.get_klines(symbol=cryptopair, interval='1d')
+            await client.close_connection()
+            kline = klines[-1]  # today's klines
 
-            kline[0] = str(datetime.datetime.fromtimestamp(int(kline[0]/1000)))#open date
-            kline[6] = str(datetime.datetime.fromtimestamp(int(kline[6]/1000)))#close date
-            return {'price':float(kline[4]),'priceChange': tl.percent_change(float(kline[1]),float(kline[4])) }
+            kline[0] = str(datetime.datetime.fromtimestamp(int(kline[0] / 1000)))  # open date
+            kline[6] = str(datetime.datetime.fromtimestamp(int(kline[6] / 1000)))  # close date
+            return {'price': float(kline[4]), 'priceChange': tl.percent_change(float(kline[1]), float(kline[4]))}
 
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(main())
 
 
-
-
-
-
 class Binance(BinanceWebsocket):
-
     PATH = str(Path(__file__).resolve().parent)
-    __all__ = ["PLcalculator",
-                        'assetBalance', 'buyOrder', 'coinPriceChange',
-                        'connect', 'cryptoToTrade', 'getCryptoList',
-                        'get_klines', 'orderQuantity',
-                        'saveBalances_BD', 'saveTrades_DB', 'sellOrder']
-    
-    def __init__(self,publickey:str=None,secretkey:str=None,coin:str=None):
+    """__all__ = ['PLcalculator','assetBalance', 'buyOrder', 'coinPriceChange',
+               'connect', 'cryptoToTrade', 'getCryptoList',
+               'get_klines', 'orderQuantity',
+               'saveBalances_BD', 'saveTrades_DB', 'sellOrder']"""
+
+    def __init__(self, publickey: str = None, secretkey: str = None, coin: str = None):
         super().__init__()
-        #try:
+        # try:
         # get all key
-        #self.apikeys: dict = tl.read_json(APIKEYPATH)  
+        # self.apikeys: dict = tl.read_json(APIKEYPATH)
 
         self.apiPublicKey: str = publickey  # public key
-        self.apiSecretKey: str = secretkey # secret key
+        self.apiSecretKey: str = secretkey  # secret key
+        self.client = None  # instance of Binance
 
         self.lastOrderWasBuy = False
 
         self.connect()  # connect to Binance
-        #self.bdConnect()  # connect to database
-        #self.saveBalances_BD()
 
-        self._coin: str = coin #coin that i possess in initialization
-        #assert coin , "coin can't be empty"
+        self._coin: str = coin  # coin that i possess in initialization
+        # assert coin , "coin can't be empty"
 
         self.timeframe: str = "15m"
-        
-        #except:
+
+        # except:
         #    print("erreur de connexion")
-        
-        self.database =mysqlDB()
+
+        self.database = mysqlDB()
         print(">>>Initialisation terminee")
-        
+
         self.boughtAt = 0
         self.soldAt = 0
 
@@ -90,13 +82,12 @@ class Binance(BinanceWebsocket):
             except Exception:
                 print("erreur de connexion\nretry...")
 
-
     def buyOrder(self, cryptopair: str):
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
         """
-        
+
         # coinName: str = cryptopair.replace(self.coin, '')
         order_quantity: int = self.orderQuantity(self.coin)
 
@@ -109,7 +100,7 @@ class Binance(BinanceWebsocket):
             orderType="market buy"
         )
         self.saveBalances_BD()
-        
+
         self.lastOrderWasBuy = True
         print(">>>Buy Order passed")
 
@@ -120,7 +111,7 @@ class Binance(BinanceWebsocket):
         cryptopair .ex:BNBBTC, BTCUSDT
         """
         coinName: str = cryptopair.replace(self.coin, '')
-        
+
         order_quantity: int = self.orderQuantity(coinName)
 
         self.client.order_market_sell(
@@ -133,7 +124,6 @@ class Binance(BinanceWebsocket):
         )
 
         self.saveBalances_BD()
-       
 
         self.lastOrderWasBuy = False
         print(">>>Sell Order passed")
@@ -158,16 +148,16 @@ class Binance(BinanceWebsocket):
         """
         if coin != self.coin:
             # il determine la quantite a utiliser pour placer un ordre en analysant so prix
-            #mycursor = self.mydb.cursor()
-            #mycursor.execute(
+            # mycursor = self.mydb.cursor()
+            # mycursor.execute(
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {self.coin}"
             resultat = self.database.selectDB(requete)
             balance: float = resultat[0]
 
-            coin_price_usd = self._get_price(coin + 'USDT') # prix en dollar
-            coin_price = self._get_price(coin + self.coin) # prix avec le quotecoin
+            coin_price_usd = self._get_price(coin + 'USDT')  # prix en dollar
+            coin_price = self._get_price(coin + self.coin)  # prix avec le quotecoin
             if coin == 'ETH':
                 q = balance / coin_price
                 q = float(str(q)[:5])
@@ -195,8 +185,8 @@ class Binance(BinanceWebsocket):
 
             # q c'est la quantite
         elif coin == self.coin:
-            #mycursor = self.mydb.cursor()
-            #mycursor.execute(
+            # mycursor = self.mydb.cursor()
+            # mycursor.execute(
             #    f"select quantity from Balance where coinName = {coin}")
 
             requete = f"select quantity from Balance where coinName = {coin}"
@@ -219,18 +209,18 @@ class Binance(BinanceWebsocket):
 
     def saveBalances_BD(self) -> None:
         accountInfo = self.client.get_account()
-        #mycursor = self.mydb.cursor()
-        #mycursor.execute("delete from Balance")
+        # mycursor = self.mydb.cursor()
+        # mycursor.execute("delete from Balance")
 
         for i in range(1, accountInfo['balances'].__len__()):
             value: dict = accountInfo['balances'][i]
             coin: str = value['asset']
             quantity: int = value['free']
 
-            #mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
+            # mycursor.execute(f"insert into Balance(coinName,quantity) values({coin},{quantity})")
             requete = f"insert into Balance(coinName,quantity) values({coin},{quantity})"
             self.database.requestDB(requete)
-        
+
         print(">>>Balances saved")
 
     def get_klines(self, cryptopair: str = "BNBBTC", interval: str = "2 days"):
@@ -268,9 +258,6 @@ class Binance(BinanceWebsocket):
         except Exception as e:
             print(e)
 
-    
-
-
     def cryptoToTrade(self):
         """
         Return a crypto to trade
@@ -278,7 +265,7 @@ class Binance(BinanceWebsocket):
         self.list_of_crypto = self.getCryptoList()
 
         listLength = self.list_of_crypto.__len__()
-        cryptoIndex = randint(0, listLength-1)
+        cryptoIndex = randint(0, listLength - 1)
         crypto_to_Use = self.list_of_crypto[cryptoIndex]
 
         print(">>>liste recuperer")
@@ -289,31 +276,30 @@ class Binance(BinanceWebsocket):
         PROFIT/LOSS calculator
         """
         if not self.lastOrderWasBuy:
-            return tl.percent_change(self.boughtAt,self.soldAt)
-    
+            return tl.percent_change(self.boughtAt, self.soldAt)
+
     def closingApi(self):
         """
         #For an exception that could stop the running process
         #so it can close smoothly before quiting"""
-        
 
         pass
 
-    def _get_price(self,cryptopair:str=None):
+    def _get_price(self, cryptopair: str = None):
         return self.coinPriceInfo(cryptopair)['price']
 
-    def _get_price_change(self,cryptopair:str=None):
+    def _get_price_change(self, cryptopair: str = None):
         return self.coinPriceInfo(cryptopair)['priceChange']
 
     @property
     def coin(self):
-        with open(f"{self.PATH}/coin.json",'r') as f:
-            self._coin =  json.loads(f)
+        with open(f"{self.PATH}/coin.json", 'r') as f:
+            self._coin = json.load(f)
         return self._coin
+
     @coin.setter
-    def coin(self,newvalue):
-        with open(f"{self.PATH}/coin.json",'w') as f:
-            newvalue =  json.dumps(newvalue)
+    def coin(self, newvalue):
+        with open(f"{self.PATH}/coin.json", 'w') as f:
+            newvalue = json.dumps(newvalue)
             f.write(newvalue)
         self._coin = newvalue
-
