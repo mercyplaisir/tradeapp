@@ -1,5 +1,5 @@
-import json
 import asyncio
+import json
 # import requests
 import time
 
@@ -18,7 +18,9 @@ import aiohttp
 
 
 # asyncio.run(client.studycryptos())
-cryptos = ['BNBBTC', 'ETHUSDT', 'BTCUSDT', 'DOGEUSDT']
+import requests
+
+cryptos = ['BNBBTC', 'ETHUSDT', 'BTCUSDT', 'DOGEUSDT']*6
 data = {
     # "symbol":'BNBBTC',
     "interval": 600,
@@ -36,7 +38,7 @@ test = "/api/v3/ping"
 results = []
 
 
-async def get_tasks(session):
+def get_tasks(session):
     tasks = []
     for crypto in cryptos:
         data["symbol"] = crypto
@@ -46,7 +48,7 @@ async def get_tasks(session):
 
 async def get_them():
     async with aiohttp.ClientSession() as session:
-        tasks = await get_tasks(session)
+        tasks = get_tasks(session)
         responses = await asyncio.gather(*tasks)
         for response in responses:
             results.append(await response.json())
@@ -55,11 +57,18 @@ async def get_them():
         json_info = json.dumps(results, indent=True)
         f.write(json_info)
 
+
 starttime = time.time()
 
+"""
+for crypto in cryptos:
+    data['symbol']=crypto
+    response = requests.get(url=main.format(klines),params=data)
+
+"""
 asyncio.run(get_them())
 
-print(time.time()-starttime)
+print(time.time() - starttime)
 # print(cc)
 
 # print(datetime.datetime.strptime('1 day ago'))
