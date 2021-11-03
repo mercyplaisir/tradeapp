@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
-
+import pandas as pd
 import aiohttp
+import requests
 
 from .binanceApi import Binance
+from src.model.Indicators.study import Study
 
-
-class VirtualClient(Binance):
+class VirtualClient(Binance,Study):
 
     def __init__(self, publickey: str = None, secretkey: str = None, coin: str = None):
         super().__init__(publickey=publickey, secretkey=secretkey, coin=coin)
@@ -107,24 +108,60 @@ class VirtualClient(Binance):
 
             return 'quotecoin'
 
+    def _get_many_klines(self, cryptopairs: list)->dict['cryptopair','klines']:
+        """kline response:
+            [
+              [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume
+                "28.46694368",      // Taker buy quote asset volume
+                "17928899.62484339" // Ignore.
+              ]
+            ]
+        """
+        kline_uri = "https://api.binance.com/api/v3/klines"
+        data = {
+            # "symbol":'BNBBTC',
+            "interval": self.timeframe,
+            # "startTime": '1 day ago'
+            # "endTime"
+            "limit": 100
+        }
+        cryptoklines = {}
+        for cryptopair in cryptopairs:
+            data['symbol'] = cryptopair
+            klines_list = requests.get(url=kline_uri, params=data)
+
+            for kline in klines_list:
+                kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+                kline[6] = datetime.datetime.fromtimestamp(kline[6] / 1e3)
+            klines = pd.DataFrame(klines_list)  # changer en dataframe
+            # supprimer les collonnes qui ne sont pas necessaires
+            klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
+
+            klines.columns = ['date', 'open', 'high', 'low',
+                              'close', 'volume']  # renommer les colonnes
+
+            cryptoklines = {cryptopair: klines}
+
+        return cryptoklines
+
+    def _crypto_study(self,klines:dict):
+        """study cryptopair with it's klines"""
     def run(self):
-        coin = self.coin
-        cryptopair_related = self._get_crypto_pair_related(coin=coin)
-"""
-    async def get_tasks(self, session):
-        cryptopair_related = self._get_crypto_pair_related(self.coin)
-        tasks = []
+        # get crypto related
+        cryptopair_related: list = self._get_crypto_pair_related(coin=self.coin)
 
-        data = {}
-        for cryptopair in cryptopair_related:
-            tasks.append(asyncio.create_task(session.get(url=url)))
-        return tasks
+        # get all klines for each cryptopair
+        klines: dict = self._get_many_klines(cryptopair_related)
 
-    async def studycryptos(self):
-        async with aiohttp.ClientSession() as session:
-            tasks = await self.get_tasks(session)
-        # print(tasks)
-        responses = await asyncio.gather(*tasks)
-
-        return responses
-"""
+        #get cryptopair with they study results
+        cryptopairs_study = self._crypto_study(klines)

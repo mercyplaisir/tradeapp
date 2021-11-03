@@ -1,75 +1,44 @@
 import asyncio
 import json
-# import requests
-import time
-
-import aiohttp
-
-# from src.api.virtualbinance import VirtualClient
-# from src.api.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
-# import datetime
-
-# init client
-# client = VirtualClient(publickey=BINANCE_PUBLIC_KEY,
-#                         secretkey=BINANCE_PRIVATE_KEY)
-
-# #coin in possession
-# client.coin = 'BTC'
-
-
-# asyncio.run(client.studycryptos())
 import requests
+import time
+import datetime
+import pandas as pd
 
-cryptos = ['BNBBTC', 'ETHUSDT', 'BTCUSDT', 'DOGEUSDT']*6
+cryptos = 'BNBBTC'#, 'ETHUSDT', 'BTCUSDT', 'DOGEUSDT'] * 6
 data = {
     # "symbol":'BNBBTC',
-    "interval": 600,
-    "startTime": '1 day ago'
+    "interval": '15m',
+    # "startTime": '1 day ago'
     # "endTime"
-    # "limit"
+    "limit":100
 }
 main = "https://api.binance.com{}"
 klines = "/api/v3/klines"
 test = "/api/v3/ping"
-# info = requests.get(url=main.format(klines),params= data)
-
-# ff = json.loads(info.text)
-# print(ff)
 results = []
-
-
-def get_tasks(session):
-    tasks = []
-    for crypto in cryptos:
-        data["symbol"] = crypto
-        tasks.append(asyncio.create_task(session.get(url=main.format(klines), params=data, ssl=False)))
-    return tasks
-
-
-async def get_them():
-    async with aiohttp.ClientSession() as session:
-        tasks = get_tasks(session)
-        responses = await asyncio.gather(*tasks)
-        for response in responses:
-            results.append(await response.json())
-
-    with open("hehe.json", 'w') as f:
-        json_info = json.dumps(results, indent=True)
-        f.write(json_info)
-
 
 
 starttime = time.time()
 
-"""
-for crypto in cryptos:
-    data['symbol']=crypto
-    response = requests.get(url=main.format(klines),params=data)
 
-"""
-asyncio.run(get_them())
+
+data['symbol']=cryptos
+klines_list = requests.get(url=main.format(klines),params=data).json()
+for kline in klines_list:
+    kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+    kline[6] = datetime.datetime.fromtimestamp(kline[6] / 1e3)
+klines = pd.DataFrame(klines_list)  # changer en dataframe
+# supprimer les collonnes qui ne sont pas necessaires
+klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
+
+klines.columns = ['date', 'open', 'high', 'low',
+                  'close', 'volume']  # renommer les colonnes
 
 print(time.time() - starttime)
+print({cryptos:klines})
+
+
 # print(cc)
 
 # print(datetime.datetime.strptime('1 day ago'))

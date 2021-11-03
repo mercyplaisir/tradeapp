@@ -6,18 +6,19 @@ from src.model.Indicators.sma import Sma
 from src.model.Indicators.bb import Bollingerbands
 from src.model.Indicators.rsi import Rsi
 
-#sys.path.append("..")
+# sys.path.append("..")
 from src.api.binanceApi import Binance
 
 
-class Study:
+class Study(Binance):
 
-    def __init__(self, binanceObj:Binance) -> None:
-        self.binance = binanceObj
+    def __init__(self):  # , binanceObj:Binance) -> None:
+        # self.binance = binanceObj
         # =======================================
+        pass
 
     # ==========Decision================
-    def Decision(self,cryptopair:str):
+    def Decision(self, cryptopair: str):
         # ==========update klines============
         self.binance.get_klines(cryptopair)
         # =================================
@@ -37,13 +38,11 @@ class Study:
         stochInd = stochInd.price_study()
         macdInd = macdInd.price_study()
 
-        self.studyList = [rsiStudy, bbStudy, smaStudy,stochInd,macdInd]
+        self.studyList = [rsiStudy, bbStudy, smaStudy, stochInd, macdInd]
 
-        
-
-        if self.studyList.count('buy') >= (len(self.studyList)-1):
+        if self.studyList.count('buy') >= (len(self.studyList) - 1):
             return 'buy'
-        elif self.studyList.count('sell') >= (len(self.studyList)-2):
+        elif self.studyList.count('sell') >= (len(self.studyList) - 2):
             return 'sell'
         else:
             return 'wait'

@@ -1,19 +1,15 @@
 import asyncio
+import datetime
 import json
 from pathlib import Path
 from random import randint
-import datetime
-import os
 
-from binance import AsyncClient
 import pandas as pd
-import websockets
-
+from binance import AsyncClient
 from binance.client import Client
+
 from src.controller.dbcontroller.mysqlDB import mysqlDB
-from src.controller.dbcontroller.sqliteDB import SqliteDB
-from src.controller.tools import BINANCEKLINES, APIKEYPATH, Tool as tl
-from src.api.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
+from src.controller.tools import BINANCEKLINES, Tool as tl
 
 
 class BinanceWebsocket:

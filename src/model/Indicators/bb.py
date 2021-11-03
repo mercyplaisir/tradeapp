@@ -1,11 +1,8 @@
-import sys
-
 import btalib
-import numpy as np
-from pandas.core.frame import DataFrame
 import pandas as pd
+from pandas.core.frame import DataFrame
 
-#sys.path.append(sys.path[0]+'/..')
+# sys.path.append(sys.path[0]+'/..')
 from src.controller.tools import BINANCEKLINES, KLINEPATH
 
 
