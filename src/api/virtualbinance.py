@@ -156,6 +156,7 @@ class VirtualClient(Binance,Study):
 
     def _crypto_study(self,klines:dict):
         """study cryptopair with it's klines"""
+        pass
     def run(self):
         # get crypto related
         cryptopair_related: list = self._get_crypto_pair_related(coin=self.coin)
