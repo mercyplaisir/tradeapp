@@ -6,9 +6,10 @@ import numpy as np
 
 # sys.path.append(sys.path[0]+'/..')
 from src.controller.tools import BINANCEKLINES, KLINEPATH
-from .study import Study
 
-class Rsi(Study):
+
+
+class Rsi:
     """
     RSI indicator
     """
@@ -16,27 +17,31 @@ class Rsi(Study):
     def __init__(self):
         pass
 
-    @staticmethod
-    def createRSI(periode: int = 14):
+    #@staticmethod
+    def createRSI(self,periode: int = 14, klines: pd.DataFrame = None):
         """create RSI indicator"""
-        kline = pd.read_csv(BINANCEKLINES, index_col='date')
+        if not klines:
+            kline = pd.read_csv(BINANCEKLINES, index_col='date')
+        else:
+            kline = klines
+
         rsiInd = btalib.rsi(kline, period=periode)
         rsiInd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
 
-    def priceStudy(self):
+        return rsiInd.df
+
+    def priceStudy(self, klines: pd.DataFrame = None):
         """
             study made on klines(dataframe)
 
             columns = ["rsi"]
-
-
         """
-        self.createRSI()
+        self.createRSI(klines)
 
         kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')
 
-        kline
+        # kline
         rsiList = kline['rsi'][-9:-1]  # recupere les 9 dernieres valeurs
 
         closePrices = binanceKlines['close'][-9:-1]  # recupere les 9 dernieres valeurs

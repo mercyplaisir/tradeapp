@@ -1,5 +1,7 @@
-import asyncio
+from typing import Union
 from datetime import datetime
+import asyncio
+
 import pandas as pd
 import aiohttp
 import requests
@@ -11,6 +13,7 @@ class VirtualClient(Binance,Study):
 
     def __init__(self, publickey: str = None, secretkey: str = None, coin: str = None):
         super().__init__(publickey=publickey, secretkey=secretkey, coin=coin)
+
 
     def passOrder(self, cryptopair: str):
         cryptopair = cryptopair
@@ -154,9 +157,16 @@ class VirtualClient(Binance,Study):
 
         return cryptoklines
 
-    def _crypto_study(self,klines:dict):
+    def _crypto_study(self, klines:dict)->dict[str,str]:
         """study cryptopair with it's klines"""
-        pass
+        cryptopairs = list(klines.keys())
+
+        results = {} #{'BNBBTC':'buy'}
+        for cryptopair in cryptopairs:
+            decision = self.Decision(klines[cryptopair])
+            results[cryptopair] = decision
+        return results
+
     def run(self):
         # get crypto related
         cryptopair_related: list = self._get_crypto_pair_related(coin=self.coin)

@@ -1,4 +1,4 @@
-import asyncio
+"""import asyncio
 import json
 import requests
 import time
@@ -42,3 +42,10 @@ print({cryptos:klines})
 # print(cc)
 
 # print(datetime.datetime.strptime('1 day ago'))
+"""
+
+bb = {'a': 1, 'b': 2, 'c': 3}
+nn = None
+
+if not nn:
+    print(list(bb.keys()))

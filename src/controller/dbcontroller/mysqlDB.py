@@ -1,8 +1,6 @@
 import mysql.connector
 
 
-
-
 class mysqlDB:
     def __init__(self):
         self.db = {'host': 'localhost',
@@ -10,23 +8,20 @@ class mysqlDB:
                    'passwd': 'Pl@isir6',
                    'database': 'tradeapp'}
         self.connected = False
-        self.con = None #for connection
+        self.con = None  # for connection
 
-        
-        
-    def requestDB(self,requete):
+    def requestDB(self, requete):
         self._connect()
 
         mycursor = self.con.cursor()
         mycursor.execute(requete)
         mycursor.close()
-        
+
         self._disconnect()
 
-        
-    def selectDB(self,requete):
+    def selectDB(self, requete):
         self._connect()
-        
+
         cursor = self.con.cursor()
         cursor.execute(requete)
         result = cursor.fetchall()
@@ -35,9 +30,7 @@ class mysqlDB:
         self._disconnect()
         return result
 
-
-
-    def _bdConnect(self,dbinfo:dict):
+    def _bdConnect(self, dbinfo: dict):
         try:
             self.con = mysql.connector.connect(**dbinfo)
             self.connected = True
@@ -45,7 +38,7 @@ class mysqlDB:
 
         except:
             print("BD connection error")
-    
+
     def _connect(self):
         try:
             self._bdConnect(self.db)
@@ -56,7 +49,3 @@ class mysqlDB:
         if self.connected:
             self.con.close()
             self.connected = False
-        
-
-    
-

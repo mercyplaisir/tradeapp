@@ -15,8 +15,11 @@ class Bollingerbands:
     def __init__(self):
         pass
     
-    def createBB(self,periode:int=30):
-        kline = pd.read_csv(BINANCEKLINES, index_col='date')
+    def createBB(self,periode:int=30, klines: pd.DataFrame = None):
+        if not klines:
+            kline = pd.read_csv(BINANCEKLINES, index_col='date')
+        else:
+            kline = klines
         
         bb = btalib.bbands(kline,period = periode,devs=2.0)
         bb.df.to_csv(f"{KLINEPATH}",index=True,na_rep=0)#enregistrer dans le fichier
@@ -24,7 +27,7 @@ class Bollingerbands:
         
 
     
-    def priceStudy(self, period:int=20):
+    def priceStudy(self, period:int=20, klines: pd.DataFrame = None):
         """
             study made on klines(dataframe)
 
@@ -32,7 +35,7 @@ class Bollingerbands:
 
 
         """
-        self.createBB(periode=period)
+        self.createBB(period,klines)
 
         kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')

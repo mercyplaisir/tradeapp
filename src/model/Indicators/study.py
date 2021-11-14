@@ -1,5 +1,8 @@
 import sys
 
+
+import pandas as pd
+
 from src.model.Indicators.stochastic import Stochastic
 from src.model.Indicators.macd import Macd
 from src.model.Indicators.sma import Sma
@@ -10,17 +13,18 @@ from src.model.Indicators.rsi import Rsi
 from src.api.binanceApi import Binance
 
 
-class Study(Binance):
+class Study:
 
     def __init__(self):  # , binanceObj:Binance) -> None:
         # self.binance = binanceObj
         # =======================================
+        self.studyList = None
         pass
 
     # ==========Decision================
-    def Decision(self, cryptopair: str):
+    def Decision(self, klines: pd.DataFrame = None ):#cryptopair: str):
         # ==========update klines============
-        self.binance.get_klines(cryptopair)
+        #self.binance.get_klines(cryptopair)
         # =================================
 
         # ======create indicators==============
@@ -32,11 +36,11 @@ class Study(Binance):
         # =====================================
 
         # ======make price study=================
-        rsiStudy = rsiInd.priceStudy()
-        bbStudy = bbInd.priceStudy()
-        smaStudy = smaInd.priceStudy()
-        stochInd = stochInd.price_study()
-        macdInd = macdInd.price_study()
+        rsiStudy = rsiInd.priceStudy(klines)
+        bbStudy = bbInd.priceStudy(klines)
+        smaStudy = smaInd.priceStudy(klines)
+        stochInd = stochInd.priceStudy(klines)
+        macdInd = macdInd.priceStudy(klines)
 
         self.studyList = [rsiStudy, bbStudy, smaStudy, stochInd, macdInd]
 

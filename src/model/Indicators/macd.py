@@ -4,11 +4,7 @@ import btalib
 import pandas as pd
 import numpy as np
 
-
 from src.controller.tools import BINANCEKLINES, KLINEPATH
-
-
-
 
 
 class Macd:
@@ -16,24 +12,24 @@ class Macd:
     MACD indicator
     """
 
-    
-
     def __init__(self):
-    
+
         pass
 
-    def createMACD(self):
-        klines = pd.read_csv(BINANCEKLINES, index_col='date')
-        macd = btalib.macd(klines)
+    def createMACD(self, klines: pd.DataFrame = None):
+        if not klines:
+            kline = pd.read_csv(BINANCEKLINES, index_col='date')
+        else:
+            kline = klines
+        macd = btalib.macd(kline)
         macd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
 
-
-    def priceStudy(self):
+    def priceStudy(self, klines: pd.DataFrame = None):
         """
         colums = ["macd","signal","histogram"]
         """
-        self.createMACD()
-        #calculate the MACD
+        self.createMACD(klines)
+        # calculate the MACD
 
         kline = pd.read_csv(KLINEPATH, index_col='date')
         binanceKlines = pd.read_csv(BINANCEKLINES)
@@ -48,11 +44,3 @@ class Macd:
             return "wait"
         else:
             return "sell"
-
-
-
-
-        
-        
-
-    

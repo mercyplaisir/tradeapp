@@ -6,9 +6,7 @@ from csv import Error
 import sys
 from pathlib import Path
 
-
 SRCFOLDER = str(Path(__file__).resolve().parent.parent)
-
 
 FILESTORAGE: str = f'{SRCFOLDER}/model/files'
 """
@@ -23,27 +21,22 @@ KLINEPATH: str = f"{FILESTORAGE}/klines.csv"
 
 APIKEYPATH: str = f'{FILESTORAGE}/apikey.json'
 
-FILEPATH:str = f"{FILESTORAGE}/virtualaccount.json"
+FILEPATH: str = f"{FILESTORAGE}/virtualaccount.json"
 
-USERINPUTS:str = f"{FILESTORAGE}/userInputs.json"
+USERINPUTS: str = f"{FILESTORAGE}/userInputs.json"
 
+DBSTORAGE: str = f'{SRCFOLDER}/databases/appBD.db3'
 
-DBSTORAGE:str = f'{SRCFOLDER}/databases/appBD.db3'
-
-
-INDICATORPERIOD : int = 14
-
-
-
+INDICATORPERIOD: int = 14
 
 
 class Tool:
     """
     necessary tools to accomplish some task
     """
-    __all__ = ['append_json', 'create_json','read_json', 'rewrite_json', 'input_int',
-                 'input_str', 'percent_calculator', 'percent_change', 
-                 'read_csv', 'write_csv']
+    __all__ = ['append_json', 'create_json', 'read_json', 'rewrite_json', 'input_int',
+               'input_str', 'percent_calculator', 'percent_change',
+               'read_csv', 'write_csv']
 
     @staticmethod
     def create_json(filename: str):
@@ -111,11 +104,11 @@ class Tool:
         give parameters:
                         -filename(with path)
         """
-        #try:
+        # try:
         with open(f"{filename}", 'r+') as f:
             j = json.load(f)
         return j
-        
+
     @staticmethod
     def percent_calculator(number: float, percentage: float) -> int:
         """
@@ -204,5 +197,3 @@ class Tool:
         else:
             # return "fichier n'existe pas"
             pass
-    
-

@@ -4,9 +4,9 @@ speed(10)
 color('cyan')
 bgcolor('black')
 
-b=200
+b = 200
 
-while b>0:
+while b > 0:
     left(b)
-    forward(b*2.5)
-    b-=1
+    forward(b * 2.5)
+    b -= 1
