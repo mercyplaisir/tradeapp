@@ -1,15 +1,20 @@
 import asyncio
 import datetime
 import json
+import random
+import time
 from pathlib import Path
 from random import randint
 
 import pandas as pd
+import requests
 from binance import AsyncClient
 from binance.client import Client
 
 from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.tools import BINANCEKLINES, Tool as tl
+
+from src.model.Indicators.study import Study
 
 
 class BinanceWebsocket:
@@ -33,7 +38,7 @@ class BinanceWebsocket:
         return loop.run_until_complete(main())
 
 
-class Binance(BinanceWebsocket):
+class Binance(Study, BinanceWebsocket):
     PATH = str(Path(__file__).resolve().parent)
     """__all__ = ['PLcalculator','assetBalance', 'buyOrder', 'coinPriceChange',
                'connect', 'cryptoToTrade', 'getCryptoList',
@@ -48,7 +53,7 @@ class Binance(BinanceWebsocket):
 
         self.apiPublicKey: str = publickey  # public key
         self.apiSecretKey: str = secretkey  # secret key
-        self.client = None  # instance of Binance
+        # self.client = None  # instance of Binance
 
         self.lastOrderWasBuy = False
 
@@ -85,18 +90,18 @@ class Binance(BinanceWebsocket):
         """
 
         # coinName: str = cryptopair.replace(self.coin, '')
-        order_quantity: int = self.orderQuantity(self.coin)
+        order_quantity: int = self.orderQuantity(cryptopair)
 
         self.client.order_market_buy(
             symbol=cryptopair, quantity=order_quantity)
 
-        self.saveTrades_DB(
+        """self.saveTrades_DB(
             cryptopair=cryptopair,
             quantity=order_quantity,
             orderType="market buy"
         )
         self.saveBalances_BD()
-
+"""
         self.lastOrderWasBuy = True
         print(">>>Buy Order passed")
 
@@ -108,18 +113,18 @@ class Binance(BinanceWebsocket):
         """
         coinName: str = cryptopair.replace(self.coin, '')
 
-        order_quantity: int = self.orderQuantity(coinName)
+        order_quantity: int = self.orderQuantity(cryptopair)
 
         self.client.order_market_sell(
             symbol=cryptopair, quantity=order_quantity)
 
-        self.saveTrades_DB(
+        """self.saveTrades_DB(
             cryptopair=cryptopair,
             quantity=order_quantity,
             orderType="market sell"
         )
 
-        self.saveBalances_BD()
+        self.saveBalances_BD()"""
 
         self.lastOrderWasBuy = False
         print(">>>Sell Order passed")
@@ -133,24 +138,19 @@ class Binance(BinanceWebsocket):
         info = self.client.get_asset_balance(asset=coin)
         return info
 
-    def orderQuantity(self, coin: str):
+    def orderQuantity(self, cryptopair: str):
         """
-        parameters: -balance. ex: 20$
-                    -coin. ex: BTC,ETH
+                parameters: -balance. ex: 20$
+                            -coin. ex: BTC,ETH
 
-        for use when buying
+                for use when buying
 
-        return quantity(float)
-        """
-        if coin != self.coin:
-            # il determine la quantite a utiliser pour placer un ordre en analysant so prix
-            # mycursor = self.mydb.cursor()
-            # mycursor.execute(
-            #    f"select quantity from Balance where coinName = {coin}")
-
-            requete = f"select quantity from Balance where coinName = {self.coin}"
-            resultat = self.database.selectDB(requete)
-            balance: float = resultat[0]
+                return quantity(float)
+                """
+        balance = self.balance  # balance of the crypto i possess
+        if cryptopair.endswith(self.coin):
+            basecoin = cryptopair.replace(self.coin, '')
+            coin=basecoin
 
             coin_price_usd = self._get_price(coin + 'USDT')  # prix en dollar
             coin_price = self._get_price(coin + self.coin)  # prix avec le quotecoin
@@ -180,14 +180,7 @@ class Binance(BinanceWebsocket):
                     return q
 
             # q c'est la quantite
-        elif coin == self.coin:
-            # mycursor = self.mydb.cursor()
-            # mycursor.execute(
-            #    f"select quantity from Balance where coinName = {coin}")
-
-            requete = f"select quantity from Balance where coinName = {coin}"
-            resultat = self.database.selectDB(requete)
-            balance: float = resultat[0]
+        else:
 
             return balance
 
@@ -198,7 +191,8 @@ class Binance(BinanceWebsocket):
         mycursor.execute(
             f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})")
         """
-        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})"
+        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values(" \
+                  f"{coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})"
         self.database.requestDB(requete)
 
         print(">>>Trade enregistre")
@@ -299,3 +293,213 @@ class Binance(BinanceWebsocket):
             newvalue = json.dumps(newvalue)
             f.write(newvalue)
         self._coin = newvalue
+
+    @property
+    def balance(self):
+        return float(self.client.get_asset_balance(self.coin))
+
+    # _________________________________________________________________________
+    # _________________________________________________________________________
+    # _______________FOR VIRTUAL ONLY______________________________________________________
+    # _______________STILL TESTING __________________________________________
+    # _________________________________________________________________________
+    # _________________________________________________________________________
+    # _________________________________________________________________________
+
+    def passOrder(self, cryptopair: str):
+        cryptopair = cryptopair
+        basecoin_or_quotecoin = self._basecoin_or_quotecoin(cryptopair=cryptopair, coin=self.coin)
+        #price = self._get_price(cryptopair=cryptopair)
+        #coin_for_order = self._getBasecoin_cryptopair(cryptopair)
+        #quantity = self.orderQuantity(cryptopair)
+
+        if basecoin_or_quotecoin == 'quotecoin':
+            # BNBBTC from btc to bnb you buy
+            """self._buyOrder(
+                quantity=quantity,
+                coin_for_order=coin_for_order,
+                action='buy',
+                price=price
+            )"""
+            self.buyOrder(cryptopair)
+        elif basecoin_or_quotecoin == 'basecoin':
+
+            # BNBBTC from bnb to btc you sell
+            """self._sellOrder(
+                quantity=quantity,
+                coin_for_order=coin_for_order,
+                action='sell',
+                price=price
+            )"""
+            self.sellOrder(cryptopair)
+
+    def _buyOrder(self, **kwargs):
+        """Virtual buy"""
+        # modify 'virtualbalance' table
+        # create new balance for the new crypto
+        self.database.requestDB(
+            f"UPDATE virtualbalance SET Balance = {kwargs['quantity']} where shortname = {kwargs['coin_for_order']} ")
+        # delete balance on crypto i use to hold
+        self.database.requestDB(f"UPDATE virtualbalance SET Balance = {0} where shortname = {self.coin} ")
+        # modify 'virtualtrade' table
+        self.database.requestDB(
+            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values('{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}','{kwargs['quantity']}','{str(datetime.now())}') ")
+        # swap crypto
+        self.coin = kwargs["coin_for_order"]
+
+    def _sellOrder(self, **kwargs):
+        """Virtual sell"""
+        # modify 'virtualbalance' table
+        # create new balance for the new crypto
+        self.database.requestDB(
+            f"UPDATE virtualbalance SET Balance = {kwargs['quantity']} where shortname = {kwargs['coin_for_order']} ")
+        # delete balance on crypto i use to hold
+        self.database.requestDB(f"UPDATE virtualbalance SET Balance = {0} where shortname = {self.coin} ")
+        # modify 'virtualtrade' table
+        self.database.requestDB(
+            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values('{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}','{kwargs['quantity']}','{str(datetime.now())}') ")
+        # swap crypto
+        self.coin = kwargs["coin_for_order"]
+
+    def _getcoinsrelated(self, coin: str):
+        # return all coins related quotecoins or basecoin
+
+        infos = self.database.selectDB("select quotecoin from relationalcoin where basecoin ='" + coin + "'")
+        basecoins = [info[0] for info in infos]
+
+        infos = self.database.selectDB("select basecoin from relationalcoin where quotecoin ='" + coin + "'")
+        quotecoins = [info[0] for info in infos]
+
+        return {'quotecoins': quotecoins, 'basecoins': basecoins}
+
+    def _get_crypto_pair_related(self, coin: str = None):
+        cryptoinfo = self.database.selectDB(
+            "select cryptopair from relationalcoin where basecoin ='" + coin + "'or quotecoin='" + coin + "'")
+
+        cryptoinfo = [crypto[0] for crypto in cryptoinfo]
+        return list(dict.fromkeys(cryptoinfo))
+
+    def _getBasecoin_cryptopair(self, cryptopair):
+        # sqlcon = mysqlDB()
+        nn = self.database.selectDB(f"select  basecoin from relationalcoin where cryptopair='" + cryptopair + "'")
+        if isinstance(nn, list) and len(nn) != 0:
+            return nn[0][0]
+        elif len(nn) == 0:
+            return 'result not found'
+
+    def _getQuotecoin_cryptopair(self, cryptopair):
+        # sqlcon = mysqlDB()
+        nn = self.database.selectDB(f"select  quotecoin from relationalcoin where cryptopair='" + cryptopair + "'")
+        if isinstance(nn, list) and len(nn) != 0:
+            return nn[0][0]
+        elif len(nn) == 0:
+            return 'result not found'
+
+    @staticmethod
+    def _basecoin_or_quotecoin(cryptopair: str = None, coin: str = None):
+        if cryptopair.startswith(coin):
+
+            return 'basecoin'
+        elif cryptopair.endswith(coin):
+
+            return 'quotecoin'
+
+    def _get_many_klines(self, cryptopairs: list) -> dict['cryptopair', 'klines']:
+        """kline response:
+            [
+              [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume
+                "28.46694368",      // Taker buy quote asset volume
+                "17928899.62484339" // Ignore.
+              ]
+            ]
+        """
+        kline_uri = "https://api.binance.com/api/v3/klines"
+        data = {
+            # "symbol":'BNBBTC',
+            "interval": self.timeframe,
+            # "startTime": '1 day ago'
+            # "endTime"
+            "limit": 100
+        }
+        cryptoklines = {}
+        for cryptopair in cryptopairs:
+            data['symbol'] = cryptopair
+            klines_list = requests.get(url=kline_uri, params=data)
+
+            for kline in klines_list:
+                kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+                kline[6] = datetime.datetime.fromtimestamp(kline[6] / 1e3)
+            klines = pd.DataFrame(klines_list)  # changer en dataframe
+            # supprimer les collonnes qui ne sont pas necessaires
+            klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
+
+            klines.columns = ['date', 'open', 'high', 'low',
+                              'close', 'volume']  # renommer les colonnes
+
+            cryptoklines = {cryptopair: klines}
+
+        return cryptoklines
+
+    def _crypto_study(self, klines: dict) -> dict[str, str]:
+        """study cryptopair with it's klines"""
+        cryptopairs = list(klines.keys())
+
+        results = {}  # {'BNBBTC':'buy'}
+        for cryptopair in cryptopairs:
+            decision = self.Decision(klines[cryptopair])
+            results[cryptopair] = decision
+        return results
+
+    def _cleaner(self, study: dict) -> dict[str, str]:
+        cryptopairs = list(study.keys())
+
+        results = {}
+        for cryptopair in cryptopairs:
+            # when i possess ETH
+            # ETHBTC must be a 'sell'
+            if (cryptopair.startswith(self.coin) and study[cryptopair] == 'sell') or (
+                    cryptopair.endswith(self.coin) and study[cryptopair] == 'buy'
+            ):
+                results[cryptopair] = study[cryptopair]
+        return results
+
+    def run(self):
+
+        while True:
+            # get crypto related
+            cryptopair_related: list = self._get_crypto_pair_related(coin=self.coin)
+
+            # get all klines for each cryptopair
+            klines: dict = self._get_many_klines(cryptopair_related)
+
+            #get cryptopair with they study results
+            cryptopairs_study_unclean = self._crypto_study(klines)
+
+            #clean the cryptopairs_study dict so we only have
+            #possible trades
+            cryptopairs_study = self._cleaner(cryptopairs_study_unclean)
+
+            if len(cryptopairs_study) == 0:
+                time.sleep(self.timeframe*5)
+            else:
+                cryptopairs = list(cryptopairs_study.keys())
+                #choose a crypto pair
+                cryptopair = cryptopairs[random.randint(0, len(cryptopairs)-1)]
+
+                #pass order (the quantity is calculated in passing order)
+                self.passOrder(cryptopair)
+
+                #set new coin
+                self.coin = cryptopair.replace(self.coin,'')
+
+                time.sleep(self.timeframe*5)

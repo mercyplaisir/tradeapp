@@ -43,9 +43,8 @@ print({cryptos:klines})
 
 # print(datetime.datetime.strptime('1 day ago'))
 """
+import random
 
-bb = {'a': 1, 'b': 2, 'c': 3}
-nn = None
+bb = "hello"
 
-if not nn:
-    print(list(bb.keys()))
+print(bb.replace("o",''))
