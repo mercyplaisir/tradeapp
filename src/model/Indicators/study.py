@@ -9,8 +9,7 @@ from src.model.Indicators.sma import Sma
 from src.model.Indicators.bb import Bollingerbands
 from src.model.Indicators.rsi import Rsi
 
-# sys.path.append("..")
-from src.api.binanceApi import Binance
+
 
 
 class Study:

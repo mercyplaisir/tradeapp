@@ -4,12 +4,12 @@ import json
 import random
 import time
 from pathlib import Path
-from random import randint
 
 import pandas as pd
 import requests
 from binance import AsyncClient
 from binance.client import Client
+
 
 from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.tools import BINANCEKLINES, Tool as tl
@@ -47,9 +47,6 @@ class Binance(Study, BinanceWebsocket):
 
     def __init__(self, publickey: str = None, secretkey: str = None, coin: str = None):
         super().__init__()
-        # try:
-        # get all key
-        # self.apikeys: dict = tl.read_json(APIKEYPATH)
 
         self.apiPublicKey: str = publickey  # public key
         self.apiSecretKey: str = secretkey  # secret key
@@ -57,7 +54,7 @@ class Binance(Study, BinanceWebsocket):
 
         self.lastOrderWasBuy = False
 
-        self.connect()  # connect to Binance
+        self.client = self.connect()  # connect to Binance
 
         self._coin: str = coin  # coin that i possess in initialization
         # assert coin , "coin can't be empty"
@@ -76,12 +73,13 @@ class Binance(Study, BinanceWebsocket):
     def connect(self):
         while True:
             try:
-                self.client = Client(self.apiPublicKey, self.apiSecretKey)
+                client = Client(self.apiPublicKey, self.apiSecretKey)
 
                 print(">>>connection a BINANCE effectue avec succes")
                 break
             except Exception:
                 print("erreur de connexion\nretry...")
+        return client
 
     def buyOrder(self, cryptopair: str):
         """
@@ -90,20 +88,15 @@ class Binance(Study, BinanceWebsocket):
         """
 
         # coinName: str = cryptopair.replace(self.coin, '')
-        order_quantity: int = self.orderQuantity(cryptopair)
+        order_quantity: float = self.orderQuantity(cryptopair)
 
-        self.client.order_market_buy(
+        orderDetails: dict = self.client.order_market_buy(
             symbol=cryptopair, quantity=order_quantity)
 
-        """self.saveTrades_DB(
-            cryptopair=cryptopair,
-            quantity=order_quantity,
-            orderType="market buy"
-        )
-        self.saveBalances_BD()
-"""
+        order = Order(orderDetails)
+        order.save()
         self.lastOrderWasBuy = True
-        print(">>>Buy Order passed")
+        print(f">>>Buy Order passed for {cryptopair}")
 
     def sellOrder(self, cryptopair: str):
         """
@@ -111,13 +104,14 @@ class Binance(Study, BinanceWebsocket):
 
         cryptopair .ex:BNBBTC, BTCUSDT
         """
-        coinName: str = cryptopair.replace(self.coin, '')
+        # coinName: str = cryptopair.replace(self.coin, '')
 
-        order_quantity: int = self.orderQuantity(cryptopair)
+        order_quantity: float = self.orderQuantity(cryptopair)
 
-        self.client.order_market_sell(
+        orderDetails: dict = self.client.order_market_sell(
             symbol=cryptopair, quantity=order_quantity)
-
+        order = Order(orderDetails)
+        order.save()
         """self.saveTrades_DB(
             cryptopair=cryptopair,
             quantity=order_quantity,
@@ -150,7 +144,7 @@ class Binance(Study, BinanceWebsocket):
         balance = self.balance  # balance of the crypto i possess
         if cryptopair.endswith(self.coin):
             basecoin = cryptopair.replace(self.coin, '')
-            coin=basecoin
+            coin = basecoin
 
             coin_price_usd = self._get_price(coin + 'USDT')  # prix en dollar
             coin_price = self._get_price(coin + self.coin)  # prix avec le quotecoin
@@ -183,19 +177,6 @@ class Binance(Study, BinanceWebsocket):
         else:
 
             return balance
-
-    def saveTrades_DB(self, cryptopair: str, orderType: str, quantity: float):
-        coinName = cryptopair.replace(self.coin, '')
-        """mycursor = self.mydb.cursor()
-
-        mycursor.execute(
-            f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values({coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})")
-        """
-        requete = f"insert into Trades(coinName,crypto,quantity,orderType,tradeTime) values(" \
-                  f"{coinName},{cryptopair},{quantity},{orderType},{datetime.datetime.now()})"
-        self.database.requestDB(requete)
-
-        print(">>>Trade enregistre")
 
     def saveBalances_BD(self) -> None:
         accountInfo = self.client.get_account()
@@ -248,19 +229,6 @@ class Binance(Study, BinanceWebsocket):
         except Exception as e:
             print(e)
 
-    def cryptoToTrade(self):
-        """
-        Return a crypto to trade
-        """
-        self.list_of_crypto = self.getCryptoList()
-
-        listLength = self.list_of_crypto.__len__()
-        cryptoIndex = randint(0, listLength - 1)
-        crypto_to_Use = self.list_of_crypto[cryptoIndex]
-
-        print(">>>liste recuperer")
-        return crypto_to_Use
-
     def PLcalculator(self):
         """
         PROFIT/LOSS calculator
@@ -309,9 +277,9 @@ class Binance(Study, BinanceWebsocket):
     def passOrder(self, cryptopair: str):
         cryptopair = cryptopair
         basecoin_or_quotecoin = self._basecoin_or_quotecoin(cryptopair=cryptopair, coin=self.coin)
-        #price = self._get_price(cryptopair=cryptopair)
-        #coin_for_order = self._getBasecoin_cryptopair(cryptopair)
-        #quantity = self.orderQuantity(cryptopair)
+        # price = self._get_price(cryptopair=cryptopair)
+        # coin_for_order = self._getBasecoin_cryptopair(cryptopair)
+        # quantity = self.orderQuantity(cryptopair)
 
         if basecoin_or_quotecoin == 'quotecoin':
             # BNBBTC from btc to bnb you buy
@@ -343,7 +311,9 @@ class Binance(Study, BinanceWebsocket):
         self.database.requestDB(f"UPDATE virtualbalance SET Balance = {0} where shortname = {self.coin} ")
         # modify 'virtualtrade' table
         self.database.requestDB(
-            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values('{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}','{kwargs['quantity']}','{str(datetime.now())}') ")
+            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values(f'"
+            f"{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}',"
+            f"'{kwargs['quantity']}','{str(datetime.datetime.now())}') ")
         # swap crypto
         self.coin = kwargs["coin_for_order"]
 
@@ -357,7 +327,9 @@ class Binance(Study, BinanceWebsocket):
         self.database.requestDB(f"UPDATE virtualbalance SET Balance = {0} where shortname = {self.coin} ")
         # modify 'virtualtrade' table
         self.database.requestDB(
-            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values('{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}','{kwargs['quantity']}','{str(datetime.now())}') ")
+            f"insert into virtualtrade(basecoin ,quotecoin,ordertype,quantity,tradetime) values(f'"
+            f"{kwargs['coin_for_order']}','{self.coin}','{kwargs['action']}',"
+            f"'{kwargs['quantity']}','{str(datetime.datetime.now())}') ")
         # swap crypto
         self.coin = kwargs["coin_for_order"]
 
@@ -404,7 +376,7 @@ class Binance(Study, BinanceWebsocket):
 
             return 'quotecoin'
 
-    def _get_many_klines(self, cryptopairs: list) -> dict['cryptopair', 'klines']:
+    def _get_many_klines(self, cryptopairs: list) -> dict[str, str]:
         """kline response:
             [
               [
@@ -434,7 +406,7 @@ class Binance(Study, BinanceWebsocket):
         cryptoklines = {}
         for cryptopair in cryptopairs:
             data['symbol'] = cryptopair
-            klines_list = requests.get(url=kline_uri, params=data)
+            klines_list = requests.get(url=kline_uri, params=data).json()
 
             for kline in klines_list:
                 kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
@@ -482,24 +454,51 @@ class Binance(Study, BinanceWebsocket):
             # get all klines for each cryptopair
             klines: dict = self._get_many_klines(cryptopair_related)
 
-            #get cryptopair with they study results
+            # get cryptopair with they study results
             cryptopairs_study_unclean = self._crypto_study(klines)
 
-            #clean the cryptopairs_study dict so we only have
-            #possible trades
+            # clean the cryptopairs_study dict so we only have
+            # possible trades
             cryptopairs_study = self._cleaner(cryptopairs_study_unclean)
 
             if len(cryptopairs_study) == 0:
-                time.sleep(self.timeframe*5)
+                time.sleep(int(self.timeframe.replace('m', '')) * 5)
             else:
                 cryptopairs = list(cryptopairs_study.keys())
-                #choose a crypto pair
-                cryptopair = cryptopairs[random.randint(0, len(cryptopairs)-1)]
+                # choose a crypto pair
+                cryptopair = cryptopairs[random.randint(0, len(cryptopairs) - 1)]
 
-                #pass order (the quantity is calculated in passing order)
+                # pass order (the quantity is calculated in passing order)
                 self.passOrder(cryptopair)
 
-                #set new coin
-                self.coin = cryptopair.replace(self.coin,'')
+                # set new coin
+                self.coin = cryptopair.replace(self.coin, '')
 
-                time.sleep(self.timeframe*5)
+                time.sleep(int(self.timeframe.replace('m', '')) * 5)
+
+
+class Order:
+    """Binance Order Class"""
+    def __init__(self, orderDetails: dict):
+        self.database = mysqlDB()
+        assert isinstance(orderDetails, dict)
+
+        self.orderId = orderDetails['orderId']
+        self.symbol = orderDetails['symbol']
+        self.type = orderDetails['type']
+        self.side = orderDetails['side']
+        self.transactTime = orderDetails['transactTime']
+        self.status = orderDetails['status']
+        self.executedQty = orderDetails['executedQty']
+
+    def save(self):
+        self.database.requestDB(f"insert into orders(orderId,symbol,type,side,transactTime,status,executedQty) values("
+                                f"{self.orderId},{self.symbol},{self.type},{self.side},{self.transactTime},"
+                                f"{self.status},{self.executedQty})")
+
+    @staticmethod
+    def get_all_orders():
+        database = mysqlDB()
+        results = database.selectDB(f"select * from orders")
+
+        return results

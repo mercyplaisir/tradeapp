@@ -10,7 +10,7 @@ class mysqlDB:
         self.connected = False
         self.con = None  # for connection
 
-    def requestDB(self, requete):
+    def requestDB(self, requete:str):
         self._connect()
 
         mycursor = self.con.cursor()
@@ -19,12 +19,12 @@ class mysqlDB:
 
         self._disconnect()
 
-    def selectDB(self, requete):
+    def selectDB(self, requete:str):
         self._connect()
 
         cursor = self.con.cursor()
         cursor.execute(requete)
-        result = cursor.fetchall()
+        result:tuple = cursor.fetchall()
         cursor.close()
 
         self._disconnect()
