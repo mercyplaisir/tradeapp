@@ -477,6 +477,14 @@ class Binance(Study, BinanceWebsocket):
                 time.sleep(int(self.timeframe.replace('m', '')) * 5)
 
 
+
+
+
+
+
+
+
+
 class Order:
     """Binance Order Class"""
     def __init__(self, orderDetails: dict):
