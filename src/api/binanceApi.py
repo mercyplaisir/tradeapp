@@ -5,6 +5,7 @@ import random
 import time
 from pathlib import Path
 
+
 import pandas as pd
 import requests
 from binance import AsyncClient
@@ -13,16 +14,17 @@ from binance.client import Client
 
 from src.controller.dbcontroller.mysqlDB import mysqlDB
 from src.controller.tools import BINANCEKLINES, Tool as tl
-
 from src.model.Indicators.study import Study
+from src.api.apiModel import ApiModel
 
 
+"""
 class BinanceWebsocket:
 
     def coinPriceInfo(self, cryptopair: str = None) -> dict[str, float]:
-        """
+        \"""
         Return a dict: { "price": coinPrice , "pricechange": coinPriceChange }
-        """
+        \"\"\"
 
         async def main():
             client = await AsyncClient.create()
@@ -36,9 +38,9 @@ class BinanceWebsocket:
 
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(main())
+"""
 
-
-class Binance(Study, BinanceWebsocket):
+class Binance(ApiModel):#(Study, BinanceWebsocket):
     PATH = str(Path(__file__).resolve().parent)
     """__all__ = ['PLcalculator','assetBalance', 'buyOrder', 'coinPriceChange',
                'connect', 'cryptoToTrade', 'getCryptoList',
@@ -81,7 +83,7 @@ class Binance(Study, BinanceWebsocket):
                 print("erreur de connexion\nretry...")
         return client
 
-    def buyOrder(self, cryptopair: str):
+    def buy_order(self, cryptopair: str):
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
@@ -98,7 +100,7 @@ class Binance(Study, BinanceWebsocket):
         self.lastOrderWasBuy = True
         print(f">>>Buy Order passed for {cryptopair}")
 
-    def sellOrder(self, cryptopair: str):
+    def sell_order(self, cryptopair: str):
         """
         Market sell Order
 
@@ -477,7 +479,9 @@ class Binance(Study, BinanceWebsocket):
                 time.sleep(int(self.timeframe.replace('m', '')) * 5)
 
 
-
+    def status(self):
+        """send status to to the server """
+        pass
 
 
 
