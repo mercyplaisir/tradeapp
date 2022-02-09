@@ -2,17 +2,18 @@ import json
 import random
 import time
 from dataclasses import dataclass, field
+from typing import Type
 
 import pandas as pd
 from binance.client import Client
 
 from src.dbcontroller.mysqlDB import mysqlDB
+from src.indicators.study import Study
 from src.platforms.binance.coin import Coin
 from src.platforms.binance.crypto import CryptoPair
 from src.platforms.binance.order import Order
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 from src.tools import Tool as tl
-from src.indicators.study import Study
 
 
 @dataclass
@@ -20,7 +21,7 @@ class Binance:  # (Study, BinanceWebsocket):
 
     TIMEFRAME: str = field(init=False, default="15m")
     _coin: Coin = field(init=False)
-    lastOrderWasBuy: bool = field(init=False, default=False)
+    lastOrderWasBuy: bool = field(init=False, default=False, repr=False)
 
     def __post_init__(self):
 
@@ -67,17 +68,17 @@ class Binance:  # (Study, BinanceWebsocket):
         print(">>>connection a BINANCE effectue avec succes")
         return client
 
-    def buy_order(self, cryptopair: CryptoPair) -> Order:
+    def buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
         """
 
         # coinName: str = cryptopair.replace(self.coin, '')
-        order_quantity: float = self.orderQuantity(cryptopair.name)
+        order_quantity: float = self.orderQuantity(cryptopair)
 
         orderDetails: dict = self.client.order_market_buy(
-            symbol=cryptopair, quantity=order_quantity)
+            symbol=cryptopair.name, quantity=order_quantity)
 
         order = Order(**orderDetails)
         order.save()
@@ -137,27 +138,21 @@ class Binance:  # (Study, BinanceWebsocket):
             return "Still in a Buy Trade"
         return tl.percent_change(self.boughtAt, self.soldAt)
 
-    # _________________________________________________________________________
-    # _________________________________________________________________________
-    # _______________FOR VIRTUAL ONLY______________________________________________________
-    # _______________STILL TESTING __________________________________________
-    # _________________________________________________________________________
-    # _________________________________________________________________________
-    # _________________________________________________________________________
-
     def pass_order(self, cryptopair: CryptoPair):
         if cryptopair.is_any(self.coin):
             return self.buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self.sell_order(cryptopair)
         return Exception("Unable to pass order")
 
-    def _crypto_study(self, klines: dict[str, pd.DataFrame]) -> dict[str, str]:
+    def _crypto_study(self, klines: dict[CryptoPair, pd.DataFrame]) -> dict[str, str]:
         """study cryptopair with it's klines"""
         cryptopairs = list(klines.keys())
+        cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
         results = {}  # {'BNBBTC':'buy'}
 
         for cryptopair in cryptopairs:
-            decision = self.decision(klines[cryptopair])
-            results[cryptopair] = decision
+            kline: pd.DataFrame = klines.pop(cryptopair)
+            decision = self.decision(kline)
+            results[cryptopair]: list[str] = decision
         return results
 
     def _cleaner(self, study: dict) -> dict[str, str]:
@@ -180,11 +175,11 @@ class Binance:  # (Study, BinanceWebsocket):
             cryptopair_related: list[CryptoPair] = self.coin.get_cryptopair_related()
 
             # get all klines for each cryptopair
-            klines: dict[str, pd.DataFrame] = {
-                cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
+            klines: dict[CryptoPair, pd.DataFrame] = {
+                cryptopair: cryptopair.get_klines() for cryptopair in cryptopair_related}
 
             # get cryptopair with they study results
-            cryptopairs_study_unclean = self._crypto_study(klines)
+            cryptopairs_study_unclean:dict[CryptoPair,str] = self._crypto_study(klines)
 
             # clean the cryptopairs_study dict so we only have
             # possible trades
@@ -195,13 +190,14 @@ class Binance:  # (Study, BinanceWebsocket):
             else:
                 cryptopairs = list(cryptopairs_study.keys())
                 # choose a crypto pair
-                cryptopair = cryptopairs[random.randint(0, len(cryptopairs) - 1)]
+                cryptopair: CryptoPair = cryptopairs[random.randint(0, len(cryptopairs) - 1)]
 
                 # pass order (the quantity is calculated in passing order)
-                self.passOrder(cryptopair)
+                self.pass_order(cryptopair)
 
                 # set new coin
-                self.coin = cryptopair.replace(self.coin, '')
+                old_coin = self.coin
+                self.coin = cryptopair.name.replace(self.coin, '')
 
                 time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
 
@@ -209,5 +205,6 @@ class Binance:  # (Study, BinanceWebsocket):
         """send status to to the server """
         pass
 
-    def decision(self, param):
+    def decision(self, klines: pd.DataFrame):
         """Calculate the prices and return a decision"""
+        return Study.decision(klines)

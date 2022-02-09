@@ -1,42 +1,29 @@
 import btalib
 import pandas as pd
 
-# sys.path.append(sys.path[0]+'/..')
-from src.tools import BINANCEKLINES, KLINEPATH
-
-
 
 class Rsi:
     """
     RSI indicator
     """
 
-    def __init__(self):
-        pass
-
-    #@staticmethod
-    def createRSI(self,periode: int = 14, klines: pd.DataFrame = None):
+    @classmethod
+    def create_rsi(cls, periode: int = 14, klines: pd.DataFrame = None):
         """create RSI indicator"""
-        if not klines:
-            kline = pd.read_csv(BINANCEKLINES, index_col='date')
-        else:
-            kline = klines
-
-        rsiInd = btalib.rsi(kline, period=periode)
-        rsiInd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
-
+        rsiInd = btalib.rsi(klines.copy(), period=periode)
+        # rsiInd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
         return rsiInd.df
 
-    def priceStudy(self, klines: pd.DataFrame = None):
+    @classmethod
+    def price_study(cls, klines: pd.DataFrame = None):
         """
             study made on klines(dataframe)
 
             columns = ["rsi"]
         """
-        self.createRSI(klines)
 
-        kline = pd.read_csv(KLINEPATH, index_col='date')
-        binanceKlines = pd.read_csv(BINANCEKLINES, index_col='date')
+        kline = cls.create_rsi(klines.copy())
+        binanceKlines = klines.copy()
 
         # kline
         rsiList = kline['rsi'][-9:-1]  # recupere les 9 dernieres valeurs
@@ -49,7 +36,3 @@ class Rsi:
         decision = "buy" if rsiList[-1] > rsiMean and closePrices[-1] > priceMean else "sell"
 
         return decision
-
-    def klines(self):
-        kline = pd.read_csv(KLINEPATH, index_col='date')
-        return kline

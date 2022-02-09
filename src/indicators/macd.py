@@ -1,35 +1,24 @@
 import btalib
 import pandas as pd
 
-from src.tools import BINANCEKLINES, KLINEPATH
-
 
 class Macd:
     """
     MACD indicator
     """
 
-    def __init__(self):
+    @classmethod
+    def create_macd(cls, klines: pd.DataFrame) -> pd.DataFrame:
+        macd = btalib.macd(klines.copy())
 
-        pass
+        return macd.df
 
-    def createMACD(self, klines: pd.DataFrame = None):
-        if not klines:
-            kline = pd.read_csv(BINANCEKLINES, index_col='date')
-        else:
-            kline = klines
-        macd = btalib.macd(kline)
-        macd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
-
-    def priceStudy(self, klines: pd.DataFrame = None):
+    @classmethod
+    def price_study(cls, klines: pd.DataFrame):
         """
-        colums = ["macd","signal","histogram"]
+        columns = ["macd","signal","histogram"]
         """
-        self.createMACD(klines)
-        # calculate the MACD
-
-        kline = pd.read_csv(KLINEPATH, index_col='date')
-        binanceKlines = pd.read_csv(BINANCEKLINES)
+        kline = cls.create_macd(klines.copy())
 
         kline['decision'] = kline['macd'] > kline['signal']
 

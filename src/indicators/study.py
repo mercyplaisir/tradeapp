@@ -1,48 +1,45 @@
+import json
+
 import pandas as pd
 
-from src.indicators.stochastic import Stochastic
-from src.indicators.macd import Macd
-from src.indicators.sma import Sma
+from src.indicators import factory
 from src.indicators.bb import Bollingerbands
+from src.indicators.macd import Macd
 from src.indicators.rsi import Rsi
-
-
+from src.indicators.sma import Sma
+from src.indicators.stochastic import Stochastic
 
 
 class Study:
 
-    def __init__(self):  # , binanceObj:Binance) -> None:
-        # self.binance = binanceObj
-        # =======================================
-        self.studyList = None
-        pass
-
     # ==========Decision================
-    def Decision(self, klines: pd.DataFrame = None ):#cryptopair: str):
-        # ==========update klines============
-        #self.binance.get_klines(cryptopair)
-        # =================================
+    @classmethod
+    def decision(cls, klines: pd.DataFrame):  # cryptopair: str):
+        factory.register("rsi", Rsi)
+        factory.register("macd", Macd)
+        factory.register("bb", Bollingerbands)
+        factory.register("sma", Sma)
+        factory.register("stochastic", Stochastic)
 
-        # ======create indicators==============
-        rsiInd = Rsi()
-        bbInd = Bollingerbands()
-        smaInd = Sma()
-        stochInd = Stochastic()
-        macdInd = Macd()
-        # =====================================
+        """# ======make price study=================
+        rsiStudy = Rsi.price_study(klines)
+        bbStudy = Bollingerbands.price_study(klines)
+        smaStudy = Sma.price_study(klines)
+        stochInd = Stochastic.price_study(klines)
+        macdInd = Macd.price_study(klines)
+        #study_list = [rsiStudy, bbStudy, smaStudy, stochInd, macdInd]
+        """
+        with open("./indicators.json", 'r') as f:
+            data = json.load(f)
 
-        # ======make price study=================
-        rsiStudy = rsiInd.priceStudy(klines)
-        bbStudy = bbInd.priceStudy(klines)
-        smaStudy = smaInd.priceStudy(klines)
-        stochInd = stochInd.priceStudy(klines)
-        macdInd = macdInd.priceStudy(klines)
+        indicators = [factory.create(item) for item in data]  # creating indicators
+        study_list = []
+        for indicator in indicators:
+            study_list.append(indicator.price_study(klines))
 
-        self.studyList = [rsiStudy, bbStudy, smaStudy, stochInd, macdInd]
-
-        if self.studyList.count('buy') >= (len(self.studyList) - 1):
+        if study_list.count('buy') >= (len(study_list) - 1):
             return 'buy'
-        elif self.studyList.count('sell') >= (len(self.studyList) - 2):
+        elif study_list.count('sell') >= (len(study_list) - 2):
             return 'sell'
         else:
             return 'wait'
