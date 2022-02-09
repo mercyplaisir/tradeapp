@@ -6,7 +6,8 @@ class mysqlDB:
         self.db = {'host': 'localhost',
                    'user': 'root',
                    'passwd': 'Pl@isir6',
-                   'database': 'tradeapp'}
+                   'database': 'tradeapp',#}
+                   'auth_plugin':'mysql_native_password'}
         self.connected = False
         self.con = None  # for connection
 
@@ -21,7 +22,8 @@ class mysqlDB:
 
     def selectDB(self, requete:str):
         self._connect()
-
+        if not self.connected:
+            raise ValueError("Not Connected")
         cursor = self.con.cursor()
         cursor.execute(requete)
         result:tuple = cursor.fetchall()
@@ -31,19 +33,15 @@ class mysqlDB:
         return result
 
     def _bdConnect(self, dbinfo: dict):
-        try:
-            self.con = mysql.connector.connect(**dbinfo)
-            self.connected = True
-            print(">>>connexion au DB effectue")
+        self.con = mysql.connector.connect(**dbinfo)
+        self.connected = True
+        #print(">>>connexion au DB effectue")
 
-        except:
-            print("BD connection error")
+        
 
     def _connect(self):
-        try:
-            self._bdConnect(self.db)
-        except Exception as e:
-            print(e)
+        self._bdConnect(self.db)
+        
 
     def _disconnect(self):
         if self.connected:

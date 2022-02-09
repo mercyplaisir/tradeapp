@@ -8,6 +8,6 @@ class ApiModel(ABC):
     def sell_order(self):
         pass
     @abstractmethod
-    def status():
+    def status(self):
         pass
     
