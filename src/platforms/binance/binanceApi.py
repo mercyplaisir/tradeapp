@@ -1,12 +1,9 @@
 import json
+import pandas as pd
 import random
 import time
-from dataclasses import dataclass, field
-from typing import Type
-
-import pandas as pd
 from binance.client import Client
-
+from dataclasses import dataclass, field
 from src.dbcontroller.mysqlDB import mysqlDB
 from src.indicators.study import Study
 from src.platforms.binance.coin import Coin
@@ -14,9 +11,10 @@ from src.platforms.binance.crypto import CryptoPair
 from src.platforms.binance.order import Order
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 from src.tools import Tool as tl
+from typing import Type
 
 
-@dataclass
+@dataclass()
 class Binance:  # (Study, BinanceWebsocket):
 
     TIMEFRAME: str = field(init=False, default="15m")
@@ -143,32 +141,10 @@ class Binance:  # (Study, BinanceWebsocket):
             return self.buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self.sell_order(cryptopair)
         return Exception("Unable to pass order")
 
-    def _crypto_study(self, klines: dict[CryptoPair, pd.DataFrame]) -> dict[str, str]:
-        """study cryptopair with it's klines"""
-        cryptopairs = list(klines.keys())
-        cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
-        results = {}  # {'BNBBTC':'buy'}
 
-        for cryptopair in cryptopairs:
-            kline: pd.DataFrame = klines.pop(cryptopair)
-            decision = self.decision(kline)
-            results[cryptopair]: list[str] = decision
-        return results
-
-    def _cleaner(self, study: dict) -> dict[str, str]:
-        cryptopairs = list(study.keys())
-
-        results = {}
-        for cryptopair in cryptopairs:
-            # when i possess ETH
-            # ETHBTC must be a 'sell'
-            if (cryptopair.startswith(self.coin) and study[cryptopair] == 'sell') or (
-                    cryptopair.is_any(self.coin) and study[cryptopair] == 'buy'
-            ):
-                results[cryptopair] = study[cryptopair]
-        return results
 
     def run(self):
+        """main file to run"""
 
         while True:
             # get crypto related
@@ -178,12 +154,9 @@ class Binance:  # (Study, BinanceWebsocket):
             klines: dict[CryptoPair, pd.DataFrame] = {
                 cryptopair: cryptopair.get_klines() for cryptopair in cryptopair_related}
 
-            # get cryptopair with they study results
-            cryptopairs_study_unclean:dict[CryptoPair,str] = self._crypto_study(klines)
-
             # clean the cryptopairs_study dict so we only have
             # possible trades
-            cryptopairs_study = self._cleaner(cryptopairs_study_unclean)
+            cryptopairs_study = self._crypto_study(klines)
 
             if len(cryptopairs_study) == 0:
                 time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
@@ -208,3 +181,28 @@ class Binance:  # (Study, BinanceWebsocket):
     def decision(self, klines: pd.DataFrame):
         """Calculate the prices and return a decision"""
         return Study.decision(klines)
+
+    def _crypto_study(self, klines: dict[CryptoPair, pd.DataFrame]) -> dict[str, str]:
+        """study cryptopair with it's klines"""
+        cryptopairs = list(klines.keys())
+        cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
+        decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
+
+        for cryptopair in cryptopairs:
+            kline: pd.DataFrame = klines.pop(cryptopair)
+            decision = self.decision(kline)
+            decision_results[cryptopair]: list[str] = decision
+        return self._cleaner(decision_results)
+
+    def _cleaner(self, study: dict[CryptoPair, str]) -> dict[str, str]:
+
+        cryptopairs: list[CryptoPair] = list(study.keys())
+        results: dict[CryptoPair, str] = {}
+        for cryptopair in cryptopairs:
+            # when i possess ETH
+            # ETHBTC must be a 'sell'
+            if (cryptopair.is_basecoin(self.coin) and study[cryptopair] == 'sell') or (
+                    cryptopair.is_quotecoin(self.coin) and study[cryptopair] == 'buy'
+            ):
+                results[cryptopair] = study[cryptopair]
+        return results
