@@ -3,14 +3,16 @@ import random
 import time
 from dataclasses import dataclass, field
 
+import pandas as pd
 from binance.client import Client
 
+from src.dbcontroller.mysqlDB import mysqlDB
 from src.platforms.binance.coin import Coin
 from src.platforms.binance.crypto import CryptoPair
 from src.platforms.binance.order import Order
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
-from src.dbcontroller.mysqlDB import mysqlDB
 from src.tools import Tool as tl
+from src.indicators.study import Study
 
 
 @dataclass
@@ -42,7 +44,7 @@ class Binance:  # (Study, BinanceWebsocket):
 
     @property
     def coin(self) -> Coin:
-        '''return coin object'''
+        """return coin object"""
         with open("coin.json", 'r') as f:
             coin_name = json.load(f)
             self._coin = Coin(coin_name)
@@ -148,13 +150,13 @@ class Binance:  # (Study, BinanceWebsocket):
             return self.buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self.sell_order(cryptopair)
         return Exception("Unable to pass order")
 
-    def _crypto_study(self, klines: dict) -> dict[str, str]:
+    def _crypto_study(self, klines: dict[str, pd.DataFrame]) -> dict[str, str]:
         """study cryptopair with it's klines"""
         cryptopairs = list(klines.keys())
-
         results = {}  # {'BNBBTC':'buy'}
+
         for cryptopair in cryptopairs:
-            decision = self.Decision(klines[cryptopair])
+            decision = self.decision(klines[cryptopair])
             results[cryptopair] = decision
         return results
 
@@ -166,7 +168,7 @@ class Binance:  # (Study, BinanceWebsocket):
             # when i possess ETH
             # ETHBTC must be a 'sell'
             if (cryptopair.startswith(self.coin) and study[cryptopair] == 'sell') or (
-                    cryptopair.is(self.coin) and study[cryptopair] == 'buy'
+                    cryptopair.is_any(self.coin) and study[cryptopair] == 'buy'
             ):
                 results[cryptopair] = study[cryptopair]
         return results
@@ -175,10 +177,11 @@ class Binance:  # (Study, BinanceWebsocket):
 
         while True:
             # get crypto related
-            cryptopair_related: list[CryptoPair] = self.coin.getcoinsrelated()
+            cryptopair_related: list[CryptoPair] = self.coin.get_cryptopair_related()
 
             # get all klines for each cryptopair
-            klines: dict[str,] = {cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
+            klines: dict[str, pd.DataFrame] = {
+                cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
 
             # get cryptopair with they study results
             cryptopairs_study_unclean = self._crypto_study(klines)
@@ -205,3 +208,6 @@ class Binance:  # (Study, BinanceWebsocket):
     def status(self):
         """send status to to the server """
         pass
+
+    def decision(self, param):
+        """Calculate the prices and return a decision"""

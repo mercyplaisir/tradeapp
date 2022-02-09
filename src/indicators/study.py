@@ -1,10 +1,10 @@
 import pandas as pd
 
-from src.Indicators.stochastic import Stochastic
-from src.Indicators.macd import Macd
-from src.Indicators.sma import Sma
-from src.Indicators.bb import Bollingerbands
-from src.Indicators.rsi import Rsi
+from src.indicators.stochastic import Stochastic
+from src.indicators.macd import Macd
+from src.indicators.sma import Sma
+from src.indicators.bb import Bollingerbands
+from src.indicators.rsi import Rsi
 
 
 

@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass, field
 
-from src.platforms.binance.crypto import CryptoPair
 from src.dbcontroller.mysqlDB import mysqlDB
+from src.platforms.binance.crypto import CryptoPair
 
 
 @dataclass
@@ -23,7 +23,7 @@ class Coin(object):
     def fullname(self):
         return self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")[0][0]
 
-    def getcoinsrelated(self) -> list[CryptoPair]:
+    def get_cryptopair_related(self) -> list[CryptoPair]:
         """ return all coins related quotecoins or basecoin"""
         coin_name = self.name
 
@@ -45,4 +45,4 @@ class Coin(object):
 
 if __name__ == '__main__':
     c = Coin("BTC")
-    print(c.getcoinsrelated())
+    print(c.get_cryptopair_related())
