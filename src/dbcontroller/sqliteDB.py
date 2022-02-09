@@ -1,5 +1,5 @@
 import sqlite3
-from src.controller.tools import DBSTORAGE
+from src.tools import DBSTORAGE
 
 
 class SqliteDB:

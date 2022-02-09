@@ -3,7 +3,7 @@ import pandas as pd
 from pandas.core.frame import DataFrame
 
 # sys.path.append(sys.path[0]+'/..')
-from src.controller.tools import BINANCEKLINES, KLINEPATH
+from src.tools import BINANCEKLINES, KLINEPATH
 
 
 class Bollingerbands:

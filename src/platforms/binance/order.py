@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
 
-from src.controller.dbcontroller.mysqlDB import mysqlDB
+from src.dbcontroller.mysqlDB import mysqlDB
 
 @dataclass()
 class Order:

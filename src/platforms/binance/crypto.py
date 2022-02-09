@@ -6,8 +6,8 @@ from typing import Union
 import requests
 from binance import AsyncClient, BinanceSocketManager
 
-from src.api.coin import Coin
-from src.controller.dbcontroller.mysqlDB import mysqlDB
+from src.platforms.binance.coin import Coin
+from src.dbcontroller.mysqlDB import mysqlDB
 
 
 @dataclass

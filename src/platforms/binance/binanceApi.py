@@ -1,20 +1,16 @@
-import asyncio
-import datetime
 import json
 import random
 import time
 from dataclasses import dataclass, field
 
-import pandas as pd
-from binance import BinanceSocketManager
-from binance.client import Client, AsyncClient
+from binance.client import Client
 
-from src.api.coin import Coin
-from src.api.crypto import CryptoPair
-from src.api.order import Order
-from src.api.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
-from src.controller.dbcontroller.mysqlDB import mysqlDB
-from src.controller.tools import BINANCEKLINES, Tool as tl
+from src.platforms.binance.coin import Coin
+from src.platforms.binance.crypto import CryptoPair
+from src.platforms.binance.order import Order
+from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
+from src.dbcontroller.mysqlDB import mysqlDB
+from src.tools import Tool as tl
 
 
 @dataclass
@@ -47,14 +43,14 @@ class Binance:  # (Study, BinanceWebsocket):
     @property
     def coin(self) -> Coin:
         '''return coin object'''
-        with open("./coin.json", 'r') as f:
+        with open("coin.json", 'r') as f:
             coin_name = json.load(f)
             self._coin = Coin(coin_name)
         return self._coin
 
     @coin.setter
     def coin(self, coin_name: str) -> None:
-        with open("./coin.json", 'w') as f:
+        with open("coin.json", 'w') as f:
             newvalue = json.dumps(coin_name)
             f.write(newvalue)
         self._coin: Coin = Coin(coin_name)
@@ -131,8 +127,6 @@ class Binance:  # (Study, BinanceWebsocket):
                 if coin_price in coin_prices[key]:
                     return float(str(q)[:key])
 
-
-
     def pl_calculator(self):
         """
         PROFIT/LOSS calculator
@@ -181,10 +175,10 @@ class Binance:  # (Study, BinanceWebsocket):
 
         while True:
             # get crypto related
-            cryptopair_related: list = self.coin.getcoinsrelated()
+            cryptopair_related: list[CryptoPair] = self.coin.getcoinsrelated()
 
             # get all klines for each cryptopair
-            klines: dict = self._get_many_klines(cryptopair_related)
+            klines: dict = {cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
 
             # get cryptopair with they study results
             cryptopairs_study_unclean = self._crypto_study(klines)
@@ -211,5 +205,3 @@ class Binance:  # (Study, BinanceWebsocket):
     def status(self):
         """send status to to the server """
         pass
-
-

@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass, field
 
-from src.controller.dbcontroller.mysqlDB import mysqlDB
+from src.platforms.binance.crypto import CryptoPair
+from src.dbcontroller.mysqlDB import mysqlDB
 
 
 @dataclass
@@ -22,25 +23,26 @@ class Coin(object):
     def fullname(self):
         return self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")[0][0]
 
-    def getcoinsrelated(self) -> dict[str, list]:
+    def getcoinsrelated(self) -> list[CryptoPair]:
         """ return all coins related quotecoins or basecoin"""
-        coin = self.name
+        coin_name = self.name
 
-        quotecoin_shortnames: list[list[str]] = self.database.selectDB("select quotecoin from relationalcoin" + ""
-                                                                       + " where basecoin ='" + coin + "'")
-        quotecoins: list[str] = [coin+Coin(name[0]).name for name in quotecoin_shortnames]
+        quotecoin_shortnames: list[tuple[str]] = self.database.selectDB(
+            "select quotecoin from relationalcoin where basecoin ='" + coin_name + "'")
 
-        basecoin_shortname: list[list[str]] = self.database.selectDB(
-            "select basecoin from relationalcoin where quotecoin ='" + coin + "'")
+        quotecoins: list[CryptoPair] = [CryptoPair(name[0] + coin_name) for name in quotecoin_shortnames]
 
-        basecoins: list[str] = [Coin(name[0]).name+coin for name in basecoin_shortname]
+        basecoin_shortname: list[tuple[str]] = self.database.selectDB(
+            "select basecoin from relationalcoin where quotecoin ='" + coin_name + "'")
+
+        basecoins: list[CryptoPair] = [CryptoPair(name[0] + coin_name) for name in basecoin_shortname]
         # return {'quotecoins': quotecoins, 'basecoins': basecoins}
         return basecoins + quotecoins
 
     def __str__(self):
         return f"{self.name}({self.fullname})"
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     c = Coin("BTC")
     print(c.getcoinsrelated())

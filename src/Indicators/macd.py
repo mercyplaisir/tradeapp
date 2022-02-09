@@ -1,10 +1,7 @@
-import sys
-
 import btalib
 import pandas as pd
-import numpy as np
 
-from src.controller.tools import BINANCEKLINES, KLINEPATH
+from src.tools import BINANCEKLINES, KLINEPATH
 
 
 class Macd:

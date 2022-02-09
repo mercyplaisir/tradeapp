@@ -1,4 +1,4 @@
-from src.api.binanceApi import Binance
+from src.platforms.binance import Binance
 
 # =========initialize binance connection==========
 client = Binance()
