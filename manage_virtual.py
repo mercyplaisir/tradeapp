@@ -1,9 +1,10 @@
-class nn:
-    i = 0
-    def __init__(self,name):
-        self.name = name
-        self.i = +i
-    @classmethod
-    def geti(cls):
-        return cls.i
+import pandas as pd
 
+
+d={'hello':'fg'}
+
+ll = ['hello','klii']
+
+ddd = pd.DataFrame.from_dict(d)
+
+print(ddd)

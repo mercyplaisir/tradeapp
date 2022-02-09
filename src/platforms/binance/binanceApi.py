@@ -166,7 +166,7 @@ class Binance:  # (Study, BinanceWebsocket):
             # when i possess ETH
             # ETHBTC must be a 'sell'
             if (cryptopair.startswith(self.coin) and study[cryptopair] == 'sell') or (
-                    cryptopair.endswith(self.coin) and study[cryptopair] == 'buy'
+                    cryptopair.is(self.coin) and study[cryptopair] == 'buy'
             ):
                 results[cryptopair] = study[cryptopair]
         return results
@@ -178,7 +178,7 @@ class Binance:  # (Study, BinanceWebsocket):
             cryptopair_related: list[CryptoPair] = self.coin.getcoinsrelated()
 
             # get all klines for each cryptopair
-            klines: dict = {cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
+            klines: dict[str,] = {cryptopair.name: cryptopair.get_kline() for cryptopair in cryptopair_related}
 
             # get cryptopair with they study results
             cryptopairs_study_unclean = self._crypto_study(klines)

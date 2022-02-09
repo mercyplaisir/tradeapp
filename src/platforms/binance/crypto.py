@@ -6,8 +6,8 @@ from typing import Union
 import requests
 from binance import AsyncClient, BinanceSocketManager
 
-from src.platforms.binance.coin import Coin
 from src.dbcontroller.mysqlDB import mysqlDB
+from src.platforms.binance.coin import Coin
 
 
 @dataclass
@@ -74,7 +74,7 @@ class CryptoPair(object):
         resp = requests.get(url)
         return float(resp.json()['priceChangePercent'])
 
-    def get_kline(self):
+    def get_kline(self) -> dict[str, dict[str, Union[str, datetime.datetime]]]:
         """{
               "e": "kline",     // Event type
               "E": 123456789,   // Event time
