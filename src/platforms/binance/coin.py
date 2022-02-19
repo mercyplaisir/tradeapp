@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass, field
 
+
 from src.dbcontroller.mysqlDB import mysqlDB
 from src.platforms.binance.crypto import CryptoPair
-
 
 @dataclass
 class Coin(object):

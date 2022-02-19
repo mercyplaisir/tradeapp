@@ -1,6 +1,5 @@
 from src.platforms.binance import Binance
 
-# =========initialize binance connection==========
-client = Binance()
-client.client.order_market_buy()
-client.run()
+#run file
+with Binance() as client:
+    client.run()

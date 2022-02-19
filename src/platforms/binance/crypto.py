@@ -6,7 +6,6 @@ import requests
 
 from src.dbcontroller.mysqlDB import mysqlDB
 from src.platforms.binance.coin import Coin
-from src.tools import BINANCEKLINES
 
 
 @dataclass
@@ -17,7 +16,7 @@ class CryptoPair(object):
     """
     name: str
     database = mysqlDB()
-    TIMEFRAME = "15m"
+    TIMEFRAME = "5m"
 
     def __post_init__(self):
         self.verify()
@@ -60,7 +59,19 @@ class CryptoPair(object):
 
     def is_any(self, coin: Coin):
         """To see if a coin is in the cryptopair"""
-        return self.is_basecoin(coin) or self.is_quotecoin(coin)
+        if self.is_basecoin(coin) or self.is_quotecoin(coin):
+            return True
+        else:
+            raise ValueError(f"{coin.name} is not in {self.name} ")
+    
+    def replace(self,coin:Coin)->Coin:
+        """return basecoin if the given coin is quotecoin vice-versa"""
+        if self.is_basecoin(coin):
+            return self.quotecoin
+        elif self.is_quotecoin(coin):
+            return self.basecoin
+        else:
+            raise ValueError(f"{coin.name} is not in {self.name} ")
 
     def get_price(self) -> float:
         """get price of a cryptopair"""
@@ -73,6 +84,7 @@ class CryptoPair(object):
         url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={self.name}"
         resp = requests.get(url)
         return float(resp.json()['priceChangePercent'])
+    
 
     def get_klines(self, interval: str = "2 days"):
 
@@ -116,11 +128,11 @@ class CryptoPair(object):
 
         klines = pd.DataFrame(klines_list)  # changer en dataframe
 
-        # supprimer les collonnes qui ne sont pas necessaires
+        # delete unuseful columns
         klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
 
         klines.columns = ['date', 'open', 'high', 'low',
-                          'close', 'volume']  # renommer les colonnes
+                          'close', 'volume']  # rename columns
 
-        klines.to_csv(BINANCEKLINES, index=False)
-        # return klines
+        # klines.to_csv(BINANCEKLINES, index=False)
+        return klines

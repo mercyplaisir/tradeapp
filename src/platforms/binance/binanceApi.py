@@ -1,36 +1,59 @@
 import json
-import pandas as pd
 import random
+from re import A
 import time
-from binance.client import Client
 from dataclasses import dataclass, field
+from typing import Type
+
+import pandas as pd
+import requests
+from binance.client import Client
+
+from src.common.tools import Tool as tl
 from src.dbcontroller.mysqlDB import mysqlDB
 from src.indicators.study import Study
 from src.platforms.binance.coin import Coin
 from src.platforms.binance.crypto import CryptoPair
 from src.platforms.binance.order import Order
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
-from src.tools import Tool as tl
-from typing import Type
 
 
-@dataclass()
-class Binance:  # (Study, BinanceWebsocket):
+def connect() -> Client:
+    """Connect to binance """
+    client = Client(BINANCE_PUBLIC_KEY, BINANCE_PRIVATE_KEY)
+    print(">>>Connected successfully to binance success")
+    return client
 
-    TIMEFRAME: str = field(init=False, default="15m")
-    _coin: Coin = field(init=False)
-    lastOrderWasBuy: bool = field(init=False, default=False, repr=False)
 
-    def __post_init__(self):
+URL =  'https://tradeappapiassistant.herokuapp.com/tradeapp'
 
-        self.client: Client = self.connect()  # binanceClient
+STATUS_ENDPOINT = '/status'
+HISTORY_ENDPOINT ='/history'
 
-        self.database = mysqlDB()
-        print(">>>Initialisation terminee")
+TRADED:list[CryptoPair] = []
 
-        self.boughtAt = 0
-        self.soldAt = 0
+@dataclass
+class BinanceClient:
+    """My Binance account representation"""
+    # Timeframe
+    TIMEFRAME: str = '15m'  
 
+    # Rescue Value
+    rescue_coin:Coin = Coin('USDT')
+     
+    # track last order,
+    lastOrderWasBuy: bool = False  
+    
+    # Binance instance
+    client: Client = connect()  
+    # Database Instance
+    database: mysqlDB = mysqlDB()
+
+    # Buying price
+    boughtAt: int = 0  
+    # Selling price
+    soldAt: int = 0 
+        
     @property
     def apiPublicKey(self) -> str:
         """public key"""
@@ -46,34 +69,46 @@ class Binance:  # (Study, BinanceWebsocket):
         """return coin object"""
         with open("coin.json", 'r') as f:
             coin_name = json.load(f)
-            self._coin = Coin(coin_name)
-        return self._coin
+            
+        return Coin(coin_name)
 
     @coin.setter
-    def coin(self, coin_name: str) -> None:
+    def coin(self, coin: Coin) -> None:
+        """coin setter"""
         with open("coin.json", 'w') as f:
-            newvalue = json.dumps(coin_name)
+            newvalue = json.dumps(coin.name)
             f.write(newvalue)
-        self._coin: Coin = Coin(coin_name)
+        
+    
+    @property
+    def cryptopair(self) -> CryptoPair:
+        """cryptopair object"""
+        with open("cryptopair.json", 'r') as f:
+            cryptopair_name = json.load(f)
+        
+        return CryptoPair(cryptopair_name)
+
+    @cryptopair.setter
+    def cryptopair(self, cryptopair: CryptoPair) -> None:
+        """cryptopair setter"""
+        with open("cryptopair.json", 'w') as f:
+            newvalue = json.dumps(cryptopair.name)
+            f.write(newvalue)
+        
 
     @property
     def balance(self):
+        """Balance getter"""
         return float(self.client.get_asset_balance(self.coin.name))
 
-    def connect(self) -> Client:
-        """Connect to binance """
-        client = Client(self.apiPublicKey, self.apiSecretKey)
-        print(">>>connection a BINANCE effectue avec succes")
-        return client
-
-    def buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
+    def _buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
         """
 
-        # coinName: str = cryptopair.replace(self.coin, '')
-        order_quantity: float = self.orderQuantity(cryptopair)
+        
+        order_quantity: float = self._order_quantity(cryptopair)
 
         orderDetails: dict = self.client.order_market_buy(
             symbol=cryptopair.name, quantity=order_quantity)
@@ -84,7 +119,7 @@ class Binance:  # (Study, BinanceWebsocket):
         print(f">>>Buy Order passed for {cryptopair}")
         return Order
 
-    def sell_order(self, cryptopair: CryptoPair) -> Order:
+    def _sell_order(self, cryptopair: CryptoPair) -> Order:
         """
         Market sell Order
 
@@ -92,7 +127,7 @@ class Binance:  # (Study, BinanceWebsocket):
         """
         # coinName: str = cryptopair.replace(self.coin, '')
 
-        order_quantity: float = self.orderQuantity(cryptopair)
+        order_quantity: float = self._order_quantity(cryptopair)
 
         orderDetails: dict = self.client.order_market_sell(
             symbol=cryptopair, quantity=order_quantity)
@@ -102,7 +137,7 @@ class Binance:  # (Study, BinanceWebsocket):
         print(f">>>Sell Order passed for {cryptopair.name}")
         return order
 
-    def orderQuantity(self, cryptopair: CryptoPair) -> float:
+    def _order_quantity(self, cryptopair: CryptoPair) -> float:
         """
                 parameters: -balance. ex: 20$
                             -coin. ex: BTC,ETH
@@ -113,9 +148,9 @@ class Binance:  # (Study, BinanceWebsocket):
                 """
         balance = self.balance  # balance of the crypto i possess
         if cryptopair.is_any(self.coin):
-            coin_price: float = cryptopair.get_price()  # prix du cryptopair
+            coin_price: float = cryptopair.get_price()  # cryptopair price
 
-            q = balance / coin_price  # Quantite
+            q = balance / coin_price  # quantity
             coin_prices: dict[int, range] = {
                 2: range(15, -1, -1),
                 3: range(16, 49),
@@ -128,20 +163,17 @@ class Binance:  # (Study, BinanceWebsocket):
                 if coin_price in coin_prices[key]:
                     return float(str(q)[:key])
 
-    def pl_calculator(self):
+    def _pl_calculator(old_number:float,new_number:float):
         """
         PROFIT/LOSS calculator
         """
-        if self.lastOrderWasBuy:
-            return "Still in a Buy Trade"
-        return tl.percent_change(self.boughtAt, self.soldAt)
+        return tl.percent_change(old_number, new_number)
 
-    def pass_order(self, cryptopair: CryptoPair):
+    def _pass_order(self, cryptopair: CryptoPair):
+        """Analyse and choose the right order to pass"""
         if cryptopair.is_any(self.coin):
-            return self.buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self.sell_order(cryptopair)
+            return self._buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self._sell_order(cryptopair)
         return Exception("Unable to pass order")
-
-
 
     def run(self):
         """main file to run"""
@@ -156,46 +188,48 @@ class Binance:  # (Study, BinanceWebsocket):
 
             # clean the cryptopairs_study dict so we only have
             # possible trades
-            cryptopairs_study = self._crypto_study(klines)
+            cryptopairs_study:dict[CryptoPair,pd.DataFrame] = self._crypto_study(klines)
 
             if len(cryptopairs_study) == 0:
-                time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
+                time.sleep(int(self.TIMEFRAME.replace('m', '')) * 2)
             else:
                 cryptopairs = list(cryptopairs_study.keys())
                 # choose a crypto pair
                 cryptopair: CryptoPair = cryptopairs[random.randint(0, len(cryptopairs) - 1)]
 
                 # pass order (the quantity is calculated in passing order)
-                self.pass_order(cryptopair)
+                self._pass_order(cryptopair)
 
-                # set new coin
+                # set new values
                 old_coin = self.coin
-                self.coin = cryptopair.name.replace(self.coin, '')
+                self.coin = cryptopair.replace(old_coin)
+                self.cryptopair = cryptopair
 
-                time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
+                #track order
+                
 
-    def status(self):
-        """send status to to the server """
-        pass
+                #sleep time
+                # time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
 
-    def decision(self, klines: pd.DataFrame):
+    @staticmethod
+    def _decision(klines: pd.DataFrame) -> str:
         """Calculate the prices and return a decision"""
         return Study.decision(klines)
 
-    def _crypto_study(self, klines: dict[CryptoPair, pd.DataFrame]) -> dict[str, str]:
+    def _crypto_study(self, klines: dict[CryptoPair, pd.DataFrame]) -> dict[CryptoPair, str]:
         """study cryptopair with it's klines"""
         cryptopairs = list(klines.keys())
-        cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
+        # cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
         decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
 
         for cryptopair in cryptopairs:
             kline: pd.DataFrame = klines.pop(cryptopair)
-            decision = self.decision(kline)
-            decision_results[cryptopair]: list[str] = decision
+            decision = self._decision(kline)
+            decision_results[cryptopair] = decision
         return self._cleaner(decision_results)
 
-    def _cleaner(self, study: dict[CryptoPair, str]) -> dict[str, str]:
-
+    def _cleaner(self, study: dict[CryptoPair, str]) -> dict[CryptoPair, str]:
+        """Clean a returned study from Study module"""
         cryptopairs: list[CryptoPair] = list(study.keys())
         results: dict[CryptoPair, str] = {}
         for cryptopair in cryptopairs:
@@ -206,3 +240,19 @@ class Binance:  # (Study, BinanceWebsocket):
             ):
                 results[cryptopair] = study[cryptopair]
         return results
+
+    def __enter__(self):
+        """enter special method"""
+        data = {
+            'status': 'on'
+        }
+        status_url = URL + STATUS_ENDPOINT
+        requests.post(status_url, data=data)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """exit special method"""
+        data = {
+            'status': 'off'
+        }
+        status_url = URL + STATUS_ENDPOINT
+        requests.post(status_url, data=data)
