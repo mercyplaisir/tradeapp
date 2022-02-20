@@ -1,12 +1,26 @@
+"""About Cryptocurrency
+
+class : CRYPTOPAIR,COIN
+
+"""
+
 import datetime
 from dataclasses import dataclass
+from typing import overload
+
 
 import pandas as pd
 import requests
 
-from src.dbcontroller.mysqlDB import mysqlDB
-from src.platforms.binance.coin import Coin
 
+from src.dbcontroller.mysqlDB import mysqlDB
+
+db =mysqlDB()
+
+
+class Coin:...
+
+    
 
 @dataclass
 class CryptoPair(object):
@@ -15,8 +29,8 @@ class CryptoPair(object):
     ex: BNBBTC
     """
     name: str
-    database = mysqlDB()
-    TIMEFRAME = "5m"
+    database:object = db
+    TIMEFRAME:str = "5m"
 
     def __post_init__(self):
         self.verify()
@@ -33,7 +47,7 @@ class CryptoPair(object):
     def basecoin(self) -> Coin:
         """return a basecoin from a cryptopair
         ex: BNBBTC return BNB"""
-        nn = self.database.selectDB(f"select basecoin from relationalcoin" +
+        nn:list[tuple[str]] = self.database.selectDB(f"select basecoin from relationalcoin" +
                                     " where cryptopair='" + self.name + "'")
 
         name: str = nn[0][0]
@@ -136,3 +150,44 @@ class CryptoPair(object):
 
         # klines.to_csv(BINANCEKLINES, index=False)
         return klines
+
+    
+
+    def __repr__(self) -> str:
+        return self.name
+    
+
+
+
+
+
+
+
+@dataclass
+class Coin(object):
+    """
+    Representation of a Coin
+    
+    ex: BNB
+    """
+    name: str
+    database:object = db
+
+    def __post_init__(self):
+        nn = self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")
+        if len(nn) == 0:
+            raise ValueError('the coin doens\'t exist in the database')
+
+    @property
+    def fullname(self):
+        return self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")[0][0]
+
+    def get_cryptopair_related(self) -> list[CryptoPair]:
+        """ return all coins related cryptopair where the coin appears to be a quotecoin or basecoin"""
+        coin_name = self.name
+        cryptopairs_name: list[tuple[str]] = self.database.selectDB(
+            "select cryptopair from relationalcoin where basecoin ='" + coin_name + "' or quotecoin ='" + coin_name + "' ")
+        return [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
+
+    def __repr__(self):
+        return f"{self.name}({self.fullname})"

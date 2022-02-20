@@ -2,7 +2,7 @@ import json
 import random
 from re import A
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Type
 
 import pandas as pd
@@ -12,9 +12,9 @@ from binance.client import Client
 from src.common.tools import Tool as tl
 from src.dbcontroller.mysqlDB import mysqlDB
 from src.indicators.study import Study
-from src.platforms.binance.coin import Coin
-from src.platforms.binance.crypto import CryptoPair
-from src.platforms.binance.order import Order
+from src.platforms.binance import Coin
+from src.platforms.binance import CryptoPair
+from src.platforms.binance import Order
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
 
@@ -201,15 +201,19 @@ class BinanceClient:
                 self._pass_order(cryptopair)
 
                 # set new values
-                old_coin = self.coin
-                self.coin = cryptopair.replace(old_coin)
-                self.cryptopair = cryptopair
+                # bought BNBBTC
+                old_coin = self.coin #BTC
+                self.coin = cryptopair.replace(old_coin) # BNB
+                self.cryptopair = cryptopair # BNBBTC
 
                 #track order
+                self.track_order()
                 
 
                 #sleep time
                 # time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
+    def tract_order(self):
+        """track a order so it reverse it's order to make an profit"""
 
     @staticmethod
     def _decision(klines: pd.DataFrame) -> str:

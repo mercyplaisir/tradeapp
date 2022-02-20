@@ -13,7 +13,7 @@ endpoints = {
 
 @dataclass()
 class Order:
-    """Binance Order Class"""
+    """Representation of an Order passed by binance API"""
     database = mysqlDB()
 
     # orderDetails : dict
