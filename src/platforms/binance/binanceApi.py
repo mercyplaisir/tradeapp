@@ -25,6 +25,7 @@ def connect() -> Client:
     print(">>>Connected successfully to binance success")
     return client
 
+TAKE_PROFIT = 3
 
 URL =  'https://tradeappapiassistant.herokuapp.com/tradeapp'
 
@@ -286,10 +287,13 @@ class BinanceClient:
                 while True:
                     response = await tscm.recv()
                     price=float(response['k']['c'])
+                     
                     pourcentage_change = tl.percent_change(self.order_price,price)
+
                     last_order = self.lastOrderWasBuy
-                    if (last_order and pourcentage_change>=3) or (not last_order and pourcentage_change>=-3):
+                    if (last_order and pourcentage_change>=TAKE_PROFIT) or (not last_order and pourcentage_change >= -TAKE_PROFIT):
                         print('profit')
+                        # release function
                         break
                     else :
                         print(f'price:{price} - profit:{tl.percent_change(0.00995900,price)} - still waiting...')
