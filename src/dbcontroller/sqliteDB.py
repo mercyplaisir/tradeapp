@@ -1,6 +1,7 @@
 import sqlite3
+from pathlib import Path
 
-DBSTORAGE: str = f'./appDB.db'
+DBSTORAGE: str = str(Path('src/dbcontroller/appDB.db').resolve())
 
 
 class SqliteDB:

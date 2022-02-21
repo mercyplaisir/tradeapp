@@ -1,3 +1,4 @@
+import asyncio
 import json
 import random
 from re import A
@@ -8,13 +9,13 @@ from typing import Type
 import pandas as pd
 import requests
 from binance.client import Client
+from binance import BinanceSocketManager,AsyncClient
 
 from src.common.tools import Tool as tl
-from src.dbcontroller.mysqlDB import mysqlDB
+from src.dbcontroller import DbEngine
 from src.indicators.study import Study
-from src.platforms.binance import Coin
-from src.platforms.binance import CryptoPair
-from src.platforms.binance import Order
+from src.platforms.binance import Coin,CryptoPair,Order
+
 from src.platforms.binance.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
 
@@ -47,12 +48,10 @@ class BinanceClient:
     # Binance instance
     client: Client = connect()  
     # Database Instance
-    database: mysqlDB = mysqlDB()
+    database: DbEngine = DbEngine()
 
-    # Buying price
-    boughtAt: int = 0  
-    # Selling price
-    soldAt: int = 0 
+    # price when placed order
+    order_price:float = 0.0
         
     @property
     def apiPublicKey(self) -> str:
@@ -115,7 +114,10 @@ class BinanceClient:
 
         order = Order(**orderDetails)
         order.save()
+        #buy order
         self.lastOrderWasBuy = True
+        # order price
+        self.order_price = float(order.price)
         print(f">>>Buy Order passed for {cryptopair}")
         return Order
 
@@ -133,7 +135,11 @@ class BinanceClient:
             symbol=cryptopair, quantity=order_quantity)
         order = Order(**orderDetails)
         order.save()
+
+        # sell order
         self.lastOrderWasBuy = False
+        # order price
+        self.order_price = float(order.price)
         print(f">>>Sell Order passed for {cryptopair.name}")
         return order
 
@@ -169,11 +175,15 @@ class BinanceClient:
         """
         return tl.percent_change(old_number, new_number)
 
-    def _pass_order(self, cryptopair: CryptoPair):
+    def _pass_order(self, cryptopair: CryptoPair,order_type:str):
         """Analyse and choose the right order to pass"""
-        if cryptopair.is_any(self.coin):
-            return self._buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self._sell_order(cryptopair)
-        return Exception("Unable to pass order")
+        # if cryptopair.is_any(self.coin):
+        #     return self._buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self._sell_order(cryptopair)
+        if order_type == 'buy':
+            self._buy_order(cryptopair)
+        elif order_type == 'sell':
+            self._sell_order(cryptopair)
+        
 
     def run(self):
         """main file to run"""
@@ -188,7 +198,7 @@ class BinanceClient:
 
             # clean the cryptopairs_study dict so we only have
             # possible trades
-            cryptopairs_study:dict[CryptoPair,pd.DataFrame] = self._crypto_study(klines)
+            cryptopairs_study:dict[CryptoPair,str] = self._crypto_study(klines)
 
             if len(cryptopairs_study) == 0:
                 time.sleep(int(self.TIMEFRAME.replace('m', '')) * 2)
@@ -210,10 +220,7 @@ class BinanceClient:
                 self.track_order()
                 
 
-                #sleep time
-                # time.sleep(int(self.TIMEFRAME.replace('m', '')) * 5)
-    def tract_order(self):
-        """track a order so it reverse it's order to make an profit"""
+               
 
     @staticmethod
     def _decision(klines: pd.DataFrame) -> str:
@@ -260,3 +267,43 @@ class BinanceClient:
         }
         status_url = URL + STATUS_ENDPOINT
         requests.post(status_url, data=data)
+
+
+
+
+
+    def tract_order(self):
+        """track a order so it reverse it's order to make an profit"""
+        
+
+        async def main():
+            client = await AsyncClient.create()
+            bm = BinanceSocketManager(client)
+            # start any sockets here, i.e a trade socket
+            ts = bm.kline_socket('BNBBTC')  # .trade_socket('BNBBTC')
+            # then start receiving messages
+            async with ts as tscm:
+                while True:
+                    response = await tscm.recv()
+                    price=float(response['k']['c'])
+                    pourcentage_change = tl.percent_change(self.order_price,price)
+                    last_order = self.lastOrderWasBuy
+                    if (last_order and pourcentage_change>=3) or (not last_order and pourcentage_change>=-3):
+                        print('profit')
+                        break
+                    else :
+                        print(f'price:{price} - profit:{tl.percent_change(0.00995900,price)} - still waiting...')
+                        time.sleep(2.5)
+            await client.close_connection()
+            # return response
+            
+
+
+        while True:
+            try:
+                loop = asyncio.get_event_loop()
+                # klines_list: dict[str, dict] = loop.run_until_complete(main())
+                loop.run_until_complete(main())
+                break
+            except asyncio.exceptions.TimeoutError:
+                pass

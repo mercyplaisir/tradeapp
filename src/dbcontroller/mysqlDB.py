@@ -1,7 +1,8 @@
 import mysql.connector
 
 
-class mysqlDB:
+class MysqlDB:
+    """MySql Database controller"""
     def __init__(self):
         self.db = {'host': 'localhost',
                    'user': 'root',

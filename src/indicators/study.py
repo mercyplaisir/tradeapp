@@ -3,12 +3,8 @@ import json
 
 import pandas as pd
 
-from src.indicators import factory
-from src.indicators.bb import Bollingerbands
-from src.indicators.macd import Macd
-from src.indicators.rsi import Rsi
-from src.indicators.sma import Sma
-from src.indicators.stochastic import Stochastic
+from src.indicators import factory,Rsi,Macd,Bollingerbands,Sma,Stochastic
+
 
 factory.register("rsi", Rsi)
 factory.register("macd", Macd)

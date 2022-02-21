@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import requests
 
-from src.dbcontroller.mysqlDB import mysqlDB
+
 
 URL = "any.url.com"
 endpoints = {
@@ -13,8 +13,26 @@ endpoints = {
 
 @dataclass()
 class Order:
-    """Representation of an Order passed by binance API"""
-    database = mysqlDB()
+    """Representation of an Order passed by binance API
+    
+    {
+  "symbol": "BTCUSDT",
+  "orderId": 28,
+  "orderListId": -1,# //Unless OCO, value will be -1
+  "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
+  "transactTime": 1507725176595,
+  "price": "0.30000000",
+  "origQty": "10.00000000",
+  "executedQty": "10.00000000",
+  "cummulativeQuoteQty": "10.00000000",
+  "status": "FILLED",
+  "timeInForce": "GTC",
+  "type": "MARKET",
+  "side": "SELL"
+    }
+    
+    """
+
 
     # orderDetails : dict
     symbol: str
@@ -32,22 +50,34 @@ class Order:
     side: str
 
     def save(self):
-        self.database.requestDB(f"insert into orders(orderId,symbol,type,side,transactTime,status,executedQty) values("
-                                f"{self.orderId},{self.symbol},'market',{self.side},{self.transactTime},"
-                                f"{self.status},{self.executedQty})")
-        self.send_request()
+        self._send_request()
 
-    @staticmethod
-    def get_all_orders():
-        database = mysqlDB()
-        results = database.selectDB(f"select * from orders")
-
-        return results
+    
 
     def dict(self):
         return self.__dict__
 
-    def send_request(self):
+    def _send_request(self):
         data = self.dict()
         history_url = URL + endpoints['history']
         requests.post(history_url, data=data)
+
+
+# d={
+#   "symbol": "BTCUSDT",
+#   "orderId": 28,
+#   "orderListId": -1,# //Unless OCO, value will be -1
+#   "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
+#   "transactTime": 1507725176595,
+#   "price": "0.30000000",
+#   "origQty": "10.00000000",
+#   "executedQty": "10.00000000",
+#   "cummulativeQuoteQty": "10.00000000",
+#   "status": "FILLED",
+#   "timeInForce": "GTC",
+#   "type": "MARKET",
+#   "side": "SELL"
+# }
+
+# order=Order(**d)
+# print(order.price)
