@@ -12,15 +12,15 @@ from typing import overload
 import pandas as pd
 import requests
 
-
+from src.platforms.binance import TIMEFRAME
 from src.dbcontroller import DbEngine
 
-db =DbEngine()
+db = DbEngine()
 
 
-class Coin:...
+class Coin:
+    ...
 
-    
 
 @dataclass
 class CryptoPair(object):
@@ -28,9 +28,9 @@ class CryptoPair(object):
     a representation of a cryptopair
     ex: BNBBTC
     """
+
     name: str
-    database:object = db
-    TIMEFRAME:str = "5m"
+    database: object = db
 
     def __post_init__(self):
         self.verify()
@@ -38,7 +38,9 @@ class CryptoPair(object):
     def verify(self):
         """Verify if the crypto pair really exits in the database"""
 
-        nn = self.database.selectDB(f"select basecoin from relationalcoin where cryptopair='" + self.name + "'")
+        nn = self.database.selectDB(
+            f"select basecoin from relationalcoin where cryptopair='" + self.name + "'"
+        )
         if len(nn) == 0:
             raise ValueError("the cryptopair doesn't exit in the database")
 
@@ -46,17 +48,23 @@ class CryptoPair(object):
     def basecoin(self) -> Coin:
         """return a basecoin from a cryptopair
         ex: BNBBTC return BNB"""
-        nn:list[tuple[str]] = self.database.selectDB(f"select basecoin from relationalcoin where cryptopair='" + self.name + "'")
+        nn: list[tuple[str]] = self.database.selectDB(
+            f"select basecoin from relationalcoin where cryptopair='" + self.name + "'"
+        )
 
         name: str = nn[0][0]
         return Coin(name)
 
     @property
     def quotecoin(self) -> Coin:
-        """return quotecoin from a cryptopair 
+        """return quotecoin from a cryptopair
         ex: BNBBTC return BTC"""
-        nn = self.database.selectDB(f"select quotecoin from relationalcoin" +
-                                    " where cryptopair='" + self.name + "'")
+        nn = self.database.selectDB(
+            f"select quotecoin from relationalcoin"
+            + " where cryptopair='"
+            + self.name
+            + "'"
+        )
 
         name: str = nn[0][0]
         return Coin(name)
@@ -75,8 +83,8 @@ class CryptoPair(object):
             return True
         else:
             raise ValueError(f"{coin.name} is not in {self.name} ")
-    
-    def replace(self,coin:Coin)->Coin:
+
+    def replace(self, coin: Coin) -> Coin:
         """return basecoin if the given coin is quotecoin vice-versa"""
         if self.is_basecoin(coin):
             return self.quotecoin
@@ -89,49 +97,48 @@ class CryptoPair(object):
         """get price of a cryptopair"""
         url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={self.name}"
         resp = requests.get(url)
-        return float(resp.json()['lastPrice'])
+        return float(resp.json()["lastPrice"])
 
     def get_price_change(self) -> float:
         """gets priceChange of a crypto pair"""
         url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={self.name}"
         resp = requests.get(url)
-        return float(resp.json()['priceChangePercent'])
-    
+        return float(resp.json()["priceChangePercent"])
 
     def get_klines(self, interval: str = "2 days"):
 
         """
-            Get the klines for the timeframe given and in interval given.
-            timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
+        Get the klines for the timeframe given and in interval given.
+        timeframe ex:1m,5m,15m,1h,2h,6h,8h,12h,1d,1M,1w,3d
 
-            Default timeframe = 15m
-            Default interval = 2 days
+        Default timeframe = 15m
+        Default interval = 2 days
 
 
-            colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
-            kline response:
-                [
-                  [
-                    1499040000000,      // Open time
-                    "0.01634790",       // Open
-                    "0.80000000",       // High
-                    "0.01575800",       // Low
-                    "0.01577100",       // Close
-                    "148976.11427815",  // Volume
-                    1499644799999,      // Close time               6
-                    "2434.19055334",    // Quote asset volume
-                    308,                // Number of trades
-                    "1756.87402397",    // Taker buy base asset volume      '
-                    "28.46694368",      // Taker buy quote asset volume     'Q'
-                    "17928899.62484339" // Ignore.  'B'
-                  ]
-                ]
+        colums=["open_time","open_price","close_price","SMA_30","SMA_50","SMA_20","upper_band","lower_band"]
+        kline response:
+            [
+              [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time               6
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume      '
+                "28.46694368",      // Taker buy quote asset volume     'Q'
+                "17928899.62484339" // Ignore.  'B'
+              ]
+            ]
 
-            stores the klines in a csv file
+        stores the klines in a csv file
         """
         # klines_list = self.client.get_historical_klines(
         #     self.name, self.TIMEFRAME, f"{interval} ago UTC")
-        url: str = f"https://api.binance.com/api/v3/klines?symbol={self.name}&interval={self.TIMEFRAME}"
+        url: str = f"https://api.binance.com/api/v3/klines?symbol={self.name}&interval={TIMEFRAME}"
         klines_list: list = requests.get(url).json()
 
         # changer timestamp en date
@@ -143,58 +150,64 @@ class CryptoPair(object):
         # delete unuseful columns
         klines.drop(columns=[6, 7, 8, 9, 10, 11], inplace=True)
 
-        klines.columns = ['date', 'open', 'high', 'low',
-                          'close', 'volume']  # rename columns
+        klines.columns = [
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+        ]  # rename columns
 
         # klines.to_csv(BINANCEKLINES, index=False)
         return klines
 
-    
-
     def __repr__(self) -> str:
         return self.name
-    
 
 
-
-
-
-
-
+@overload
 @dataclass
 class Coin(object):
     """
     Representation of a Coin
-    
+
     ex: BNB
     """
+
     name: str
-    database:object = db
+    database: object = db
 
     def __post_init__(self):
-        nn = self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")
+        nn = self.database.selectDB(
+            "select fullname from Coin where shortname='" + self.name + "'"
+        )
         if len(nn) == 0:
-            raise ValueError('the coin doens\'t exist in the database')
+            raise ValueError("the coin doens't exist in the database")
 
     @property
     def fullname(self):
-        return self.database.selectDB("select fullname from Coin where shortname='" + self.name + "'")[0][0]
+        return self.database.selectDB(
+            "select fullname from Coin where shortname='" + self.name + "'"
+        )[0][0]
 
     def get_cryptopair_related(self) -> list[CryptoPair]:
-        """ return all coins related cryptopair where the coin appears to be a quotecoin or basecoin"""
+        """return all coins related cryptopair where the coin appears to be a quotecoin or basecoin"""
         coin_name = self.name
         cryptopairs_name: list[tuple[str]] = self.database.selectDB(
-            "select cryptopair from relationalcoin where basecoin ='" + coin_name + "' or quotecoin ='" + coin_name + "' ")
+            "select cryptopair from relationalcoin where basecoin ='"
+            + coin_name
+            + "' or quotecoin ='"
+            + coin_name
+            + "' "
+        )
         return [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
 
     def __repr__(self):
         return f"{self.name}({self.fullname})"
 
 
-
-
-
-"""
+    """
     def get_kline(self):
         \"""{
               "e": "kline",     // Event type
@@ -266,4 +279,4 @@ class Coin(object):
         crypto_klines: dict[str, dict[str, Union[str, datetime.datetime]]] = {self.name: klines}
         return crypto_klines
         
-"""
+    """
