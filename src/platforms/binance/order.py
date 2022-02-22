@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import requests
 
-from src.platforms.binance import URL
+from src.common import URL
 
 endpoints = {"status": "/status", "history": "/history"}  # for order history
 

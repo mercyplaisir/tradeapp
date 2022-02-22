@@ -12,13 +12,13 @@ from typing import overload
 import pandas as pd
 import requests
 
-from src.platforms.binance import TIMEFRAME
+from src.common import TIMEFRAME
 from src.dbcontroller import DbEngine
 
 db = DbEngine()
 
 
-class Coin:
+class Coin(object):
     ...
 
 
@@ -83,6 +83,7 @@ class CryptoPair(object):
             return True
         else:
             raise ValueError(f"{coin.name} is not in {self.name} ")
+            return False
 
     def replace(self, coin: Coin) -> Coin:
         """return basecoin if the given coin is quotecoin vice-versa"""
@@ -166,7 +167,7 @@ class CryptoPair(object):
         return self.name
 
 
-@overload
+
 @dataclass
 class Coin(object):
     """

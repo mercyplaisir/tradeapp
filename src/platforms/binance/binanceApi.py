@@ -11,7 +11,13 @@ import requests
 from binance.client import Client
 from binance import BinanceSocketManager, AsyncClient
 
-from src.common.tools import Tool as tl
+from src.common import (
+    TAKE_PROFIT,
+    TIMEFRAME,
+    percent_change,
+    URL,
+    STATUS_ENDPOINT
+)
 from src.dbcontroller import DbEngine
 from src.indicators.study import Study
 from src.platforms.binance import Coin, CryptoPair, Order
@@ -25,15 +31,6 @@ def connect() -> Client:
     print(">>>Connected successfully to binance success")
     return client
 
-
-TAKE_PROFIT = 3
-
-URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
-
-STATUS_ENDPOINT = "/status"
-HISTORY_ENDPOINT = "/history"
-
-TIMEFRAME: str = "15m"
 
 TRADED: list[CryptoPair] = []
 
@@ -159,30 +156,24 @@ class BinanceClient:
         balance = self.balance  # balance of the crypto i possess
         if cryptopair.is_any(self.coin):
             coin_price: float = cryptopair.get_price()  # cryptopair price
-
             q = balance / coin_price  # quantity
+
+            if coin_price < 0.18:
+                return float(str(q)[:3])
             coin_prices: dict[int, range] = {
                 2: range(15, -1, -1),
                 3: range(16, 49),
                 5: range(50, 5000),
                 6: range(5000, 10**6),
             }
-            if coin_price < 0.18:
-                return float(str(q)[:3])
-            for key in coin_prices.keys():
-                if coin_price in coin_prices[key]:
+            for item in coin_prices.items():
+                key, value = item
+                if coin_price in value:
                     return float(str(q)[:key])
-
-    def _pl_calculator(old_number: float, new_number: float):
-        """
-        PROFIT/LOSS calculator
-        """
-        return tl.percent_change(old_number, new_number)
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str):
         """Analyse and choose the right order to pass"""
-        # if cryptopair.is_any(self.coin):
-        #     return self._buy_order(cryptopair) if cryptopair.is_basecoin(self.coin) else self._sell_order(cryptopair)
+
         if order_type == "buy":
             self._buy_order(cryptopair)
         elif order_type == "sell":
@@ -209,18 +200,19 @@ class BinanceClient:
             else:
                 cryptopairs = list(cryptopairs_study.keys())
                 # choose a crypto pair
-                cryptopair: CryptoPair = cryptopairs[
-                    random.randint(0, len(cryptopairs) - 1)
-                ]
-
+                random_num = random.randint(0, len(cryptopairs) - 1)
+                cryptopair_study: tuple[Cryptopair, str] = list(
+                    cryptopairs_study.items()
+                )[random_num]
+                choosen_cryptopair, order_type = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
-                self._pass_order(cryptopair)
+                self._pass_order(cryptopair=choosen_cryptopair, order_type=order_type)
 
                 # set new values
                 # bought BNBBTC
                 old_coin = self.coin  # BTC
-                self.coin = cryptopair.replace(old_coin)  # BNB
-                self.cryptopair = cryptopair  # BNBBTC
+                self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
+                self.cryptopair = choosen_cryptopair  # BNBBTC
 
                 # track order
                 self.track_order()
@@ -269,7 +261,7 @@ class BinanceClient:
         status_url = URL + STATUS_ENDPOINT
         requests.post(status_url, data=data)
 
-    def tract_order(self):
+    def track_order(self):
         """track a order so it reverse it's order to make an profit"""
 
         async def main():
@@ -283,7 +275,7 @@ class BinanceClient:
                     response = await tscm.recv()
                     price = float(response["k"]["c"])
 
-                    pourcentage_change = tl.percent_change(self.order_price, price)
+                    pourcentage_change = percent_change(self.order_price, price)
 
                     last_order = self.lastOrderWasBuy
                     if (last_order and pourcentage_change >= TAKE_PROFIT) or (
@@ -294,7 +286,8 @@ class BinanceClient:
                         break
                     else:
                         print(
-                            f"price:{price} - profit:{tl.percent_change(0.00995900,price)} - still waiting..."
+                            f"price:{price} - profit:{percent_change(0.00995900,price)}"
+                            + " - still waiting..."
                         )
                         time.sleep(2.5)
             await client.close_connection()
