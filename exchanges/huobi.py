@@ -1,4 +1,0 @@
-"""huobi trading bot"""
-
-
-

@@ -7,8 +7,6 @@ class : CRYPTOPAIR,COIN
 import datetime
 
 
-
-
 import pandas as pd
 import requests
 
@@ -20,13 +18,13 @@ from dbcontroller import DbEngine
 db = DbEngine()
 
 
-
-
 BINANCE_API_URL = "https://api.binance.com"
 TICKER_24H = BINANCE_API_URL + "/api/v3/ticker/24hr?symbol=%s"
 
 
-class Coin:...
+class Coin:
+    ...
+
 
 class CryptoPair:
     """
@@ -35,7 +33,7 @@ class CryptoPair:
     """
 
     def __init__(self, name: str) -> None:
-        
+
         self.name: str = name
         self.verify()
 
@@ -68,12 +66,13 @@ class CryptoPair:
         """return quotecoin from a cryptopair
         ex: BNBBTC return BTC"""
         result = db.selectDB(
-            "select quotecoin from relationalcoin"+ 
-            f" where cryptopair='{self.get_name()}'"
+            "select quotecoin from relationalcoin"
+            + f" where cryptopair='{self.get_name()}'"
         )
 
         name: str = result[0][0]
         return Coin(name)
+
     def is_basecoin(self, coin: Coin) -> bool:
         """return True if it iss a basecoin"""
         return self.basecoin == coin
@@ -140,7 +139,7 @@ class CryptoPair:
               ]
             ]
 
-        
+
         """
         # klines_list = self.client.get_historical_klines(
         #     self.name, self.TIMEFRAME, f"{interval} ago UTC")
@@ -170,6 +169,13 @@ class CryptoPair:
 
     def __repr__(self) -> str:
         return self.name
+    
+    def __str__(self):
+        return self.name
+    def __hash__(self) -> int:
+        hash(self.get_name())
+
+
 """
 def get_kline(self):
     \"""{
@@ -245,7 +251,6 @@ def get_kline(self):
 """
 
 
-
 class Coin:
     """
     Representation of a Coin
@@ -254,12 +259,13 @@ class Coin:
     """
 
     def __init__(self, name) -> None:
-        
+
         self.name: str = name
         self.verify()
 
     def __repr__(self):
         return f"{self.name}({self.fullname})"
+
     def get_name(self):
         """return self.name"""
         return self.name
@@ -297,5 +303,10 @@ class Coin:
         )
         return [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
 
-    def __add__(self,other:object)->CryptoPair:
-        return CryptoPair(self.name+other.name)
+    def __add__(self, other: object) -> CryptoPair:
+        return CryptoPair(self.name + other.name)
+
+    @staticmethod
+    def get_all_coins():
+        result:list[tuple[str]] =  db.selectDB(requete="select shortname from Coin")
+        return [Coin(name[0]) for name in result]

@@ -1,4 +1,4 @@
-from exchanges import Binance
+from exchange import Binance
 
 #run file
 def main():
