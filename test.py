@@ -1,2 +1,5 @@
-FF = 45
-print(type(-FF))
+def nn(*args, **kwargs):
+    print(kwargs)
+
+nn(1,v='f')
+

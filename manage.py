@@ -1,5 +1,6 @@
-from src.platforms.binance import Binance
+from exchanges import Binance
 
 #run file
-with Binance() as client:
-    client.run()
+def main():
+    with Binance() as client:
+        client.run()

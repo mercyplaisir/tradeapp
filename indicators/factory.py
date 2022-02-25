@@ -14,7 +14,7 @@ def unregister(character_type: str):
 
 
 def create(arguments: dict[str, any]) -> object:
-    """create  a game character of a specific type, given a dictionary of arguments"""
+    """create  a indicator of a specific type, given a dictionary of arguments"""
     args_copy = arguments.copy()
     indicator_type = args_copy.pop("type")
     try:
@@ -22,3 +22,6 @@ def create(arguments: dict[str, any]) -> object:
         return creation_func()
     except KeyError:
         raise ValueError(f"unknown indicator type {indicator_type!r}") from None
+
+def get_indicators()->list[str]:
+    return list(indicator_creation_funcs.keys())

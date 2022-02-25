@@ -3,7 +3,7 @@ import json
 
 import pandas as pd
 
-from src.indicators import factory,Rsi,Macd,Bollingerbands,Sma,Stochastic
+from indicators import factory,Rsi,Macd,Bollingerbands,Sma,Stochastic
 
 
 factory.register("rsi", Rsi)
@@ -19,15 +19,16 @@ class Study:
     def decision(cls, klines: pd.DataFrame):  # cryptopair: str):
         
 
-        with open("./indicators.json", 'r') as f:
-            data = json.load(f)
+        indicators_names = factory.get_indicators()
 
-        indicators = [factory.create(item) for item in data]  # creating indicators
+        indicators = [factory.create(name) for name in indicators_names]  # creating indicators
         study_list = [indicator.price_study(klines) for indicator in indicators]    #studying klines
         
-        if study_list.count('buy') >= (len(study_list) - 1):
+        number = (len(study_list)//2)+1
+
+        if study_list.count('buy') >= number:
             return 'buy'
-        elif study_list.count('sell') >= (len(study_list) - 2):
+        elif study_list.count('sell') >= number:
             return 'sell'
         else:
             return 'wait'
