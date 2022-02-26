@@ -1,4 +1,5 @@
 from abc import ABC,abstractmethod
+from typing import Protocol
 
 import btalib
 import pandas as pd
@@ -6,14 +7,14 @@ import pandas as pd
 
 __all__ = ['Macd','BollingerBands','Rsi','Sma','Stochastic']
 
-class Indicator(ABC):
+class Indicator(Protocol):
     """Abstract class of an indicator"""
-    @abstractmethod
+    
     @classmethod
     def create_indicator(cls):
         """create the indicator"""
         pass
-    @abstractmethod
+    
     @classmethod
     def price_study(cls):
         """study the given price"""

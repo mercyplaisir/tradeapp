@@ -1,4 +1,5 @@
 import json
+from random import seed
 
 import time
 from dataclasses import dataclass
@@ -9,7 +10,7 @@ import requests
 from binance.client import Client
 
 
-from common import TIMEFRAME, STATUS_ENDPOINT,send_data
+from common import TIMEFRAME, STATUS_ENDPOINT, send_data
 from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order
@@ -49,8 +50,14 @@ class BinanceClient:
         """return coin object"""
         with open("coin.json", "r", encoding="utf-8") as f:
             coin_name = json.load(f)
-
         return Coin(coin_name)
+
+    @property
+    def rescue_cryptopair(self):
+        """where to go when it goes down"""
+        if self.coin == self.rescue_coin:
+            return
+        return self.coin + self.rescue_coin
 
     @coin.setter
     def coin(self, coin: Coin) -> None:
@@ -148,16 +155,6 @@ class BinanceClient:
                 results[cryptopair] = data
         return results
 
-
-
-    def __enter__(self):
-        """enter special method"""
-        send_data('post',STATUS_ENDPOINT,status='on')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """exit special method"""
-        send_data('post',STATUS_ENDPOINT,status='off')
-
     def _buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
         """
         Market Buy Order
@@ -218,3 +215,20 @@ class BinanceClient:
             key, value = item
             if coin_price in value:
                 return float(str(q)[:key])
+
+    def __enter__(self):
+        """enter special method"""
+        send_data("post", STATUS_ENDPOINT, status="on")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """exit special method"""
+        self._pass_order(self.rescue_cryptopair, "sell")
+        self.coin = self.rescue_coin
+        send_data(
+            "post",
+            STATUS_ENDPOINT,
+            status="off",
+            exc_type=exc_type,
+            exc_val=exc_val,
+            exc_tb=exc_tb,
+        )
