@@ -9,7 +9,7 @@ import requests
 from binance.client import Client
 
 
-from common.tools import TIMEFRAME, URL, STATUS_ENDPOINT
+from common import TIMEFRAME, STATUS_ENDPOINT,send_data
 from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order
@@ -43,8 +43,6 @@ class BinanceClient:
 
     # price when placed order
     # order_price: float = 0.0
-
-
 
     @property
     def coin(self) -> Coin:
@@ -99,16 +97,20 @@ class BinanceClient:
             if len(cryptopair_decision) == 0:
                 time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
             else:
-                cryptopairs = list(cryptopair_decision.items())#("BNB",("buy",3))
-                
-                #contains nb_of indicators that approved
-                nb_indic = [value[1] for _,value in cryptopairs] # value= ("buy",1)
-                
-                index_of_max = nb_indic.index(max(nb_indic))# index of the higher value
-                
-                cryptopair_study:tuple[CryptoPair,tuple[str,int]] = cryptopairs[index_of_max]#("BNB",("buy",3))
+                cryptopairs = list(cryptopair_decision.items())  # ("BNB",("buy",3))
 
-                choosen_cryptopair, (order_type,_) = cryptopair_study
+                # contains nb_of indicators that approved
+                nb_indic = [value[1] for _, value in cryptopairs]  # value= ("buy",1)
+
+                index_of_max = nb_indic.index(
+                    max(nb_indic)
+                )  # index of the higher value
+
+                cryptopair_study: tuple[CryptoPair, tuple[str, int]] = cryptopairs[
+                    index_of_max
+                ]  # ("BNB",("buy",3))
+
+                choosen_cryptopair, (order_type, _) = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
                 order: Order = self._pass_order(
                     cryptopair=choosen_cryptopair, order_type=order_type
@@ -125,14 +127,13 @@ class BinanceClient:
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
         """Analyse and choose the right order to pass"""
+        order_caller = {"buy": self._buy_order, "sell": self._sell_order}
+        caller = order_caller[order_type]
+        return caller(cryptopair)
 
-        if order_type == "buy":
-            return self._buy_order(cryptopair)
-        elif order_type == "sell":
-            return self._sell_order(cryptopair)
-
-
-    def _cleaner(self, study: dict[CryptoPair, tuple[str,int]]) -> dict[CryptoPair, str]:
+    def _cleaner(
+        self, study: dict[CryptoPair, tuple[str, int]]
+    ) -> dict[CryptoPair, str]:
         """Clean the given data througths the defined process"""
         cryptopairs: dict[CryptoPair, tuple] = study.items()
         results: dict[CryptoPair, str] = {}
@@ -147,20 +148,15 @@ class BinanceClient:
                 results[cryptopair] = data
         return results
 
-    def _send_data(self, method, endpoint, data):
-        """send requested data to the assistant API"""
+
 
     def __enter__(self):
         """enter special method"""
-        data = {"status": "on"}
-        status_url = URL + STATUS_ENDPOINT
-        requests.post(status_url, data=data)
+        send_data('post',STATUS_ENDPOINT,status='on')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
-        data = {"status": "off"}
-        status_url = URL + STATUS_ENDPOINT
-        requests.post(status_url, data=data)
+        send_data('post',STATUS_ENDPOINT,status='off')
 
     def _buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
         """
@@ -169,7 +165,6 @@ class BinanceClient:
         """
 
         order_quantity: float = self._order_quantity(cryptopair)
-
         order_details: dict = self.client.order_market_buy(
             symbol=cryptopair.name, quantity=order_quantity
         )
@@ -206,7 +201,9 @@ class BinanceClient:
         return quantity(float)
         """
         balance = self.balance  # balance of the crypto i possess
-        coin_price: float = cryptopair.get_price()  # cryptopair price
+        coin_price: float = (
+            cryptopair.get_price()
+        )  # price of the crypto i want to go in
         q: float = balance / coin_price  # quantity
 
         if coin_price < 0.18:

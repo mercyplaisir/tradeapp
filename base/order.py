@@ -10,10 +10,11 @@ from common import (
     TAKE_PROFIT,
     percent_change,
     URL,
+    HISTORY_ENDPOINT,
+    send_data
 )
 
 
-endpoints = {"status": "/status", "history": "/history"}  # for order history
 
 
 @dataclass
@@ -55,17 +56,17 @@ class Order:
 
     def save(self):
         """save by sending order to the assistant server"""
-        self._send_request()
+        send_data('post',HISTORY_ENDPOINT,**self.dict())
 
     def dict(self):
         """return dict object of all variable of the class"""
         return self.__dict__
 
-    def _send_request(self):
-        """send request to the server"""
-        data = self.dict()
-        history_url = URL + endpoints["history"]
-        requests.post(history_url, data=data)
+    # def _send_request(self):
+    #     """send request to the server"""
+    #     data = self.dict()
+    #     history_url = URL + endpoints["history"]
+    #     requests.post(history_url, data=data)
 
     def track_order(self):
         """Create a loop tracking the order until the TAKEPROFIT hitted"""
@@ -109,6 +110,8 @@ class Order:
                 break
             except asyncio.exceptions.TimeoutError:
                 pass
+            
+    
 
 
 # d={

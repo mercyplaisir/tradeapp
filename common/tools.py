@@ -3,14 +3,12 @@ got some useful math formula
 """
 from decimal import Decimal
 from typing import Union, Optional, Dict
-
 import dateparser
 import math
 import pytz
-
 from datetime import datetime
 
-
+import requests
 
 TAKE_PROFIT = 3
 
@@ -29,7 +27,6 @@ def percent_calculator(number: float, percentage: float) -> float:
     z = number + ((number * percentage) / 100)
     return z
 
-@staticmethod
 def percent_change(original_number: float, new_number: float) -> int:
     """
     percent variation between two numbers
@@ -37,6 +34,20 @@ def percent_change(original_number: float, new_number: float) -> int:
     """
     z = ((new_number - original_number) / original_number) * 100
     return z
+
+
+def send_data( method, endpoint,**kwargs):
+        """send requested data to the assistant API"""
+        methods = {"get": requests.get,
+        "post": requests.post,
+        "put": requests.put,
+        "delete": requests.delete}
+        caller = methods[method]
+        url = URL+endpoint
+        
+        caller(url,data=kwargs['data'])
+
+
 
 def date_to_milliseconds(date_str: str) -> int:
     """Convert UTC date to milliseconds
