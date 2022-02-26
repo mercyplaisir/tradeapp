@@ -13,7 +13,6 @@ from common import (
 )
 
 
-
 endpoints = {"status": "/status", "history": "/history"}  # for order history
 
 
@@ -72,6 +71,7 @@ class Order:
         """Create a loop tracking the order until the TAKEPROFIT hitted"""
         order_symbol = self.symbol
         order_price = self.price
+        buy_order = True if self.side == "BUY" else False
 
         async def main():
             client = await AsyncClient.create()
@@ -86,7 +86,6 @@ class Order:
 
                     pourcentage_change = percent_change(float(order_price), price)
 
-                    buy_order = True if self.side=='BUY' else False
                     if (buy_order and pourcentage_change >= TAKE_PROFIT) or (
                         not buy_order and pourcentage_change >= -TAKE_PROFIT
                     ):

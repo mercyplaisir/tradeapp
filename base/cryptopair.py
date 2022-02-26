@@ -5,6 +5,7 @@ class : CRYPTOPAIR,COIN
 """
 
 import datetime
+from typing import Protocol
 
 
 import pandas as pd
@@ -12,6 +13,7 @@ import requests
 
 from common import TIMEFRAME
 from dbcontroller import DbEngine
+from indicators import Study
 
 # from base import Coin
 
@@ -22,7 +24,7 @@ BINANCE_API_URL = "https://api.binance.com"
 TICKER_24H = BINANCE_API_URL + "/api/v3/ticker/24hr?symbol=%s"
 
 
-class Coin:
+class CoinObject(Protocol):
     ...
 
 
@@ -51,7 +53,7 @@ class CryptoPair:
             raise ValueError("the cryptopair doesn't exit in the database")
 
     @property
-    def basecoin(self) -> Coin:
+    def basecoin(self) -> CoinObject:
         """return a basecoin from a cryptopair
         ex: BNBBTC return BNB"""
         result: list[tuple[str]] = db.selectDB(
@@ -62,7 +64,7 @@ class CryptoPair:
         return Coin(name)
 
     @property
-    def quotecoin(self) -> Coin:
+    def quotecoin(self) -> CoinObject:
         """return quotecoin from a cryptopair
         ex: BNBBTC return BTC"""
         result = db.selectDB(
@@ -73,22 +75,22 @@ class CryptoPair:
         name: str = result[0][0]
         return Coin(name)
 
-    def is_basecoin(self, coin: Coin) -> bool:
+    def is_basecoin(self, coin: CoinObject) -> bool:
         """return True if it iss a basecoin"""
         return self.basecoin == coin
 
-    def is_quotecoin(self, coin: Coin) -> bool:
+    def is_quotecoin(self, coin: CoinObject) -> bool:
         """return True if it iss a quotecoin"""
         return self.quotecoin == coin
 
-    def is_any(self, coin: Coin):
+    def is_any(self, coin: CoinObject):
         """To see if a coin is in the cryptopair"""
         if self.is_basecoin(coin) or self.is_quotecoin(coin):
             return True
         # if not found
         raise ValueError(f"{coin.name} is not in {self.name} ")
 
-    def replace(self, coin: Coin) -> Coin:
+    def replace(self, coin: CoinObject) -> CoinObject:
         """return basecoin if the given coin is quotecoin vice-versa"""
         if self.is_basecoin(coin):
             return self.quotecoin
@@ -169,86 +171,117 @@ class CryptoPair:
 
     def __repr__(self) -> str:
         return self.name
-    
+
     def __str__(self):
         return self.name
-    def __hash__(self) -> int:
-        hash(self.get_name())
+
+    def __hash__(self):
+        return hash(self.get_name())
+
+    @classmethod
+    def _decision(cls, klines: pd.DataFrame) -> tuple:
+        """Calculate the prices and return a decision"""
+        return Study.decision(klines)
+
+    def decision(self):
+        """study cryptopair with it's klines"""
+        # cryptopairs = klines.items()
+        # cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
+        # decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
+        klines_df = self.get_klines()
+        # for cryptopair, klines_df in cryptopairs:
+        decision: tuple(str, int) = self._decision(klines=klines_df)
+        # decision_results[cryptopair] = decision
+        return decision
+
+    # def _cleaner(self,data:tuple[str,int]) :
+    #     """Clean a returned study from Study module"""
+    #     decision , nb_indic = data
+    #     results: dict[CryptoPair, str] = {}
+    #     # clean
+    #     # for cryptopair, data in cryptopairs:
+    #         # decision, times = data
+    #         # when i possess ETH
+    #         # ETHBTC must be a 'sell'
+    #     if (cryptopair.is_basecoin(self.coin) and decision == "sell") or (
+    #         cryptopair.is_quotecoin(self.coin) and decision == "buy"
+    #     ):
+    #             results[cryptopair] = data
+    #     return results
 
 
-"""
-def get_kline(self):
-    \"""{
-            "e": "kline",     // Event type
-            "E": 123456789,   // Event time
-            "s": "BNBBTC",    // Symbol
-            "k": {
-            "t": 123400000, // Kline start time
-            "T": 123460000, // Kline close time
-            "s": "BNBBTC",  // Symbol
-            "i": "1m",      // Interval
-            "f": 100,       // First trade ID
-            "L": 200,       // Last trade ID
-            "o": "0.0010",  // Open price
-            "c": "0.0020",  // Close price
-            "h": "0.0025",  // High price
-            "l": "0.0015",  // Low price
-            "v": "1000",    // Base asset volume
-            "n": 100,       // Number of trades
-            "x": false,     // Is this kline closed?
-            "q": "1.0000",  // Quote asset volume
-            "V": "500",     // Taker buy base asset volume
-            "Q": "0.500",   // Taker buy quote asset volume
-            "B": "123456"   // Ignore
-            }
-        }
+    # def get_kline(self):
+    #     \"""{
+    #             "e": "kline",     // Event type
+    #             "E": 123456789,   // Event time
+    #             "s": "BNBBTC",    // Symbol
+    #             "k": {
+    #             "t": 123400000, // Kline start time
+    #             "T": 123460000, // Kline close time
+    #             "s": "BNBBTC",  // Symbol
+    #             "i": "1m",      // Interval
+    #             "f": 100,       // First trade ID
+    #             "L": 200,       // Last trade ID
+    #             "o": "0.0010",  // Open price
+    #             "c": "0.0020",  // Close price
+    #             "h": "0.0025",  // High price
+    #             "l": "0.0015",  // Low price
+    #             "v": "1000",    // Base asset volume
+    #             "n": 100,       // Number of trades
+    #             "x": false,     // Is this kline closed?
+    #             "q": "1.0000",  // Quote asset volume
+    #             "V": "500",     // Taker buy base asset volume
+    #             "Q": "0.500",   // Taker buy quote asset volume
+    #             "B": "123456"   // Ignore
+    #             }
+    #         }
 
-        \"""
+    #         \"""
 
-    async def main():
-        client = await AsyncClient.create()
-        bm = BinanceSocketManager(client)
-        # start any sockets here, i.e a trade socket
-        ts = bm.kline_socket(self.name)  # .trade_socket('BNBBTC')
-        # then start receiving messages
-        async with ts as tscm:
-            while True:
-                res = await tscm.recv()
-                break
+    #     async def main():
+    #         client = await AsyncClient.create()
+    #         bm = BinanceSocketManager(client)
+    #         # start any sockets here, i.e a trade socket
+    #         ts = bm.kline_socket(self.name)  # .trade_socket('BNBBTC')
+    #         # then start receiving messages
+    #         async with ts as tscm:
+    #             while True:
+    #                 res = await tscm.recv()
+    #                 break
 
-        await client.close_connection()
-        return res
+    #         await client.close_connection()
+    #         return res
 
-    while True:
-        try:
-            loop = asyncio.get_event_loop()
-            klines_list: dict[str, dict] = loop.run_until_complete(main())
-            kline_data: dict[str, Union[str, int, bool]] = klines_list['k'].copy()
-            break
-        except asyncio.exceptions.TimeoutError:
-            pass
+    #     while True:
+    #         try:
+    #             loop = asyncio.get_event_loop()
+    #             klines_list: dict[str, dict] = loop.run_until_complete(main())
+    #             kline_data: dict[str, Union[str, int, bool]] = klines_list['k'].copy()
+    #             break
+    #         except asyncio.exceptions.TimeoutError:
+    #             pass
 
-    unwanted: list = ['T', 'q', 'n', 'V', 'Q', 'B', "i", "f", "L", "s", "x"]
-    for key in unwanted:
-        kline_data.pop(key)
+    #     unwanted: list = ['T', 'q', 'n', 'V', 'Q', 'B', "i", "f", "L", "s", "x"]
+    #     for key in unwanted:
+    #         kline_data.pop(key)
 
-    for kline in kline_data:
-        kline['t'] = datetime.datetime.fromtimestamp(kline['t'] / 1e3)
+    #     for kline in kline_data:
+    #         kline['t'] = datetime.datetime.fromtimestamp(kline['t'] / 1e3)
 
-    columns = ['date', 'open', 'close', 'high', 'low', 'volume']
-    keys = list(kline_data.keys())
-    klines: dict = {}
+    #     columns = ['date', 'open', 'close', 'high', 'low', 'volume']
+    #     keys = list(kline_data.keys())
+    #     klines: dict = {}
 
-    for i in range(len(keys)):
-        column = columns[i]
-        key = keys[i]
-        klines[column] = kline_data[key]
-    # klines_pd: pd.DataFrame = pd.DataFrame(klines_list)  # changer en dataframe
-    # klines_pd.columns = ['date', 'open', 'high', 'low','close', 'volume']  # renommer les colonnes
-    crypto_klines: dict[str, dict[str, Union[str, datetime.datetime]]] = {self.name: klines}
-    return crypto_klines
-    
-"""
+    #     for i in range(len(keys)):
+    #         column = columns[i]
+    #         key = keys[i]
+    #         klines[column] = kline_data[key]
+    #     # klines_pd: pd.DataFrame = pd.DataFrame(klines_list)  # changer en dataframe
+    #     # klines_pd.columns = ['date', 'open', 'high', 'low','close', 'volume']  # renommer les colonnes
+    #     crypto_klines: dict[str, dict[str, Union[str, datetime.datetime]]] = {self.name: klines}
+    #     return crypto_klines
+        
+
 
 
 class Coin:
@@ -308,5 +341,6 @@ class Coin:
 
     @staticmethod
     def get_all_coins():
-        result:list[tuple[str]] =  db.selectDB(requete="select shortname from Coin")
+        """Return all coins stored in the database"""
+        result: list[tuple[str]] = db.selectDB(requete="select shortname from Coin")
         return [Coin(name[0]) for name in result]

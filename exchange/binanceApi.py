@@ -1,5 +1,4 @@
 import json
-import random
 
 import time
 from dataclasses import dataclass
@@ -12,7 +11,7 @@ from binance.client import Client
 
 from common.tools import TIMEFRAME, URL, STATUS_ENDPOINT
 from dbcontroller import DbEngine
-from indicators.study import Study
+
 from base import Coin, CryptoPair, Order
 
 from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
@@ -45,15 +44,7 @@ class BinanceClient:
     # price when placed order
     # order_price: float = 0.0
 
-    @property
-    def api_public_key(self) -> str:
-        """public key"""
-        return BINANCE_PUBLIC_KEY
 
-    @property
-    def api_secret_key(self):
-        """secret key"""
-        return BINANCE_PRIVATE_KEY
 
     @property
     def coin(self) -> Coin:
@@ -95,12 +86,81 @@ class BinanceClient:
 
         while True:
             # get crypto related
-            cryptopair_related: list[CryptoPair] = self.coin.get_cryptopair_related()
+            cryptopair_related: list = self.coin.get_cryptopair_related()
 
-            # get all klines for each cryptopair
-            klines: dict[CryptoPair, pd.DataFrame] = {
-                cryptopair: cryptopair.get_klines() for cryptopair in cryptopair_related
+            # get all decision for each cryptopair
+            cryptopair_decision_uncleaned: dict[CryptoPair, pd.DataFrame] = {
+                cryptopair: cryptopair.decision() for cryptopair in cryptopair_related
             }
+            # clean the cryptopairs_study dict so we only have
+            # possible trades
+            cryptopair_decision = self._cleaner(cryptopair_decision_uncleaned)
+
+            if len(cryptopair_decision) == 0:
+                time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
+            else:
+                cryptopairs = list(cryptopair_decision.items())#("BNB",("buy",3))
+                
+                #contains nb_of indicators that approved
+                nb_indic = [value[1] for _,value in cryptopairs] # value= ("buy",1)
+                
+                index_of_max = nb_indic.index(max(nb_indic))# index of the higher value
+                
+                cryptopair_study:tuple[CryptoPair,tuple[str,int]] = cryptopairs[index_of_max]#("BNB",("buy",3))
+
+                choosen_cryptopair, (order_type,_) = cryptopair_study
+                # pass order (the quantity is calculated in passing order)
+                order: Order = self._pass_order(
+                    cryptopair=choosen_cryptopair, order_type=order_type
+                )
+
+                # set new values
+                # bought BNBBTC
+                old_coin = self.coin  # BTC
+                self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
+                self.cryptopair = choosen_cryptopair  # BNBBTC
+
+                # track order
+                order.track_order()
+
+    def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
+        """Analyse and choose the right order to pass"""
+
+        if order_type == "buy":
+            return self._buy_order(cryptopair)
+        elif order_type == "sell":
+            return self._sell_order(cryptopair)
+
+
+    def _cleaner(self, study: dict[CryptoPair, tuple[str,int]]) -> dict[CryptoPair, str]:
+        """Clean the given data througths the defined process"""
+        cryptopairs: dict[CryptoPair, tuple] = study.items()
+        results: dict[CryptoPair, str] = {}
+        # clean
+        for cryptopair, data in cryptopairs:
+            decision, _ = data
+            # when i possess ETH
+            # ETHBTC must be a 'sell'
+            if (cryptopair.is_basecoin(self.coin) and decision == "sell") or (
+                cryptopair.is_quotecoin(self.coin) and decision == "buy"
+            ):
+                results[cryptopair] = data
+        return results
+
+    def _send_data(self, method, endpoint, data):
+        """send requested data to the assistant API"""
+
+    def __enter__(self):
+        """enter special method"""
+        data = {"status": "on"}
+        status_url = URL + STATUS_ENDPOINT
+        requests.post(status_url, data=data)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """exit special method"""
+        data = {"status": "off"}
+        status_url = URL + STATUS_ENDPOINT
+        requests.post(status_url, data=data)
 
     def _buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
         """
@@ -161,83 +221,3 @@ class BinanceClient:
             key, value = item
             if coin_price in value:
                 return float(str(q)[:key])
-
-    def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
-        """Analyse and choose the right order to pass"""
-
-        if order_type == "buy":
-            return self._buy_order(cryptopair)
-        elif order_type == "sell":
-            return self._sell_order(cryptopair)
-
-            # clean the cryptopairs_study dict so we only have
-            # possible trades
-            cryptopairs_study: dict[CryptoPair, str] = self._crypto_study(klines)
-
-            if len(cryptopairs_study) == 0:
-                time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
-            else:
-                cryptopairs = list(cryptopairs_study.keys())
-                # choose a crypto pair
-                random_num = random.randint(0, len(cryptopairs) - 1)
-                cryptopair_study: tuple[CryptoPair, str] = list(
-                    cryptopairs_study.items()
-                )[random_num]
-                choosen_cryptopair, order_type = cryptopair_study
-                # pass order (the quantity is calculated in passing order)
-                order: Order = self._pass_order(
-                    cryptopair=choosen_cryptopair, order_type=order_type
-                )
-
-                # set new values
-                # bought BNBBTC
-                old_coin = self.coin  # BTC
-                self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
-                self.cryptopair = choosen_cryptopair  # BNBBTC
-
-                # track order
-                order.track_order()
-
-    @staticmethod
-    def _decision(klines: pd.DataFrame) -> str:
-        """Calculate the prices and return a decision"""
-        return Study.decision(klines)
-
-    def _crypto_study(
-        self, klines: dict[CryptoPair, pd.DataFrame]
-    ) -> dict[CryptoPair, str]:
-        """study cryptopair with it's klines"""
-        cryptopairs = klines.items()
-        # cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
-        decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
-
-        for cryptopair, klines_df in cryptopairs:
-            decision: str = self._decision(klines=klines_df)
-            decision_results[cryptopair] = decision
-        return self._cleaner(decision_results)
-
-    def _cleaner(self, study: dict[CryptoPair, str]) -> dict[CryptoPair, str]:
-        """Clean a returned study from Study module"""
-        cryptopairs: dict[CryptoPair, str] = study.items()
-        results: dict[CryptoPair, str] = {}
-        #clean
-        for cryptopair, decision in cryptopairs:
-            # when i possess ETH
-            # ETHBTC must be a 'sell'
-            if (cryptopair.is_basecoin(self.coin) and decision == "sell") or (
-                cryptopair.is_quotecoin(self.coin) and decision == "buy"
-            ):
-                results[cryptopair] = decision
-        return results
-
-    def __enter__(self):
-        """enter special method"""
-        data = {"status": "on"}
-        status_url = URL + STATUS_ENDPOINT
-        requests.post(status_url, data=data)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """exit special method"""
-        data = {"status": "off"}
-        status_url = URL + STATUS_ENDPOINT
-        requests.post(status_url, data=data)
