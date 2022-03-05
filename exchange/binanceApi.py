@@ -13,7 +13,7 @@ from binance.client import Client
 from common import TIMEFRAME, STATUS_ENDPOINT, send_data
 from dbcontroller import DbEngine
 
-from base import Coin, CryptoPair, Order
+from base import Coin, CryptoPair, Order, cryptopair
 
 from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
@@ -27,6 +27,7 @@ def connect() -> Client:
 
 TRADED: list[CryptoPair] = []
 
+utils_file = 'base/utils.json'
 
 @dataclass
 class BinanceClient:
@@ -48,8 +49,9 @@ class BinanceClient:
     @property
     def coin(self) -> Coin:
         """return coin object"""
-        with open("coin.json", "r", encoding="utf-8") as f:
-            coin_name = json.load(f)
+        with open(utils_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            coin_name = data['tracked']['coin']
         return Coin(coin_name)
 
     @property
@@ -62,25 +64,28 @@ class BinanceClient:
     @coin.setter
     def coin(self, coin: Coin) -> None:
         """coin setter"""
-        with open("coin.json", "w", encoding="utf-8") as f:
-            newvalue = json.dumps(coin.name)
+        with open(utils_file, "rw", encoding="utf-8") as f:
+            data = json.load(f)
+            data['tracked']['coin'] = coin.name
+            newvalue = json.dumps(data)
             f.write(newvalue)
 
     @property
     def cryptopair(self) -> CryptoPair:
         """cryptopair object"""
-        with open("cryptopair.json", "r", encoding="utf-8") as f:
-            cryptopair_name = json.load(f)
-
+        with open(utils_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            cryptopair_name = data['tracked']['cryptopair']
         return CryptoPair(cryptopair_name)
 
     @cryptopair.setter
     def cryptopair(self, cryptopair: CryptoPair) -> None:
         """cryptopair setter"""
-        with open("cryptopair.json", "w", encoding="utf-8") as f:
-            newvalue = json.dumps(cryptopair.name)
+        with open(utils_file, "rw", encoding="utf-8") as f:
+            data = json.load(f)
+            data['tracked']['cryptopair'] = cryptopair.name
+            newvalue = json.dumps(data)
             f.write(newvalue)
-
     @property
     def balance(self):
         """Balance getter"""
@@ -88,15 +93,16 @@ class BinanceClient:
 
     def run(self):
         """main file to run"""
-
+        print("run method")
         while True:
             # get crypto related
             cryptopair_related: list = self.coin.get_cryptopair_related()
-
+            
             # get all decision for each cryptopair
             cryptopair_decision_uncleaned: dict[CryptoPair, pd.DataFrame] = {
                 cryptopair: cryptopair.decision() for cryptopair in cryptopair_related
             }
+            
             # clean the cryptopairs_study dict so we only have
             # possible trades
             cryptopair_decision = self._cleaner(cryptopair_decision_uncleaned)
@@ -106,7 +112,7 @@ class BinanceClient:
                 time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
             else:
                 cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
-
+                print("opportunities on: ",cryptopair_decision)
                 # contains nb_of indicators that approved
                 nb_indic = [value[1] for _, value  in cryptopairs]  # value= ("buy",1)
 
@@ -120,6 +126,7 @@ class BinanceClient:
 
                 choosen_cryptopair, (order_type, _) = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
+                print('% with %'%(choosen_cryptopair,order_type))
                 order: Order = self._pass_order(
                     cryptopair=choosen_cryptopair, order_type=order_type
                 )
