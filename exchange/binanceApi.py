@@ -11,6 +11,7 @@ from binance.client import Client
 
 
 from common import TIMEFRAME, STATUS_ENDPOINT, send_data
+from common.tools import interval_to_milliseconds
 from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order, cryptopair
@@ -109,7 +110,8 @@ class BinanceClient:
 
             if len(cryptopair_decision) == 0:
                 print('>>> No opportunity for trading')
-                time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
+                sleep_time = interval_to_milliseconds(TIMEFRAME)/1000
+                time.sleep(sleep_time)
             else:
                 cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
                 print("opportunities on: ",cryptopair_decision)
