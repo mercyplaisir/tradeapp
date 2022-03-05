@@ -139,6 +139,7 @@ class BinanceClient:
 
                 # track order
                 order.track_order()
+                break
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
         """Analyse and choose the right order to pass"""
@@ -234,7 +235,7 @@ class BinanceClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
-        if self.coin.name!='USDT':
+        if self.coin.name != 'USDT':
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
         send_data(
