@@ -24,10 +24,10 @@ class Study:
         indicators_names = factory.get_indicators()
 
         indicators = [
-            factory.create(name) for name in indicators_names
+            factory.create({'type' : name}) for name in indicators_names
         ]  # creating indicators
         study_list = [
-            indicator.price_study(klines) for indicator in indicators
+            indicator.price_study(klines=klines) for indicator in indicators
         ]  # studying klines
 
         number = (len(indicators) // 2) + 1

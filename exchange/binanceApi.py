@@ -126,7 +126,7 @@ class BinanceClient:
 
                 choosen_cryptopair, (order_type, _) = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
-                print('% with %'%(choosen_cryptopair,order_type))
+                print('%s with %s'%(choosen_cryptopair,order_type))
                 order: Order = self._pass_order(
                     cryptopair=choosen_cryptopair, order_type=order_type
                 )
@@ -234,7 +234,7 @@ class BinanceClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
-        if self.coin!='USDT':
+        if self.coin.name!='USDT':
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
         send_data(

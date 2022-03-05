@@ -165,7 +165,9 @@ class CryptoPair:
             "close",
             "volume",
         ]  # rename columns
-
+        klines[['open','close','high','low','volume']] = klines[['open','close','high','low','volume']].astype('float64')
+        klines = klines.set_index('date')
+        print(f"klines for {self.name}")
         # klines.to_csv(BINANCEKLINES, index=False)
         return klines
 

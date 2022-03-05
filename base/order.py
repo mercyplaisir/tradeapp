@@ -1,6 +1,7 @@
 """Representation of an Order object"""
 
 import asyncio
+import datetime
 import time
 from dataclasses import dataclass,field
 
@@ -109,12 +110,12 @@ class Order:
 
 
 # d={
-#   "symbol": "ETHBTC",
+#   "symbol": "XRPBTC",
 #   "orderId": 28,
 #   "orderListId": -1,# //Unless OCO, value will be -1
 #   "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
 #   "transactTime": 1507725176595,
-#   "price": "0.30000000",
+#   "price": "0.250",
 #   "origQty": "10.00000000",
 #   "executedQty": "10.00000000",
 #   "cummulativeQuoteQty": "10.00000000",
@@ -125,8 +126,9 @@ class Order:
 # }
 
 # order1=Order(**d)
-# order2 = Order(**d)
-# # order.save()
+# # print(datetime.datetime.now())
+# # order2 = Order(**d)
+# order1.save()
 # # Order.change()
 # order1.change()
 

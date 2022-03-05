@@ -16,7 +16,7 @@ def unregister(character_type: str):
 def create(arguments: dict[str, any]) -> object:
     """create  a indicator of a specific type, given a dictionary of arguments"""
     args_copy = arguments.copy()
-    indicator_type = args_copy.pop("type")
+    indicator_type = args_copy.pop("type")#{type:'rsi'}
     try:
         creation_func = indicator_creation_funcs[indicator_type]
         return creation_func()

@@ -3,6 +3,7 @@ from typing import Protocol
 
 import btalib
 import pandas as pd
+import numpy as np
 
 
 __all__ = ['Macd','BollingerBands','Rsi','Sma','Stochastic']
@@ -35,7 +36,7 @@ class Macd(Indicator):
         """
         columns = ["macd","signal","histogram"]
         """
-        kline = cls.create_macd(klines.copy())
+        kline = cls.create_indicator(klines=klines.copy())
 
         kline['decision'] = kline['macd'] > kline['signal']
 
@@ -62,13 +63,13 @@ class Bollingerbands(Indicator):
         return bb.df
 
     @classmethod
-    def price_study(cls, period: int = 20, klines: pd.DataFrame = None):
+    def price_study(cls, klines: pd.DataFrame = None, period: int = 20):
         """
             study made on klines(dataframe)
             columns = ["mid","top","bot"]
         """
 
-        kline = cls.create_bb(period, klines.copy())
+        kline = cls.create_indicator(period, klines=klines.copy())
         binanceKlines = klines.copy()
 
         topColumns = kline['top'][-9:-1]
@@ -107,7 +108,7 @@ class Rsi(Indicator):
             columns = ["rsi"]
         """
 
-        kline = cls.create_rsi(klines.copy())
+        kline = cls.create_indicator(klines=klines.copy(deep=True))
         binanceKlines = klines.copy()
 
         # kline
@@ -138,7 +139,7 @@ class Sma(Indicator):
         return sma.df
 
     @classmethod
-    def price_study(cls, period: int = 20, klines: pd.DataFrame = None):
+    def price_study(cls, klines: pd.DataFrame = None, period: int = 20):
         """
         -Parameters
         -------------
@@ -148,7 +149,7 @@ class Sma(Indicator):
         
         """
 
-        kline = cls.create_sma(period, klines.copy())
+        kline = cls.create_indicator(period, klines=klines.copy())
         binanceKlines = klines.copy()
 
         smaValues = np.array(kline[f'sma{period}'][-9:-1])
@@ -173,7 +174,7 @@ class Stochastic(Indicator):
 
         stoch = btalib.stochastic(klines.copy())
         # stoch.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
-        return stoch
+        return stoch.df
 
     @classmethod
     def price_study(cls, klines: pd.DataFrame = None):
@@ -185,7 +186,7 @@ class Stochastic(Indicator):
 
         """
 
-        kline = cls.create_stochastic(klines.copy())
+        kline = cls.create_indicator(klines=klines.copy())
 
         kline['dec'] = kline['k'] > kline['d']
         arrayD = list(kline['dec'][-4:-1])
