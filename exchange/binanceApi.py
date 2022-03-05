@@ -230,6 +230,7 @@ class BinanceClient:
         """enter special method"""
         send_data("post", STATUS_ENDPOINT, status="on")
         print('entered')
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""

@@ -1,18 +1,13 @@
-import json
-from base.cryptopair import Coin
-from dbcontroller import DbEngine
+class Hello:
+    def __init__(self) -> None:
+        pass
+    def __enter__(self):
+        print('enter')
+        return self
+    def salute(self):
+        print('hello')
+    def __exit__(self,*args, **kwargs):
+        print('exited')
 
-def get_coin_data():
-    """just for view"""
-    all_coins = Coin.get_all_coins()
-
-    data: dict = {coin.name: coin.get_cryptopair_related() for coin in all_coins}
-
-    data = {n: [str(l) for l in ll] for n, ll in data.items()}
-
-    nn = json.dumps(data)
-    with open("coindata.json", "w") as f:
-        f.write(nn)
-
-
-get_coin_data()
+with Hello() as cl:
+    cl.salute()
