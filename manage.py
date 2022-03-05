@@ -1,6 +1,6 @@
-from exchange import Binance
+from exchange.binanceApi import BinanceClient
 
 #run file
-def main():
-    with Binance() as client:
-        client.run()
+
+with BinanceClient() as client:
+    client.run()
