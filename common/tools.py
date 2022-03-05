@@ -10,6 +10,9 @@ from datetime import datetime
 
 import requests
 
+from dbcontroller import DbEngine
+# from base import Coin
+
 TAKE_PROFIT = 3
 
 URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
@@ -18,6 +21,8 @@ STATUS_ENDPOINT = "/status"
 HISTORY_ENDPOINT = "/history"
 
 TIMEFRAME: str = "15m"
+
+db = DbEngine()
 
 def percent_calculator(number: float, percentage: float) -> float:
     """
@@ -45,7 +50,7 @@ def send_data( method, endpoint,**kwargs):
         caller = methods[method]
         url = URL+endpoint
         
-        caller(url,data=kwargs['data'])
+        caller(url,data=kwargs)
 
 
 
@@ -111,3 +116,24 @@ def convert_ts_str(ts_str):
     if type(ts_str) == int:
         return ts_str
     return date_to_milliseconds(ts_str)
+
+
+
+# def get_coin_data():
+#     """just for view"""
+#     all_coins = Coin.get_all_coins()
+
+#     data: dict = {coin.name: coin.get_cryptopair_related() for coin in all_coins}
+
+#     data = {n: [str(l) for l in ll] for n, ll in data.items()}
+
+#     nn = json.dumps(data)
+#     with open("coindata.json", "w") as f:
+#         f.write(nn)
+
+# SELECT cryptopair FROM relationalcoin WHERE basecoin or quotecoin not in (SELECT shortname from Coin)
+
+def clean_database():
+    
+    requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
+    db.requestDB(requete= requete)

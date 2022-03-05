@@ -1,5 +1,5 @@
 import json
-from base import Coin
+from base.cryptopair import Coin
 from dbcontroller import DbEngine
 
 def get_coin_data():
@@ -14,11 +14,5 @@ def get_coin_data():
     with open("coindata.json", "w") as f:
         f.write(nn)
 
-# SELECT cryptopair FROM relationalcoin WHERE basecoin or quotecoin not in (SELECT shortname from Coin)
 
-def clean_database():
-    db = DbEngine()
-    requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
-    db.requestDB(requete= requete)
-
-# get_coin_data()
+get_coin_data()

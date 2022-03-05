@@ -1,9 +1,10 @@
 """binance public and private key"""
 import os
-# BINANCE_PUBLIC_KEY = "eKDyjsVeMhssfXL89oil2keouZSfpnJwqJV3mfvApOYDylfUjGc6hKAtapQIHL3b"
-# BINANCE_PRIVATE_KEY = "hISw2v7P96RXq698sIQVUGHfhX3Jt8aqh9FOlURGfXFwelYKq1R5oPfUbfWtD9lo"
+from dotenv import load_dotenv,find_dotenv
 
-BINANCE_PUBLIC_KEY = os.environ['BINANCEPUBLICKEY']
-BINANCE_PRIVATE_KEY = os.environ['BINANCEPRIVATEKEY']
+load_dotenv(find_dotenv())
+
+BINANCE_PUBLIC_KEY = os.getenv('BINANCEPUBLICKEY')
+BINANCE_PRIVATE_KEY = os.getenv('BINANCEPRIVATEKEY')
 
 # print(BINANCE_PUBLIC_KEY+'\n'+BINANCE_PRIVATE_KEY)

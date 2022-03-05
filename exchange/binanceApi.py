@@ -84,7 +84,7 @@ class BinanceClient:
     @property
     def balance(self):
         """Balance getter"""
-        return float(self.client.get_asset_balance(self.coin.name))
+        return float(self.client.get_asset_balance(self.coin.name,recvWindow=60000))
 
     def run(self):
         """main file to run"""
@@ -102,12 +102,13 @@ class BinanceClient:
             cryptopair_decision = self._cleaner(cryptopair_decision_uncleaned)
 
             if len(cryptopair_decision) == 0:
+                print('>>> No opportunity for trading')
                 time.sleep(int(TIMEFRAME.replace("m", "")) * 2)
             else:
-                cryptopairs = list(cryptopair_decision.items())  # ("BNB",("buy",3))
+                cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
 
                 # contains nb_of indicators that approved
-                nb_indic = [value[1] for _, value in cryptopairs]  # value= ("buy",1)
+                nb_indic = [value[1] for _, value  in cryptopairs]  # value= ("buy",1)
 
                 index_of_max = nb_indic.index(
                     max(nb_indic)
@@ -136,6 +137,7 @@ class BinanceClient:
         """Analyse and choose the right order to pass"""
         order_caller = {"buy": self._buy_order, "sell": self._sell_order}
         caller = order_caller[order_type]
+        print('%s for %s'%(order_type,cryptopair))
         return caller(cryptopair)
 
     def _cleaner(
@@ -163,7 +165,7 @@ class BinanceClient:
 
         order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_buy(
-            symbol=cryptopair.name, quantity=order_quantity
+            symbol=cryptopair.name, quantity=order_quantity,recvWindow=60000
         )
 
         order = Order(**order_details)
@@ -180,12 +182,12 @@ class BinanceClient:
         """
         order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
-            symbol=cryptopair, quantity=order_quantity
+            symbol=cryptopair, quantity=order_quantity,recvWindow=60000
         )
         order = Order(**order_details)
         order.save()
 
-        print(f">>>Sell Order passed for {cryptopair.name}")
+        print(f">>>Sell Order passed for {cryptopair}")
         return order
 
     def _order_quantity(self, cryptopair: CryptoPair) -> float:
@@ -215,20 +217,24 @@ class BinanceClient:
             key, value = item
             if coin_price in value:
                 return float(str(q)[:key])
+        print('>>> Getting quantity for %s'%cryptopair)
 
     def __enter__(self):
         """enter special method"""
         send_data("post", STATUS_ENDPOINT, status="on")
+        print('entered')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
-        self._pass_order(self.rescue_cryptopair, "sell")
-        self.coin = self.rescue_coin
+        if self.coin!='USDT':
+            self._pass_order(self.rescue_cryptopair, "sell")
+            self.coin = self.rescue_coin
         send_data(
             "post",
             STATUS_ENDPOINT,
-            status="off",
-            exc_type=exc_type,
-            exc_val=exc_val,
-            exc_tb=exc_tb,
+            status="off"
+        #     exc_type=exc_type,
+        #     exc_val=exc_val,
+        #     exc_tb=exc_tb,
         )
+        print("exited")

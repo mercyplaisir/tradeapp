@@ -2,10 +2,12 @@
 
 import asyncio
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 
-import requests
+# import requests
 from binance import BinanceSocketManager, AsyncClient
+import sys
+sys.path.append('..')
 from common import TAKE_PROFIT, percent_change, URL, HISTORY_ENDPOINT, send_data
 
 
@@ -46,6 +48,12 @@ class Order:
     type: str
     side: str
 
+    profit:float = field(init=False,default=0.0)
+
+    @classmethod
+    def profit_change(cls,newvalue):
+        cls.profit = newvalue
+
     def save(self):
         """save by sending order to the assistant server"""
         send_data("post", HISTORY_ENDPOINT, **self.dict())
@@ -53,6 +61,7 @@ class Order:
     def dict(self):
         """return dict object of all variable of the class"""
         return self.__dict__
+    
 
     def track_order(self):
         """Create a loop tracking the order until the TAKEPROFIT hitted"""
@@ -77,6 +86,7 @@ class Order:
                         not buy_order and pourcentage_change >= -TAKE_PROFIT
                     ):
                         print("profit")
+                        self.profit_change(pourcentage_change)
                         # release function
                         break
                     else:
@@ -99,7 +109,7 @@ class Order:
 
 
 # d={
-#   "symbol": "BTCUSDT",
+#   "symbol": "ETHBTC",
 #   "orderId": 28,
 #   "orderListId": -1,# //Unless OCO, value will be -1
 #   "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
@@ -114,6 +124,16 @@ class Order:
 #   "side": "SELL"
 # }
 
-# order=Order(**d)
-# order.track_order()
-# print(order)
+# order1=Order(**d)
+# order2 = Order(**d)
+# # order.save()
+# # Order.change()
+# order1.change()
+
+# print(order2.profit)
+# print(Order.profit)
+# Order.profit = 4
+# print(order2.profit)
+# print(Order.profit)
+
+# print(Order.profit)
