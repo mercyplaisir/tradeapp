@@ -1,3 +1,4 @@
+import datetime
 import json
 from random import seed
 
@@ -19,10 +20,18 @@ from base import Coin, CryptoPair, Order, cryptopair
 from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
 
+
+class cout:
+  now = datetime.datetime.time(datetime.datetime.now())
+  time_info = f'time -> {now}'
+  def __init__(self,message) -> None:
+      print(f'{message} \t {self.time_info} ')
+
+
 def connect() -> Client:
     """Connect to binance"""
     client = Client(BINANCE_PUBLIC_KEY, BINANCE_PRIVATE_KEY)
-    print(">>>Connected successfully to binance success")
+    cout(">>>Connected successfully to binance success")
     return client
 
 
@@ -97,7 +106,7 @@ class BinanceClient:
 
     def run(self):
         """main file to run"""
-        print("run method")
+        cout("run method")
         while True:
             # get crypto related
             cryptopair_related: list = self.coin.get_cryptopair_related()
@@ -112,13 +121,13 @@ class BinanceClient:
             cryptopair_decision = self._cleaner(cryptopair_decision_uncleaned)
             
             if len(cryptopair_decision) == 0:
-                print('>>> No opportunity for trading')
-                print(cryptopair_decision_uncleaned)
+                cout('>>> No opportunity for trading')
+                cout(cryptopair_decision_uncleaned)
                 sleep_time = interval_to_milliseconds(TIMEFRAME)/1000
                 time.sleep(sleep_time)
             else:
                 cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
-                print("opportunities on: ",cryptopair_decision)
+                cout("opportunities on: ",cryptopair_decision)
                 # contains nb_of indicators that approved
                 nb_indic = [value[1] for _, value  in cryptopairs]  # value= ("buy",1)
 
@@ -129,7 +138,7 @@ class BinanceClient:
                 cryptopair_study: tuple[CryptoPair, tuple[str, int]] = cryptopairs[
                     index_of_max
                 ]  # ("BNB",("buy",3))
-                print(cryptopair_study)
+                cout(cryptopair_study)
 
                 time.sleep(20)
 
@@ -154,7 +163,7 @@ class BinanceClient:
         order_caller = {"buy": self._buy_order, "sell": self._sell_order}
         caller = order_caller[order_type]
 
-        print('%s for %s'%(order_type,cryptopair))
+        cout('%s for %s'%(order_type,cryptopair))
         order_details = caller(cryptopair)
         order = Order(**order_details)
         return order.save()
@@ -186,7 +195,7 @@ class BinanceClient:
         order_details: dict = self.client.order_market_buy(
             symbol=cryptopair.name,recvWindow=60000,quoteOrderQty=self.balance
         )
-        print(f">>>Buy Order passed for {cryptopair}")
+        cout(f">>>Buy Order passed for {cryptopair}")
         return order_details
 
     def _sell_order(self, cryptopair: CryptoPair) -> dict:
@@ -198,7 +207,7 @@ class BinanceClient:
         # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
             symbol=cryptopair, quoteOrderQty=self.balance,recvWindow=60000)
-        print(f">>>Sell Order passed for {cryptopair}")
+        cout(f">>>Sell Order passed for {cryptopair} ")
         return order_details
 
     # def _order_quantity(self, cryptopair: CryptoPair) -> float:
@@ -228,17 +237,17 @@ class BinanceClient:
     #         key, value = item
     #         if coin_price in value:
     #             return float(str(q)[:key])
-    #     print('>>> Getting quantity for %s'%cryptopair)
+    #     cout('>>> Getting quantity for %s'%cryptopair)
 
     def __enter__(self):
         """enter special method"""
         send_data("post", STATUS_ENDPOINT, status="on")
-        print('entered')
+        cout('entered')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
-        print("exiting ....")
+        cout("exiting ....")
         if self.coin.name != 'USDT':
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
@@ -250,4 +259,4 @@ class BinanceClient:
         #     exc_val=exc_val,
         #     exc_tb=exc_tb,
         )
-        print("exited")
+        cout("exited")
