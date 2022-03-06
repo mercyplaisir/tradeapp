@@ -115,7 +115,7 @@ class BinanceClient:
                 print('>>> No opportunity for trading')
                 print(cryptopair_decision_uncleaned)
                 sleep_time = interval_to_milliseconds(TIMEFRAME)/1000
-                time.sleep(sleep_time*3)
+                time.sleep(sleep_time)
             else:
                 cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
                 print("opportunities on: ",cryptopair_decision)
