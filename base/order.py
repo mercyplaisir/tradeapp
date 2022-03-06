@@ -62,6 +62,7 @@ class Order:
 
     def dict(self):
         """return dict object of all variable of the class"""
+        self.__dict__.pop('fills')
         return self.__dict__
     
 
@@ -128,7 +129,7 @@ class Order:
 # }
 
 # order1=Order(**d)
-# print(order1)
+# print(order1.dict())
 # # order2 = Order(**d)
 # order1.save()
 # # Order.change()

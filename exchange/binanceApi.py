@@ -126,10 +126,10 @@ class BinanceClient:
                 cryptopair_study: tuple[CryptoPair, tuple[str, int]] = cryptopairs[
                     index_of_max
                 ]  # ("BNB",("buy",3))
+                print(cryptopair_study)
 
                 choosen_cryptopair, (order_type, _) = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
-                print('%s with %s'%(choosen_cryptopair,order_type))
                 order: Order = self._pass_order(
                     cryptopair=choosen_cryptopair, order_type=order_type
                 )

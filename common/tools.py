@@ -14,7 +14,7 @@ from dbcontroller import DbEngine
 # from base import Coin
 
 TAKE_PROFIT = 2
-TIMEFRAME: str = "15m"
+TIMEFRAME: str = "1h"
 
 URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
 
