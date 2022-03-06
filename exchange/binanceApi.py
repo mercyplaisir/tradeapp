@@ -110,7 +110,7 @@ class BinanceClient:
             
             if len(cryptopair_decision) == 0:
                 print('>>> No opportunity for trading')
-                print(cryptopair_decision)
+                print(cryptopair_decision_uncleaned)
                 sleep_time = interval_to_milliseconds(TIMEFRAME)/1000
                 time.sleep(sleep_time*3)
             else:
