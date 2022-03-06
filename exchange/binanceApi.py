@@ -107,9 +107,10 @@ class BinanceClient:
             # clean the cryptopairs_study dict so we only have
             # possible trades
             cryptopair_decision = self._cleaner(cryptopair_decision_uncleaned)
-
+            
             if len(cryptopair_decision) == 0:
                 print('>>> No opportunity for trading')
+                print(cryptopair_decision)
                 sleep_time = interval_to_milliseconds(TIMEFRAME)/1000
                 time.sleep(sleep_time*3)
             else:

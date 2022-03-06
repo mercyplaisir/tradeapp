@@ -1,6 +1,4 @@
-from indicators import Study
-from base import CryptoPair
+#%%
+d = {'a':23,'b':56}
 
-cr = CryptoPair('BNBBTC')
-
-print(Study.decision(cr.get_klines()))
+print('  '.join(d.values()))
