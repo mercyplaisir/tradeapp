@@ -65,8 +65,10 @@ class BinanceClient:
     @coin.setter
     def coin(self, coin: Coin) -> None:
         """coin setter"""
-        with open(utils_file, "rw", encoding="utf-8") as f:
+        with open(utils_file, "r", encoding="utf-8") as f:
             data = json.load(f)
+            
+        with open(utils_file, "w", encoding="utf-8") as f:
             data['tracked']['coin'] = coin.name
             newvalue = json.dumps(data)
             f.write(newvalue)
