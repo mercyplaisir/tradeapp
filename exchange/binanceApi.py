@@ -174,9 +174,9 @@ class BinanceClient:
         cryptopair .ex:BNBBTC, BTCUSDT
         """
 
-        order_quantity: float = self._order_quantity(cryptopair)
+        # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_buy(
-            symbol=cryptopair.name, quantity=order_quantity,recvWindow=60000
+            symbol=cryptopair.name,recvWindow=60000,quoteOrderQty=self.balance
         )
 
         order = Order(**order_details)
@@ -191,9 +191,9 @@ class BinanceClient:
 
         cryptopair .ex:BNBBTC, BTCUSDT
         """
-        order_quantity: float = self._order_quantity(cryptopair)
+        # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
-            symbol=cryptopair, quantity=order_quantity,recvWindow=60000
+            symbol=cryptopair, quoteOrderQty=self.balance,recvWindow=60000
         )
         order = Order(**order_details)
         order.save()
