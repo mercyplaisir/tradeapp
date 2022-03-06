@@ -14,13 +14,13 @@ from dbcontroller import DbEngine
 # from base import Coin
 
 TAKE_PROFIT = 3
+TIMEFRAME: str = "5m"
 
 URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
 
 STATUS_ENDPOINT = "/status"
 HISTORY_ENDPOINT = "/history"
 
-TIMEFRAME: str = "15m"
 
 db = DbEngine()
 
@@ -137,3 +137,4 @@ def clean_database():
     
     requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
     db.requestDB(requete= requete)
+
