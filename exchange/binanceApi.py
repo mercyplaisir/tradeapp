@@ -131,6 +131,8 @@ class BinanceClient:
                 ]  # ("BNB",("buy",3))
                 print(cryptopair_study)
 
+                time.sleep(20)
+
                 choosen_cryptopair, (order_type, _) = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
                 order: Order = self._pass_order(
@@ -151,8 +153,11 @@ class BinanceClient:
         """Analyse and choose the right order to pass"""
         order_caller = {"buy": self._buy_order, "sell": self._sell_order}
         caller = order_caller[order_type]
+
         print('%s for %s'%(order_type,cryptopair))
-        return caller(cryptopair)
+        order_details = caller(cryptopair)
+        order = Order(**order_details)
+        return order.save()
 
     def _cleaner(
         self, study: dict[CryptoPair, tuple[str, int]]
@@ -171,7 +176,7 @@ class BinanceClient:
                 results[cryptopair] = data
         return results
 
-    def _buy_order(self, cryptopair: CryptoPair) -> Type[Order]:
+    def _buy_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
@@ -181,14 +186,10 @@ class BinanceClient:
         order_details: dict = self.client.order_market_buy(
             symbol=cryptopair.name,recvWindow=60000,quoteOrderQty=self.balance
         )
-
-        order = Order(**order_details)
-        order.save()
-
         print(f">>>Buy Order passed for {cryptopair}")
-        return Order
+        return order_details
 
-    def _sell_order(self, cryptopair: CryptoPair) -> Order:
+    def _sell_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market sell Order
 
@@ -196,42 +197,38 @@ class BinanceClient:
         """
         # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
-            symbol=cryptopair, quoteOrderQty=self.balance,recvWindow=60000
-        )
-        order = Order(**order_details)
-        order.save()
-
+            symbol=cryptopair, quoteOrderQty=self.balance,recvWindow=60000)
         print(f">>>Sell Order passed for {cryptopair}")
-        return order
+        return order_details
 
-    def _order_quantity(self, cryptopair: CryptoPair) -> float:
-        """
-        parameters: -balance. ex: 20$
-                    -coin. ex: BTC,ETH
+    # def _order_quantity(self, cryptopair: CryptoPair) -> float:
+    #     """
+    #     parameters: -balance. ex: 20$
+    #                 -coin. ex: BTC,ETH
 
-        for use when buying
+    #     for use when buying
 
-        return quantity(float)
-        """
-        balance = self.balance  # balance of the crypto i possess
-        coin_price: float = (
-            cryptopair.get_price()
-        )  # price of the crypto i want to go in
-        q: float = balance / coin_price  # quantity
+    #     return quantity(float)
+    #     """
+    #     balance = self.balance  # balance of the crypto i possess
+    #     coin_price: float = (
+    #         cryptopair.get_price()
+    #     )  # price of the crypto i want to go in
+    #     q: float = balance / coin_price  # quantity
 
-        if coin_price < 0.18:
-            return float(str(q)[:3])
-        coin_prices: dict[int, range] = {
-            2: range(15, -1, -1),
-            3: range(16, 49),
-            5: range(50, 5000),
-            6: range(5000, 10**6),
-        }
-        for item in coin_prices.items():
-            key, value = item
-            if coin_price in value:
-                return float(str(q)[:key])
-        print('>>> Getting quantity for %s'%cryptopair)
+    #     if coin_price < 0.18:
+    #         return float(str(q)[:3])
+    #     coin_prices: dict[int, range] = {
+    #         2: range(15, -1, -1),
+    #         3: range(16, 49),
+    #         5: range(50, 5000),
+    #         6: range(5000, 10**6),
+    #     }
+    #     for item in coin_prices.items():
+    #         key, value = item
+    #         if coin_price in value:
+    #             return float(str(q)[:key])
+    #     print('>>> Getting quantity for %s'%cryptopair)
 
     def __enter__(self):
         """enter special method"""
@@ -241,6 +238,7 @@ class BinanceClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """exit special method"""
+        print("exiting ....")
         if self.coin.name != 'USDT':
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin

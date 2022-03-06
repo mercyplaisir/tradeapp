@@ -10,6 +10,8 @@ import numpy as np
 
 __all__ = ['Macd','BollingerBands','Rsi','Sma','Stochastic']
 
+start = 5
+
 class Indicator(Protocol):
     """Abstract class of an indicator"""
     
@@ -42,7 +44,7 @@ class Macd(Indicator):
 
         kline['decision'] = kline['macd'] > kline['signal']
 
-        listD = list(kline['decision'][-4:-1])
+        listD = list(kline['decision'][-start:-1])
 
         if listD.count(True) == 3:
             return "buy"
@@ -74,13 +76,13 @@ class Bollingerbands(Indicator):
         kline = cls.create_indicator(period, klines=klines.copy())
         binanceKlines = klines.copy()
 
-        topColumns = kline['top'][-9:-1]
+        topColumns = kline['top'][-start:-1]
 
-        midColumns = kline['mid'][-9:-1]
+        midColumns = kline['mid'][-start:-1]
 
-        botColumns = kline['bot'][-9:-1]
+        botColumns = kline['bot'][-start:-1]
 
-        closePrices = binanceKlines['close'][-9:-1]
+        closePrices = binanceKlines['close'][-start:-1]
 
         if topColumns.mean() > closePrices.mean() > midColumns.mean() > botColumns.mean():
             return 'buy'
@@ -114,9 +116,9 @@ class Rsi(Indicator):
         binanceKlines = klines.copy()
 
         # kline
-        rsiList = kline['rsi'][-9:-1]  # recupere les 9 dernieres valeurs
+        rsiList = kline['rsi'][-start:-1]  # recupere les 9 dernieres valeurs
 
-        closePrices = binanceKlines['close'][-9:-1]  # recupere les 9 dernieres valeurs
+        closePrices = binanceKlines['close'][-start:-1]  # recupere les 9 dernieres valeurs
 
         rsiMean = rsiList.mean()  # calcule la moyenne
         priceMean = closePrices.mean()
@@ -154,9 +156,9 @@ class Sma(Indicator):
         kline = cls.create_indicator(period, klines=klines.copy())
         binanceKlines = klines.copy()
 
-        smaValues = np.array(kline[f'sma{period}'][-9:-1])
+        smaValues = np.array(kline[f'sma{period}'][-start:-1])
 
-        closePrices = np.array(binanceKlines['close'][-9:-1])
+        closePrices = np.array(binanceKlines['close'][-start:-1])
 
         dec = closePrices > smaValues
         dec = list(dec)
@@ -191,7 +193,7 @@ class Stochastic(Indicator):
         kline = cls.create_indicator(klines=klines.copy())
 
         kline['dec'] = kline['k'] > kline['d']
-        arrayD = list(kline['dec'][-4:-1])
+        arrayD = list(kline['dec'][-start:-1])
 
         if arrayD.count(True) == 3:
             return "buy"
