@@ -66,50 +66,7 @@ class Order:
         return self.__dict__
     
 
-    def track_order(self):
-        """Create a loop tracking the order until the TAKEPROFIT hitted"""
-        order_symbol = self.symbol
-        order_price = self.price
-        buy_order = True if self.side == "BUY" else False
-
-        async def main():
-            client = await AsyncClient.create()
-            socket_manager = BinanceSocketManager(client)
-            # start any sockets here, i.e a trade socket
-            kline = socket_manager.kline_socket(order_symbol)  # .trade_socket('BNBBTC')
-            # then start receiving messages
-            async with kline as tscm:
-                while True:
-                    response = await tscm.recv()
-                    price = float(response["k"]["c"])
-
-                    pourcentage_change = percent_change(float(order_price), price)
-
-                    if (buy_order and pourcentage_change >= TAKE_PROFIT) or (
-                        not buy_order and pourcentage_change >= -TAKE_PROFIT
-                    ):
-                        print("profit")
-                        self.profit_change(pourcentage_change)
-                        # release function
-                        break
-                    else:
-                        print(
-                            f"price:{price} - profit:{pourcentage_change}"
-                            + " - still waiting..."
-                        )
-                        time.sleep(2.5)
-            await client.close_connection()
-            # return response
-
-        while True:
-            try:
-                loop = asyncio.get_event_loop()
-
-                loop.run_until_complete(main())
-                break
-            except asyncio.exceptions.TimeoutError:
-                pass
-
+    
 
 # d={
 #   "symbol": "XRPBTC",

@@ -11,7 +11,7 @@ from binance.client import Client
 
 
 from common import TIMEFRAME, STATUS_ENDPOINT, send_data
-from common.tools import interval_to_milliseconds
+from common.tools import interval_to_milliseconds,track_order
 from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order, cryptopair
@@ -144,7 +144,7 @@ class BinanceClient:
                 self.cryptopair = choosen_cryptopair  # BNBBTC
 
                 # track order
-                order.track_order()
+                track_order(order=order)
                 break
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
