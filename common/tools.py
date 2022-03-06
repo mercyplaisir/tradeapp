@@ -4,7 +4,7 @@ got some useful math formula
 import asyncio
 from decimal import Decimal
 import time
-from typing import Union, Optional, Dict
+from typing import Type, Union, Optional, Dict
 import dateparser
 import math
 import pytz
