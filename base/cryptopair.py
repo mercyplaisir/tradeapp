@@ -69,7 +69,7 @@ class CryptoPair:
         ex: BNBBTC return BTC"""
         result = db.selectDB(
             "select quotecoin from relationalcoin"
-            + f" where cryptopair='{self.get_name()}'"
+            + f" where cryptopair='{self.name}'"
         )
 
         name: str = result[0][0]
@@ -179,6 +179,9 @@ class CryptoPair:
 
     def __hash__(self):
         return hash(self.get_name())
+        
+    def __eq__(self, __o: object) -> bool:
+        return self.name == __o.name
 
     @classmethod
     def _decision(cls, klines: pd.DataFrame) -> tuple:
@@ -346,3 +349,6 @@ class Coin:
         """Return all coins stored in the database"""
         result: list[tuple[str]] = db.selectDB(requete="select shortname from Coin")
         return [Coin(name[0]) for name in result]
+    
+    def __eq__(self, __o: object) -> bool:
+        return self.name == __o.name
