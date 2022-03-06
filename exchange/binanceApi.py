@@ -90,7 +90,7 @@ class BinanceClient:
     @property
     def balance(self):
         """Balance getter"""
-        return float(self.client.get_asset_balance(self.coin.name,recvWindow=60000))
+        return float(self.client.get_asset_balance(self.coin.name,recvWindow=60000)['free'])
 
     def run(self):
         """main file to run"""
