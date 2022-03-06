@@ -13,7 +13,7 @@ import requests
 from dbcontroller import DbEngine
 # from base import Coin
 
-TAKE_PROFIT = 2
+TAKE_PROFIT = 0.5
 TIMEFRAME: str = "1h"
 
 URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
