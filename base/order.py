@@ -48,6 +48,7 @@ class Order:
     timeInForce: str
     type: str
     side: str
+    fills:list =field(init=True,default=None)
 
     profit:float = field(init=False,default=0.0)
 
@@ -122,11 +123,12 @@ class Order:
 #   "status": "FILLED",
 #   "timeInForce": "GTC",
 #   "type": "MARKET",
-#   "side": "SELL"
+#   "side": "SELL",
+#   'fills':[2,3]
 # }
 
 # order1=Order(**d)
-# # print(datetime.datetime.now())
+# print(order1)
 # # order2 = Order(**d)
 # order1.save()
 # # Order.change()
