@@ -84,8 +84,9 @@ class BinanceClient:
     @cryptopair.setter
     def cryptopair(self, cryptopair: CryptoPair) -> None:
         """cryptopair setter"""
-        with open(utils_file, "rw", encoding="utf-8") as f:
+        with open(utils_file, "r", encoding="utf-8") as f:
             data = json.load(f)
+        with open(utils_file, "w", encoding="utf-8") as f:
             data['tracked']['cryptopair'] = cryptopair.name
             newvalue = json.dumps(data)
             f.write(newvalue)
