@@ -12,7 +12,7 @@ from binance.client import Client
 
 
 from common import TIMEFRAME, STATUS_ENDPOINT, send_data
-from common.tools import interval_to_milliseconds,track_order
+from common.tools import interval_to_milliseconds,track_order,cout
 from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order, cryptopair
@@ -21,11 +21,7 @@ from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
 
 
-class cout:
-  now = datetime.datetime.time(datetime.datetime.now())
-  time_info = f'time -> {now}'
-  def __init__(self,*args) -> None:
-      print(f'{args} \t {self.time_info} ')
+
 
 
 def connect() -> Client:

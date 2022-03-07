@@ -142,6 +142,12 @@ def clean_database():
     requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
     db.requestDB(requete= requete)
 
+def cout(*args):
+    now = datetime.datetime.time(datetime.datetime.now())
+    time_info = f'time -> {now}'
+    print(f'{args} \t {time_info} ')
+
+
 
 def track_order(order):
         """Create a loop tracking the order until the TAKEPROFIT hitted"""
@@ -149,6 +155,7 @@ def track_order(order):
         order_price = order.price
         buy_order = True if order.side == "BUY" else False
 
+        cout(f'orderPrice:{order_price}')
         async def main():
             client = await AsyncClient.create()
             socket_manager = BinanceSocketManager(client)
@@ -159,18 +166,19 @@ def track_order(order):
                 while True:
                     response = await tscm.recv()
                     price = float(response["k"]["c"])
+                    cout(response)
 
                     pourcentage_change = percent_change(float(order_price), price)
 
                     if (buy_order and pourcentage_change >= TAKE_PROFIT) or (
                         not buy_order and pourcentage_change >= -TAKE_PROFIT
                     ):
-                        print("profit")
+                        cout("profit")
                         order.profit_change(pourcentage_change)
                         # release function
                         break
                     else:
-                        print(
+                        cout(
                             f"price:{price} - profit:{pourcentage_change}"
                             + " - still waiting..."
                         )
