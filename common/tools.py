@@ -143,7 +143,7 @@ def clean_database():
     db.requestDB(requete= requete)
 
 def cout(*args):
-    now = datetime.datetime.time(datetime.datetime.now())
+    now = datetime.time(datetime.now())
     time_info = f'time -> {now}'
     print(f'{args} \t {time_info} ')
 
