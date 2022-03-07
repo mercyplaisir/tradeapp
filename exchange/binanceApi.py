@@ -195,6 +195,7 @@ class BinanceClient:
         order_details: dict = self.client.order_market_buy(
             symbol=cryptopair.name,recvWindow=60000,quoteOrderQty=self.balance
         )
+        self.coin = cryptopair.replace(self.coin)
         cout(f">>>Buy Order passed for {cryptopair}")
         return order_details
 
@@ -207,6 +208,7 @@ class BinanceClient:
         # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
             symbol=cryptopair, quantity=self.balance,recvWindow=60000)
+        self.coin = cryptopair.replace(self.coin)
         cout(f">>>Sell Order passed for {cryptopair} ")
         return order_details
 
