@@ -146,8 +146,8 @@ class BinanceClient:
 
                 # set new values
                 # bought BNBBTC
-                old_coin = self.coin  # BTC
-                self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
+                # old_coin = self.coin  # BTC
+                # self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
                 self.cryptopair = choosen_cryptopair  # BNBBTC
 
                 # track order

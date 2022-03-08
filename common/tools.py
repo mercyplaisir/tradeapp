@@ -166,7 +166,7 @@ def track_order(order):
                 while True:
                     response = await tscm.recv()
                     price = float(response["k"]["c"])
-                    cout(response)
+                    # cout(response)
 
                     pourcentage_change = percent_change(float(order_price), price)
 
