@@ -152,7 +152,7 @@ class BinanceClient:
 
                 # track order
                 track_order(order=order)
-                break
+                
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
         """Analyse and choose the right order to pass"""
