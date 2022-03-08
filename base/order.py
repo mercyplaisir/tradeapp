@@ -67,8 +67,10 @@ class Order:
 
     def dict(self):
         """return dict object of all variable of the class"""
-        self.__dict__.pop('fills')
-        return self.__dict__
+        d=self.__dict__
+        if d.get('fills'):
+          d.pop('fills')
+        return d
     
 
     
