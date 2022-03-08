@@ -18,6 +18,8 @@ from dbcontroller import DbEngine
 # from base import Coin
 
 TAKE_PROFIT = 0.5
+STOP_LOSS = 0.5
+
 TIMEFRAME: str = "15m"
 
 URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
@@ -170,10 +172,18 @@ def track_order(order):
 
                     pourcentage_change = percent_change(float(order_price), price)
 
-                    if (buy_order and pourcentage_change >= TAKE_PROFIT) or (
-                        not buy_order and pourcentage_change >= -TAKE_PROFIT
-                    ):
-                        cout("profit")
+                    profit_in_buy = buy_order and pourcentage_change >= TAKE_PROFIT
+                    profit_in_sell = not buy_order and -pourcentage_change >= TAKE_PROFIT
+                    
+                    profit = profit_in_buy or profit_in_sell
+
+                    loss_in_buy = buy_order and -pourcentage_change >=  STOP_LOSS
+                    loss_in_sell = not buy_order and pourcentage_change >= STOP_LOSS
+
+                    loss = loss_in_buy or loss_in_sell
+
+                    if profit or loss :
+                        cout("tracking ended")
                         order.profit_change(pourcentage_change)
                         # release function
                         break
