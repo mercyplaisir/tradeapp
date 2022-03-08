@@ -7,10 +7,10 @@ from dataclasses import dataclass,field
 
 # import requests
 from binance import BinanceSocketManager, AsyncClient
-# import sys
-# sys.path.append('..')
+import sys
+sys.path.append('..')
 from common import TAKE_PROFIT, percent_change, URL, HISTORY_ENDPOINT, send_data,track_order
-
+from base import CryptoPair
 
 @dataclass
 class Order:
@@ -52,6 +52,10 @@ class Order:
 
     profit:float = field(init=False,default=0.0)
 
+    def __post_init__(self):
+      if float(self.price) == 0.0:
+        self.price = CryptoPair(self.symbol).get_price()
+
     @classmethod
     def profit_change(cls,newvalue):
         cls.profit = newvalue
@@ -75,7 +79,7 @@ class Order:
 #   "orderListId": -1, #//Unless OCO, value will be -1
 #   "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
 #   "transactTime": 1507725176595,
-#   "price": "60000",
+#   "price": "0.0000000",
 #   "origQty": "10.00000000",
 #   "executedQty": "10.00000000",
 #   "cummulativeQuoteQty": "10.00000000",
@@ -124,16 +128,4 @@ class Order:
 
 
 # order1=Order(**d)
-# track_order(order=order1)
-# # order2 = Order(**d)
-# order1.save()
-# # Order.change()
-# order1.change()
-
-# print(order2.profit)
-# print(Order.profit)
-# Order.profit = 4
-# print(order2.profit)
-# print(Order.profit)
-
-# print(Order.profit)
+# print(order1)

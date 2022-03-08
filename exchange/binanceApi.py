@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Type
 
 import pandas as pd
-import requests
+# import requests
 from binance.client import Client
 
 
