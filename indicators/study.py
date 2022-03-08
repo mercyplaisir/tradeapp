@@ -30,11 +30,13 @@ class Study:
             indicator.price_study(klines=klines) for indicator in indicators
         ]  # studying klines
 
-        number = (len(indicators) // 2) + 2
+        approv_for_buy = (len(indicators) // 2) + 2 # the middle + 2
 
-        if study_list.count("buy") >= number:
+        approv_for_sell = (len(indicators) // 2) + 1 # the middle + 1
+
+        if study_list.count("buy") >= approv_for_buy:
             return ("buy", study_list.count("buy"))
-        elif study_list.count("sell") >= number:
+        elif study_list.count("sell") >= approv_for_sell:
             return ("sell", study_list.count("sell"))
         else:
             return ("wait", 0)
