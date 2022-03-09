@@ -202,6 +202,7 @@ class BinanceClient:
         cryptopair .ex:BNBBTC, BTCUSDT
         """
         order_quantity: float = self._order_quantity(cryptopair)
+
         order_details: dict = self.client.order_market_sell(
             symbol=cryptopair, quantity=order_quantity,recvWindow=60000)
         self.coin = cryptopair.replace(self.coin)
@@ -224,7 +225,7 @@ class BinanceClient:
         q: float = balance / coin_price  # quantity
 
         if coin_price < 0.18:
-            return float(str(q)[:3])
+            return float(str(balance)[:3])
         coin_prices: dict[int, range] = {
             2: range(15, -1, -1),
             3: range(16, 49),
@@ -234,7 +235,7 @@ class BinanceClient:
         for item in coin_prices.items():
             key, value = item
             if coin_price in value:
-                return float(str(q)[:key])
+                return float(str(balance)[:key])
         cout('>>> Getting quantity for %s'%cryptopair)
 
     def __enter__(self):

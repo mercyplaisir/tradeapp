@@ -12,3 +12,4 @@ with BinanceClient() as client:
     # cr = get_cryptopair()
     # client._pass_order(cr,'sell')   
     print()
+    client._order_quantity()
