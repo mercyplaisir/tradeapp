@@ -222,7 +222,7 @@ class BinanceClient:
         balance = self.balance  # balance of the crypto i possess
         coin_price: float =  cryptopair.get_price()
           # price of the crypto i want to go in
-        q: float = balance / coin_price  # quantity
+        q: float = balance * coin_price  # quantity
 
         if coin_price < 0.18:
             return float(str(balance)[:3])
