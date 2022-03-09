@@ -206,6 +206,7 @@ class BinanceClient:
         coin_price: float =  cryptopair.get_price()
           # price of the crypto i want to go in
         q: float = balance * coin_price  # quantity
+        q = float(round(q,8)) 
 
 
         order_details: dict = self.client.order_market_sell(
