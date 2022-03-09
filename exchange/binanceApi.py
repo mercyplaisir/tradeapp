@@ -201,41 +201,41 @@ class BinanceClient:
 
         cryptopair .ex:BNBBTC, BTCUSDT
         """
-        # order_quantity: float = self._order_quantity(cryptopair)
+        order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_sell(
-            symbol=cryptopair, quantity=self.balance,recvWindow=60000)
+            symbol=cryptopair, quantity=order_quantity,recvWindow=60000)
         self.coin = cryptopair.replace(self.coin)
         cout(f">>>Sell Order passed for {cryptopair} ")
         return order_details
 
-    # def _order_quantity(self, cryptopair: CryptoPair) -> float:
-    #     """
-    #     parameters: -balance. ex: 20$
-    #                 -coin. ex: BTC,ETH
+    def _order_quantity(self, cryptopair: CryptoPair) -> float:
+        """
+        parameters: -balance. ex: 20$
+                    -coin. ex: BTC,ETH
 
-    #     for use when buying
+        for use when buying
 
-    #     return quantity(float)
-    #     """
-    #     balance = self.balance  # balance of the crypto i possess
-    #     coin_price: float = (
-    #         cryptopair.get_price()
-    #     )  # price of the crypto i want to go in
-    #     q: float = balance / coin_price  # quantity
+        return quantity(float)
+        """
+        balance = self.balance  # balance of the crypto i possess
+        coin_price: float = (
+            cryptopair.get_price()
+        )  # price of the crypto i want to go in
+        q: float = balance / coin_price  # quantity
 
-    #     if coin_price < 0.18:
-    #         return float(str(q)[:3])
-    #     coin_prices: dict[int, range] = {
-    #         2: range(15, -1, -1),
-    #         3: range(16, 49),
-    #         5: range(50, 5000),
-    #         6: range(5000, 10**6),
-    #     }
-    #     for item in coin_prices.items():
-    #         key, value = item
-    #         if coin_price in value:
-    #             return float(str(q)[:key])
-    #     cout('>>> Getting quantity for %s'%cryptopair)
+        if coin_price < 0.18:
+            return float(str(q)[:3])
+        coin_prices: dict[int, range] = {
+            2: range(15, -1, -1),
+            3: range(16, 49),
+            5: range(50, 5000),
+            6: range(5000, 10**6),
+        }
+        for item in coin_prices.items():
+            key, value = item
+            if coin_price in value:
+                return float(str(q)[:key])
+        cout('>>> Getting quantity for %s'%cryptopair)
 
     def __enter__(self):
         """enter special method"""
