@@ -185,12 +185,12 @@ def track_order(order):
                     if profit or loss :
                         cout("tracking ended")
                         order.profit_change(pourcentage_change)
-                        cout(order.profit)
+                        # cout(order.profit)
                         # release function
                         break
                     else:
                         cout(
-                            f"price:{price} - profit:{round(pourcentage_change,2)}"
+                            f"price:{price} - profit:{round(pourcentage_change,2)} - all time profit : {round(order.profit,2)}"
                             + " - still waiting..."
                         )
                         time.sleep(2.5)
