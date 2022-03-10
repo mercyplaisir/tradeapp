@@ -185,8 +185,6 @@ def track_order(order):
                     if profit or loss :
                         cout("tracking ended")
                         order.profit_change(pourcentage_change)
-                        # cout(order.profit)
-                        # release function
                         break
                     else:
                         cout(
