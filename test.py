@@ -13,3 +13,4 @@ with BinanceClient() as client:
     # client._pass_order(cr,'sell')   
     print()
     client._order_quantity()
+    ('')

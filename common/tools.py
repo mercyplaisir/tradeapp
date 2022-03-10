@@ -14,7 +14,7 @@ import requests
 from binance import BinanceSocketManager,AsyncClient
 # from base.order import Order
 
-from dbcontroller import DbEngine
+# from dbcontroller import DbEngine
 # from base import Coin
 
 TAKE_PROFIT = 0.5
@@ -28,7 +28,7 @@ STATUS_ENDPOINT = "/status"
 HISTORY_ENDPOINT = "/history"
 
 
-db = DbEngine()
+# db = DbEngine()
 
 def percent_calculator(number: float, percentage: float) -> float:
     """
@@ -139,10 +139,10 @@ def convert_ts_str(ts_str):
 
 # SELECT cryptopair FROM relationalcoin WHERE basecoin or quotecoin not in (SELECT shortname from Coin)
 
-def clean_database():
+# def clean_database():
     
-    requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
-    db.requestDB(requete= requete)
+#     requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
+#     db.requestDB(requete= requete)
 
 def cout(*args):
     now = datetime.time(datetime.now())
@@ -185,11 +185,12 @@ def track_order(order):
                     if profit or loss :
                         cout("tracking ended")
                         order.profit_change(pourcentage_change)
+                        cout(order.profit)
                         # release function
                         break
                     else:
                         cout(
-                            f"price:{price} - profit:{pourcentage_change}"
+                            f"price:{price} - profit:{round(pourcentage_change,2)}"
                             + " - still waiting..."
                         )
                         time.sleep(2.5)
