@@ -12,7 +12,7 @@ from datetime import datetime
 
 import requests
 from binance import BinanceSocketManager,AsyncClient
-# from base.order import Order
+from base.order import Order
 
 # from dbcontroller import DbEngine
 # from base import Coin
@@ -147,7 +147,8 @@ def convert_ts_str(ts_str):
 def cout(*args):
     now = datetime.time(datetime.now())
     time_info = f'time -> {now}'
-    print(f'{args} \t {time_info} ')
+    profit = f'profit -> {Order.profit}'
+    print(f'{args} \t {time_info} \t {profit}')
 
 
 
