@@ -204,15 +204,17 @@ class BinanceClient:
         cryptopair .ex:BNBBTC, BTCUSDT
         """
         # order_quantity: float = self._order_quantity(cryptopair)
-        balance = float(round(self.balance, 8))  # balance of the crypto i possess
+        balance = self.balance  # balance of the crypto i possess
 
-        # 0coin_price: float =  cryptopair.get_price()
-        # price of the crypto i want to go in
-        # q: float = balance * coin_price  # quantity
-        # q = float(round(q,8))
+        coin_price: float =  cryptopair.get_price()
+        q: float = balance * coin_price  # quantity
+        q = float(round(q,8))
         order_details: dict = self.client.order_market_sell(
-            symbol=cryptopair, recvWindow=60000, quantity=balance
-        )  # ,quoteOrderQty=q ,)
+            symbol=cryptopair,
+            recvWindow=60000,
+           # quantity=balance,
+            quoteOrderQty=q 
+        )
 
         self.coin = cryptopair.replace(self.coin)
         cout(f">>>Sell Order passed for {cryptopair} ")
