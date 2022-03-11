@@ -58,7 +58,7 @@ class Order:
 
     @classmethod
     def profit_change(cls,newvalue):
-        cls.profit = newvalue
+        cls.profit += newvalue
 
     def save(self):
         """save by sending order to the assistant server"""
