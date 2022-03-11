@@ -12,7 +12,7 @@ from datetime import datetime
 
 import requests
 from binance import BinanceSocketManager,AsyncClient
-from base.order import Order
+# from base.order import Order
 
 # from dbcontroller import DbEngine
 # from base import Coin
@@ -29,6 +29,7 @@ HISTORY_ENDPOINT = "/history"
 
 
 # db = DbEngine()
+total_profit = 0.0
 
 def percent_calculator(number: float, percentage: float) -> float:
     """
@@ -147,13 +148,15 @@ def convert_ts_str(ts_str):
 def cout(*args):
     now = datetime.time(datetime.now())
     time_info = f'time -> {now}'
-    profit = f'profit -> {Order.profit}'
+    profit = f'profit -> {total_profit}'
     print(f'{args} \t {time_info} \t {profit}')
 
 
 
 def track_order(order):
         """Create a loop tracking the order until the TAKEPROFIT hitted"""
+        global total_profit
+
         order_symbol = order.symbol
         order_price = order.price
         buy_order = True if order.side == "BUY" else False
@@ -186,6 +189,7 @@ def track_order(order):
                     if profit or loss :
                         cout("tracking ended")
                         order.profit_change(pourcentage_change)
+                        total_profit +=round(pourcentage_change,2)
                         break
                     else:
                         cout(
