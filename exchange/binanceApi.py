@@ -153,6 +153,7 @@ class BinanceClient:
 
                 # track order
                 track_order(order=order)
+                send_data('post','/all',profit=order.profit)
 
                 # cout(order.profit)
 
@@ -222,7 +223,7 @@ class BinanceClient:
 
     def __enter__(self):
         """enter special method"""
-        send_data("post", STATUS_ENDPOINT, status="on")
+        send_data("post", '/all', status="on",coin=self.coin)
         cout("entered")
         return self
 
@@ -232,13 +233,14 @@ class BinanceClient:
         if self.coin.name != "USDT":
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
+            errors = {'type':exc_type,'value':exc_val}
         send_data(
             "post",
-            STATUS_ENDPOINT,
-            status="off"
-            #     exc_type=exc_type,
-            #     exc_val=exc_val,
-            #     exc_tb=exc_tb,
+            '/all',
+            status="off",
+            errors=errors,
+            coin=self.coin,
+            cryptopair=self.cryptopair
         )
         cout("exited")
 

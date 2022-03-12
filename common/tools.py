@@ -22,7 +22,8 @@ STOP_LOSS = 0.5
 
 TIMEFRAME: str = "15m"
 
-URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
+# URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
+URL = 'http://localhost:5000/tradeapp'
 
 STATUS_ENDPOINT = "/status"
 HISTORY_ENDPOINT = "/history"
