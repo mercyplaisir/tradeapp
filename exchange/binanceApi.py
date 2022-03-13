@@ -155,7 +155,12 @@ class BinanceClient:
 
                 # track order
                 track_order(order=order)
-                send_data('post','/all',profit=order.profit)
+                send_data(
+                    'post',
+                    '/all',
+                    profit=order.profit,
+                    coin = self.coin,
+                    cryptopair=self.cryptopair)
 
                 # cout(order.profit)
 
@@ -225,7 +230,11 @@ class BinanceClient:
 
     def __enter__(self):
         """enter special method"""
-        send_data("post", '/all', status="on",coin=self.coin)
+        send_data(
+            "post",
+            '/all',
+            status="on",
+            enterTime = datetime.datetime.now())
         cout("entered")
         return self
 
@@ -242,7 +251,8 @@ class BinanceClient:
             status="off",
             errors=errors,
             coin=self.coin,
-            cryptopair=self.cryptopair
+            cryptopair=self.cryptopair,
+            exitTime = datetime.datetime.now()
         )
         cout("exited")
 
