@@ -44,10 +44,12 @@ class Study:
         # else:
         #     return ("wait", 0)
         
-        if buy_count > sell_count:
-            return ("buy", buy_count)
-        elif sell_count < buy_count:
-            return ("sell", sell_count)
-        elif buy_count==sell_count:
-            #return ("wait", sell_count)
-            return ("wait",len(study_list))
+        # if buy_count > sell_count:
+        #     return ("buy", buy_count)
+        # elif sell_count < buy_count:
+        #     return ("sell", sell_count)
+        # elif buy_count==sell_count:
+        #     return ("wait", sell_count)
+            # return ("wait",len(study_list))
+        
+        return study_list
