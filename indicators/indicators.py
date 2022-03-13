@@ -23,8 +23,8 @@ def count_for_decision(
     if false_count >= count_for_dec:
         return "sell"
     else:
-        # return "wait"
-        return f"truecount:{true_count}, falsecount:{false_count} "
+        return "wait"
+        # return f"truecount:{true_count}, falsecount:{false_count} "
 
 
 class Indicator(Protocol):
