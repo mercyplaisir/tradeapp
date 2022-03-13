@@ -20,7 +20,7 @@ from binance import BinanceSocketManager,AsyncClient
 TAKE_PROFIT = 0.5
 STOP_LOSS = 0.5
 
-TIMEFRAME: str = "15m"
+TIMEFRAME: str = "1h"
 
 # URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
 URL = 'http://localhost:5000/tradeapp'
@@ -169,7 +169,6 @@ def track_order(order):
                 while True:
                     response = await tscm.recv()
                     price = float(response["k"]["c"])
-                    # cout(response)
 
                     pourcentage_change = percent_change(float(order_price), price)
 
