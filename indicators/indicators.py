@@ -11,16 +11,16 @@ import numpy as np
 indicators = ["Macd", "BollingerBands", "Rsi", "Sma", "Stochastic"]
 
 start = 5
-count_for_buy = start // 2 + 1
+count_for_dec = start // 2 + 1
 count_for_wait = start // 2
 
 
 def count_for_decision(
     true_count: int, false_count: int, buy_condition: bool = True
 ) -> str:
-    if true_count >= count_for_buy and buy_condition:
+    if true_count >= count_for_dec and buy_condition:
         return "buy"
-    if false_count == count_for_wait:
+    if false_count >= count_for_dec:
         return "sell"
     else:
         # return "wait"
