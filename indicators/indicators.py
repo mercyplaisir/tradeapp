@@ -20,9 +20,9 @@ def count_for_decision(
 ) -> str:
     if true_count >= count_for_dec and buy_condition:
         return "buy"
-    if false_count >= count_for_dec:
+    elif false_count >= count_for_dec:
         return "sell"
-    else:
+    elif true_count==count_for_wait or false_count==count_for_wait :
         return "wait"
         # return f"truecount:{true_count}, falsecount:{false_count} "
 

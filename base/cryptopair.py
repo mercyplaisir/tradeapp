@@ -195,9 +195,9 @@ class CryptoPair:
         # decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
         klines_df = self.get_klines()
         # for cryptopair, klines_df in cryptopairs:
-        decision: tuple(str, int) = self._decision(klines=klines_df)
+        dec = self._decision(klines=klines_df)
         # decision_results[cryptopair] = decision
-        return decision
+        return dec
 
     # def _cleaner(self,data:tuple[str,int]) :
     #     """Clean a returned study from Study module"""
