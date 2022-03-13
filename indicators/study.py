@@ -47,7 +47,7 @@ class Study:
         
         if buy_count > sell_count:
             return ("buy", buy_count)
-        elif sell_count < buy_count:
+        elif sell_count > buy_count:
             return ("sell", sell_count)
         else:
             return (f"buy:{buy_count},sell:{sell_count} wait", wait_count)
