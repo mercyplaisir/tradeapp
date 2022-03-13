@@ -20,7 +20,7 @@ from binance import BinanceSocketManager,AsyncClient
 TAKE_PROFIT = 0.5
 STOP_LOSS = 0.5
 
-TIMEFRAME: str = "1h"
+TIMEFRAME: str = "15m"
 
 # URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
 URL = 'http://localhost:5000/tradeapp'
