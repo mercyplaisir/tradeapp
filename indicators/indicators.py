@@ -20,10 +20,10 @@ def count_for_decision(
 ) -> str:
     if true_count >= count_for_buy and buy_condition:
         return "buy"
-    if true_count == count_for_wait or false_count == count_for_wait:
-        return "wait"
-    else:
+    if false_count == count_for_wait:
         return "sell"
+    else:
+        return "wait"
 
 
 class Indicator(Protocol):
