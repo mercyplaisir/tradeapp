@@ -32,6 +32,7 @@ TRADED: list[CryptoPair] = []
 
 utils_file = "base/utils.json"
 
+sleep_time = '5m'
 
 @dataclass
 class BinanceClient:
@@ -120,8 +121,9 @@ class BinanceClient:
             if len(cryptopair_decision) == 0:
                 cout(">>> No opportunity for trading")
                 cout(cryptopair_decision_uncleaned)
-                sleep_time = interval_to_milliseconds(TIMEFRAME) / 1000
-                time.sleep(sleep_time)
+
+                sleep_time_sec = interval_to_milliseconds(sleep_time) / 1000
+                time.sleep(sleep_time_sec)
             else:
                 cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
                 cout("opportunities on: ", cryptopair_decision)
