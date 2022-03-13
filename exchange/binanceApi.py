@@ -233,7 +233,7 @@ class BinanceClient:
         if self.coin.name != "USDT":
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
-            errors = {'type':exc_type,'value':exc_val}
+        errors = {'type':exc_type,'value':exc_val}
         send_data(
             "post",
             '/all',
