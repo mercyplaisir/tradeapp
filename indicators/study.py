@@ -32,6 +32,7 @@ class Study:
 
         buy_count = study_list.count("buy")
         sell_count = study_list.count("sell")
+        wait_count = study_list.count("wait")
 
         # approv_for_buy = (len(indicators) // 2) + 2 # the middle + 2
 
@@ -49,7 +50,5 @@ class Study:
         elif sell_count < buy_count:
             return ("sell", sell_count)
         else:
-            return ("wait", sell_count)
-            # return ("wait",len(study_list))
+            return ("wait", wait_count)
         
-        # return study_list
