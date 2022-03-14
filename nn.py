@@ -1,7 +1,7 @@
 import sys
 from base import Coin
 from base.cryptopair import CryptoPair
-from indicators import Study
+from strategies import Study
 
 name = sys.argv[1]
 # coin = Coin(name)
