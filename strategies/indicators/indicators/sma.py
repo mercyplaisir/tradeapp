@@ -18,13 +18,13 @@ class Sma(Indicator):
     """
 
     @classmethod
-    def create_indicator(cls, periode: int = 20, klines: pd.DataFrame = None):
+    def create_indicator(cls, klines: pd.DataFrame, periode: int = 20 ):
         sma = btalib.sma(klines.copy(), period=periode)
         sma.df.columns = [f"sma{periode}"]
         return sma.df
 
     @classmethod
-    def price_study(cls, klines: pd.DataFrame = None, period: int = 20):
+    def price_study(cls, klines: pd.DataFrame , period: int = 20):
         """
         -Parameters
         -------------

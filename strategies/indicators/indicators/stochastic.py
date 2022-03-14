@@ -18,14 +18,14 @@ class Stochastic(Indicator):
     """
 
     @classmethod
-    def create_indicator(cls, klines: pd.DataFrame = None):
+    def create_indicator(cls, klines: pd.DataFrame ):
 
         stoch = btalib.stochastic(klines.copy())
         # stoch.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
         return stoch.df
 
     @classmethod
-    def price_study(cls, klines: pd.DataFrame = None):
+    def price_study(cls, klines: pd.DataFrame ):
         """
         study made on klines(dataframe)
 

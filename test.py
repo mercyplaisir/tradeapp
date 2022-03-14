@@ -1,5 +1,5 @@
 from base import CryptoPair
-from exchange import BinanceClient
+from exchanges import BinanceClient
 import json
 
 def get_cryptopair():

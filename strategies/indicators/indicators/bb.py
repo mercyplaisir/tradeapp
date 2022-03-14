@@ -18,13 +18,13 @@ class Bollingerbands(Indicator):
     """
 
     @classmethod
-    def create_indicator(cls, periode: int = 30, klines: pd.DataFrame = None):
+    def create_indicator(cls, klines: pd.DataFrame, periode: int = 30 ):
         bb = btalib.bbands(klines, period=periode, devs=2.0)
         # bb.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
         return bb.df
 
     @classmethod
-    def price_study(cls, klines: pd.DataFrame = None, period: int = 20):
+    def price_study(cls, klines: pd.DataFrame, period: int = 20):
         """
         study made on klines(dataframe)
         columns = ["mid","top","bot"]

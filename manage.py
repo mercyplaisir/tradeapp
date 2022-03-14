@@ -1,4 +1,4 @@
-from exchange.binanceApi import BinanceClient
+from exchanges import BinanceClient
 from base import CryptoPair
 #run file
 

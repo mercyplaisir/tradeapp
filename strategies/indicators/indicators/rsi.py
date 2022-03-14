@@ -16,14 +16,14 @@ class Rsi(Indicator):
     """
 
     @classmethod
-    def create_indicator(cls, periode: int = 14, klines: pd.DataFrame = None):
+    def create_indicator(cls, klines: pd.DataFrame , periode: int = 14):
         """create RSI indicator"""
         rsiInd = btalib.rsi(klines.copy(), period=periode)
         # rsiInd.df.to_csv(f"{KLINEPATH}", index=True, na_rep=0)  # enregistrer dans le fichier
         return rsiInd.df
 
     @classmethod
-    def price_study(cls, klines: pd.DataFrame = None):
+    def price_study(cls, klines: pd.DataFrame):
         """
         study made on klines(dataframe)
 

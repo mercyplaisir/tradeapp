@@ -16,7 +16,7 @@ from common import TIMEFRAME, STATUS_ENDPOINT, send_data
 from common.tools import interval_to_milliseconds, track_order, cout
 from dbcontroller import DbEngine
 
-from base import Coin, CryptoPair, Order, cryptopair
+from base import Coin, CryptoPair, Order
 
 from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
 
@@ -38,18 +38,11 @@ sleep_time = '5m'
 class BinanceClient:
     """My Binance account representation"""
 
-    # Timeframe
-
     # Rescue Value
     rescue_coin: Coin = Coin("USDT")
 
     # Binance instance
     client: Client = connect()
-    # Database Instance
-    database: DbEngine = DbEngine()
-
-    # price when placed order
-    # order_price: float = 0.0
 
     @property
     def coin(self) -> Coin:
