@@ -3,6 +3,7 @@
 
 import pandas as pd
 from strategies.strategies import BbRsi
+from strategies.strategies.base import Strategie
 
 
 # factory.register("rsi", Rsi)
@@ -27,15 +28,18 @@ def count_for_decision(
     elif true_count==count_for_wait or false_count==count_for_wait :
         return "wait"
         # return f"truecount:{true_count}, falsecount:{false_count} "
+
+choosen_strategie = BbRsi()
+
 class Study:
     """Class for Study"""
 
     # ==========Decision================
     @classmethod
-    def decision(cls, klines: pd.DataFrame):  # cryptopair: str):
+    def decision(cls, klines: pd.DataFrame, strategie:Strategie = choosen_strategie):  # cryptopair: str):
         """For getting a decision from a given strategie"""
 
-        given_strategie_decision = BbRsi.decision(data=klines)
+        given_strategie_decision = strategie.decision(data=klines)
         return given_strategie_decision
 
 

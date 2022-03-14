@@ -1,10 +1,11 @@
 """base Classes for strategies"""
 from abc import ABC,abstractmethod
+from typing import Literal
 
 class Strategie(ABC):
     """Abstract parent class for strategies"""
     @classmethod @abstractmethod
-    def decision(cls):
+    def decision(cls) -> Literal['buy','sell','wait']:
         """return decision of the strategies"""
 
     def __add__(self,other):

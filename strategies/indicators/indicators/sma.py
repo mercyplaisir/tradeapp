@@ -5,7 +5,7 @@ import numpy as np
 import btalib
 
 from strategies.indicators.base import Indicator
-from strategies.indicators.study import COUNT_START,count_for_decision
+from strategies.study import COUNT_START,count_for_decision
 
 
 import warnings
