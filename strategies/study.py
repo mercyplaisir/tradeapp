@@ -39,7 +39,7 @@ class Study:
     def decision(cls, klines: pd.DataFrame, strategie:Strategie = choosen_strategie):  # cryptopair: str):
         """For getting a decision from a given strategie"""
 
-        given_strategie_decision = strategie.decision(data=klines)
+        given_strategie_decision:str = strategie.decision(data=klines)
         return given_strategie_decision
 
 
