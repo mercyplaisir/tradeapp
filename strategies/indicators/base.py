@@ -1,19 +1,5 @@
 from typing import Protocol
 
-
-import btalib
-import pandas as pd
-import numpy as np
-
-
-indicators = ["Macd", "BollingerBands", "Rsi", "Sma", "Stochastic"]
-
-
-
-
-
-
-
 class Indicator(Protocol):
     """Abstract class of an indicator"""
 
@@ -29,6 +15,3 @@ class Indicator(Protocol):
 
 
 
-
-if __name__ == "__main__":
-    pass

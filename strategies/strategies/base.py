@@ -4,7 +4,9 @@ from typing import Literal
 
 class Strategie(ABC):
     """Abstract parent class for strategies"""
-    @classmethod @abstractmethod
+    
+    @classmethod 
+    @abstractmethod
     def decision(cls) -> Literal['buy','sell','wait']:
         """return decision of the strategies"""
 
