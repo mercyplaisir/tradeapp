@@ -1,10 +1,13 @@
+"""Tools for indicators"""
+from typing import Literal
+
 COUNT_START = 5 # for indicators study
 
 
 
 def count_for_decision(
     true_count: int, false_count: int, buy_condition: bool = True
-) -> str:
+) -> Literal['buy','sell','wait']:
 
     
     count_for_dec = COUNT_START // 2 + 1

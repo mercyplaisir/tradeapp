@@ -31,7 +31,7 @@ class Rsi(Indicator):
 
         indicator_kline: pd.DataFrame = cls.create_indicator(klines=klines.copy(deep=True))
         exchangeklines = klines.copy(deep=True)
-        decision:str = cls._method2( klines=indicator_kline,exchangeklines=exchangeklines)
+        decision:str = cls._method2( kline=indicator_kline,exchangeklines=exchangeklines)
 
         return decision
 
