@@ -13,7 +13,7 @@ import requests
 
 from common import TIMEFRAME
 from dbcontroller import DbEngine
-from strategies import Study
+from strategies.study import Study
 
 # from base import Coin
 
