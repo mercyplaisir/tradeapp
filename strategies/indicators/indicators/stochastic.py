@@ -6,8 +6,7 @@ import numpy as np
 import btalib
 
 from strategies.indicators.base import Indicator
-from strategies.study import COUNT_START,count_for_decision
-
+from strategies.indicators.tools import COUNT_START,count_for_decision
 import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 

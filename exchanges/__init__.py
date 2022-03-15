@@ -1,1 +1,1 @@
-from exchanges.exchanges.binanceApi import BinanceClient
+from exchanges.exchanges import BinanceClient
