@@ -32,7 +32,7 @@ class Bollingerbands(Indicator):
         buy if : price goes under the bottom line
         """
 
-        indicator_kline: pd.DataFrame = cls.create_indicator(period, klines=klines.copy(deep=True))
+        indicator_kline: pd.DataFrame = cls.create_indicator( klines=klines.copy(deep=True),periode= period)
         exchangeklines = klines.copy(deep=True)
         decision:str = cls._method2( kline=indicator_kline,exchangeklines=exchangeklines)
 
