@@ -24,8 +24,10 @@ test = ''
 
 BINANCE_API_URL = "https://api.binance.com"
 
-EXCHANGE_API_URL = "https://testnet.binance.vision/api"
-TICKER_24H = EXCHANGE_API_URL + "/api/v3/ticker/24hr?symbol=%s"
+BINANCE_TESTNET_API_URL = "https://testnet.binance.vision"
+
+base_url = BINANCE_TESTNET_API_URL
+# TICKER_24H = EXCHANGE_API_URL + "/v3/ticker/24hr?symbol=%s"
 
 
 
@@ -106,13 +108,13 @@ class CryptoPair:
 
     def get_price(self) -> float:
         """get price of a cryptopair"""
-        url = TICKER_24H % (self.name)
+        url = "%s/api/v3/ticker/24hr?symbol=%s" % (base_url,self.name)
         resp = requests.get(url)
         return float(resp.json()["lastPrice"])
 
     def get_price_change(self) -> float:
         """gets priceChange of a crypto pair"""
-        url = TICKER_24H % (self.name)
+        url = "%s/api/v3/ticker/24hr?symbol=%s" % (base_url,self.name)
         resp = requests.get(url)
         return float(resp.json()["priceChangePercent"])
 
@@ -150,7 +152,7 @@ class CryptoPair:
         """
         # klines_list = self.client.get_historical_klines(
         #     self.name, self.TIMEFRAME, f"{interval} ago UTC")
-        url: str = f"{EXCHANGE_API_URL}/api/v3/klines?symbol={self.get_name()}&interval={TIMEFRAME}"
+        url: str = f"{base_url}/api/v3/klines?symbol={self.get_name()}&interval={TIMEFRAME}"
         klines_list: list = requests.get(url).json()
 
         # changer timestamp en date
@@ -195,30 +197,9 @@ class CryptoPair:
 
     def decision(self):
         """study cryptopair with it's klines"""
-        # cryptopairs = klines.items()
-        # cryptopairs_names = [cryptopair.name for cryptopair in cryptopairs]
-        # decision_results: dict[CryptoPair, str] = {}  # {'BNBBTC':'buy'}
         klines_df = self.get_klines()
-        # for cryptopair, klines_df in cryptopairs:
         dec = self._decision(klines=klines_df)
-        # decision_results[cryptopair] = decision
         return dec
-
-    # def _cleaner(self,data:tuple[str,int]) :
-    #     """Clean a returned study from Study module"""
-    #     decision , nb_indic = data
-    #     results: dict[CryptoPair, str] = {}
-    #     # clean
-    #     # for cryptopair, data in cryptopairs:
-    #         # decision, times = data
-    #         # when i possess ETH
-    #         # ETHBTC must be a 'sell'
-    #     if (cryptopair.is_basecoin(self.coin) and decision == "sell") or (
-    #         cryptopair.is_quotecoin(self.coin) and decision == "buy"
-    #     ):
-    #             results[cryptopair] = data
-    #     return results
-
 
     # def get_kline(self):
     #     \"""{
