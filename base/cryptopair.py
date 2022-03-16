@@ -26,7 +26,7 @@ BINANCE_API_URL = "https://api.binance.com"
 
 BINANCE_TESTNET_API_URL = "https://testnet.binance.vision"
 
-base_url = BINANCE_TESTNET_API_URL
+base_url = BINANCE_API_URL
 # TICKER_24H = EXCHANGE_API_URL + "/v3/ticker/24hr?symbol=%s"
 
 

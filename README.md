@@ -6,6 +6,7 @@ strategy that i have implemented to track rcryptopair price
 an opportunity.
 
 Indicators implemented :
+
                         - RSI
                         - MACD
                         - SMA 20
@@ -13,6 +14,9 @@ Indicators implemented :
                         - STOCHASTIC
                         - many more to be added
 Crypto tracked:
-                - All crypto that exceed 800M$ of capital
-                 see coinmarketcap.com 
+
+                -[ADA,BCH,BNB,BTC,ETH,LTC
+                LUNA,SOL,USDT,XRP]
+
+10 coins supported and +50 cryptopairs tracked
 
