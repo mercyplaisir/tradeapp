@@ -1,6 +1,6 @@
 import datetime
 import json
-from random import seed
+import random
 
 import time
 from dataclasses import dataclass
@@ -25,12 +25,12 @@ from base.sensitive import (
 )
 
 
-def connect(test:bool) -> Client:
+def connect(test: bool) -> Client:
     """Connect to binance"""
     if test:
         client = Client(BINANCE_PUBLIC_KEY_TEST, BINANCE_PRIVATE_KEY_TEST, testnet=True)
     elif not test:
-        client = Client(BINANCE_PUBLIC_KEY,BINANCE_PRIVATE_KEY)
+        client = Client(BINANCE_PUBLIC_KEY, BINANCE_PRIVATE_KEY)
     cout(">>>Connected successfully to binance success")
     return client
 
@@ -47,18 +47,15 @@ capital = 100
 class BinanceClient:
     """My Binance account representation"""
 
-    def __init__(self,testnet:bool=False) -> None:
+    def __init__(self, testnet: bool = False) -> None:
 
-        # Rescue Value      
+        # Rescue Value
         self.rescue_coin: Coin = Coin("USDT")
 
-        self.testnet: bool = testnet # for testing
+        self.testnet: bool = testnet  # for testing
 
         # Binance instance
         self.client: Client = connect(test=testnet)
-
-        
-        
 
     @property
     def coin(self) -> Coin:
@@ -134,32 +131,23 @@ class BinanceClient:
                 sleep_time_sec = interval_to_milliseconds(sleep_time) / 1000
                 time.sleep(sleep_time_sec)
             else:
-                cryptopairs = list(cryptopair_decision.items())  # [("BNB",("buy",3))]
+                cryptopairs = list(cryptopair_decision.items())  # [("BNB""buy"))]
+                cryptopairs_size = len(cryptopairs) - 1
                 cout("opportunities on: ", cryptopair_decision)
-                # contains nb_of indicators that approved
-                nb_indic = [value[1] for _, value in cryptopairs]  # value= ("buy",1)
 
-                index_of_max = nb_indic.index(
-                    max(nb_indic)
-                )  # index of the higher value
-
-                cryptopair_study: tuple[CryptoPair, tuple[str, int]] = cryptopairs[
-                    index_of_max
+                cryptopair_study: tuple[CryptoPair, str] = cryptopairs[
+                    random.randint(0, cryptopairs_size)
                 ]  # ("BNB",("buy",3))
                 cout(cryptopair_study)
 
                 # time.sleep(20)
 
-                choosen_cryptopair, (order_type, _) = cryptopair_study
+                choosen_cryptopair,order_type = cryptopair_study
                 # pass order (the quantity is calculated in passing order)
                 order: Order = self._pass_order(
                     cryptopair=choosen_cryptopair, order_type=order_type
                 )
 
-                # set new values
-                # bought BNBBTC
-                # old_coin = self.coin  # BTC
-                # self.coin = choosen_cryptopair.replace(coin=old_coin)  # BNB
                 self.cryptopair = choosen_cryptopair  # BNBBTC
 
                 # track order
@@ -184,22 +172,20 @@ class BinanceClient:
         order = Order(**order_details)
         return order.save()
 
-    def _cleaner(
-        self, study: dict[CryptoPair, tuple[str, int]]
-    ) -> dict[CryptoPair, str]:
+    def _cleaner(self, study: dict[CryptoPair, str]) -> dict[CryptoPair, str]:
         """Clean the given data througths the defined process"""
-        cryptopairs: dict[CryptoPair, tuple] = study.items()
+        cryptopairs: dict[CryptoPair, str] = study.items()
         results: dict[CryptoPair, str] = {}
         # clean
-        for cryptopair, data in cryptopairs:
-            decision, _ = data
+        for cryptopair, decision in cryptopairs:
             # when i possess ETH
             # ETHBTC must be a 'sell'
             if (cryptopair.is_basecoin(self.coin) and decision == "sell") or (
                 cryptopair.is_quotecoin(self.coin) and decision == "buy"
             ):
-                results[cryptopair] = data
+                results[cryptopair] = decision
         return results
+
     def _buy_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market Buy Order

@@ -5,7 +5,7 @@ class : CRYPTOPAIR,COIN
 """
 
 import datetime
-from typing import Protocol
+from typing import Literal, Protocol
 
 
 import pandas as pd
@@ -191,7 +191,7 @@ class CryptoPair:
         return self.name == __o.name
 
     @classmethod
-    def _decision(cls, klines: pd.DataFrame) -> tuple:
+    def _decision(cls, klines: pd.DataFrame) -> Literal['buy','sell','wait']:
         """Calculate the prices and return a decision"""
         return Study.decision(klines)
 
