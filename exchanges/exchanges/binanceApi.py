@@ -12,18 +12,25 @@ import pandas as pd
 from binance.client import Client
 
 
-from common import TIMEFRAME, STATUS_ENDPOINT, send_data
+from common import TIMEFRAME, send_data
 from common.tools import interval_to_milliseconds, track_order, cout
-from dbcontroller import DbEngine
 
 from base import Coin, CryptoPair, Order
 
-from base.sensitive import BINANCE_PRIVATE_KEY, BINANCE_PUBLIC_KEY
+from base.sensitive import (
+    BINANCE_PRIVATE_KEY,
+    BINANCE_PUBLIC_KEY,
+    BINANCE_PRIVATE_KEY_TEST,
+    BINANCE_PUBLIC_KEY_TEST,
+)
 
 
-def connect() -> Client:
+def connect(test:bool) -> Client:
     """Connect to binance"""
-    client = Client(BINANCE_PUBLIC_KEY, BINANCE_PRIVATE_KEY)
+    if test:
+        client = Client(BINANCE_PUBLIC_KEY_TEST, BINANCE_PRIVATE_KEY_TEST, testnet=True)
+    elif not test:
+        client = Client(BINANCE_PUBLIC_KEY,BINANCE_PRIVATE_KEY)
     cout(">>>Connected successfully to binance success")
     return client
 
@@ -32,17 +39,26 @@ TRADED: list[CryptoPair] = []
 
 utils_file = "base/utils.json"
 
-sleep_time = '5m'
+sleep_time = "5m"
+capital = 100
 
-@dataclass
+
+# @dataclass
 class BinanceClient:
     """My Binance account representation"""
 
-    # Rescue Value
-    rescue_coin: Coin = Coin("USDT")
+    def __init__(self,testnet:bool=False) -> None:
 
-    # Binance instance
-    client: Client = connect()
+        # Rescue Value      
+        self.rescue_coin: Coin = Coin("USDT")
+
+        self.testnet: bool = testnet # for testing
+
+        # Binance instance
+        self.client: Client = connect(test=testnet)
+
+        
+        
 
     @property
     def coin(self) -> Coin:
@@ -149,11 +165,12 @@ class BinanceClient:
                 # track order
                 track_order(order=order)
                 send_data(
-                    'post',
-                    '/all',
+                    "post",
+                    "/all",
                     profit=order.profit,
-                    coin = self.coin,
-                    cryptopair=self.cryptopair)
+                    coin=self.coin,
+                    cryptopair=self.cryptopair,
+                )
 
                 # cout(order.profit)
 
@@ -183,13 +200,11 @@ class BinanceClient:
             ):
                 results[cryptopair] = data
         return results
-
     def _buy_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
         """
-
         # order_quantity: float = self._order_quantity(cryptopair)
         order_details: dict = self.client.order_market_buy(
             symbol=cryptopair.name, recvWindow=60000, quoteOrderQty=self.balance
@@ -207,14 +222,14 @@ class BinanceClient:
         # order_quantity: float = self._order_quantity(cryptopair)
         balance = self.balance  # balance of the crypto i possess
 
-        coin_price: float =  cryptopair.get_price()
+        coin_price: float = cryptopair.get_price()
         q: float = balance * coin_price  # quantity
-        q = float(round(q,8))
+        q = float(round(q, 8))
         order_details: dict = self.client.order_market_sell(
             symbol=cryptopair,
             recvWindow=60000,
-           # quantity=balance,
-            quoteOrderQty=q 
+            # quantity=balance,
+            quoteOrderQty=q,
         )
 
         self.coin = cryptopair.replace(self.coin)
@@ -223,11 +238,7 @@ class BinanceClient:
 
     def __enter__(self):
         """enter special method"""
-        send_data(
-            "post",
-            '/all',
-            status="on",
-            enterTime = datetime.datetime.now())
+        send_data("post", "/all", status="on", enterTime=datetime.datetime.now())
         cout("entered")
         return self
 
@@ -237,42 +248,14 @@ class BinanceClient:
         if self.coin.name != "USDT":
             self._pass_order(self.rescue_cryptopair, "sell")
             self.coin = self.rescue_coin
-        errors = {'type':exc_type,'value':exc_val}
+        errors = {"type": exc_type, "value": exc_val}
         send_data(
             "post",
-            '/all',
+            "/all",
             status="off",
             errors=errors,
             coin=self.coin,
             cryptopair=self.cryptopair,
-            exitTime = datetime.datetime.now()
+            exitTime=datetime.datetime.now(),
         )
         cout("exited")
-
-    # def _order_quantity(self, cryptopair: CryptoPair) -> float:
-    #     """
-    #     parameters: -balance. ex: 20$
-    #                 -coin. ex: BTC,ETH
-
-    #     for use when buying
-
-    #     return quantity(float)
-    #     """
-    #     balance = self.balance  # balance of the crypto i possess
-    #     coin_price: float =  cryptopair.get_price()
-    #       # price of the crypto i want to go in
-    #     q: float = balance * coin_price  # quantity
-
-    #     if coin_price < 0.18:
-    #         return float(str(balance)[:3])
-    #     coin_prices: dict[int, range] = {
-    #         2: range(15, -1, -1),
-    #         3: range(16, 49),
-    #         5: range(50, 5000),
-    #         6: range(5000, 10**6),
-    #     }
-    #     for item in coin_prices.items():
-    #         key, value = item
-    #         if coin_price in value:
-    #             return float(str(balance)[:key])
-    #     cout('>>> Getting quantity for %s'%cryptopair)

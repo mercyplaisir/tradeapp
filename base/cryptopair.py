@@ -19,13 +19,18 @@ from strategies.study import Study
 
 db = DbEngine()
 
+real = 'api'
+test = ''
 
 BINANCE_API_URL = "https://api.binance.com"
-TICKER_24H = BINANCE_API_URL + "/api/v3/ticker/24hr?symbol=%s"
+
+EXCHANGE_API_URL = "https://testnet.binance.vision/api"
+TICKER_24H = EXCHANGE_API_URL + "/api/v3/ticker/24hr?symbol=%s"
+
 
 
 class CoinObject(Protocol):
-    ...
+    name:str
 
 
 class CryptoPair:
@@ -37,7 +42,7 @@ class CryptoPair:
     def __init__(self, name: str) -> None:
 
         self.name: str = name
-        self.verify()
+        # self.verify()
 
     def get_name(self):
         """return Cryptopair name"""
@@ -145,7 +150,7 @@ class CryptoPair:
         """
         # klines_list = self.client.get_historical_klines(
         #     self.name, self.TIMEFRAME, f"{interval} ago UTC")
-        url: str = f"https://api.binance.com/api/v3/klines?symbol={self.get_name()}&interval={TIMEFRAME}"
+        url: str = f"{EXCHANGE_API_URL}/api/v3/klines?symbol={self.get_name()}&interval={TIMEFRAME}"
         klines_list: list = requests.get(url).json()
 
         # changer timestamp en date
@@ -299,7 +304,7 @@ class Coin:
     def __init__(self, name) -> None:
 
         self.name: str = name
-        self.verify()
+        # self.verify()
 
     def __repr__(self):
         return f"{self.name}({self.fullname})"
@@ -326,6 +331,13 @@ class Coin:
             + self.get_name()
             + "'"
         )[0][0]
+    
+    @property
+    def price(self):
+        url = "https://testnet.binance.vision/api/v3/ticker/price?symbol=%s" % (self.name+'USDT')
+        resp = requests.get(url).json()
+        return float(resp["price"])
+
 
     def get_cryptopair_related(self) -> list[CryptoPair]:
         """return all coins related cryptopair
@@ -352,3 +364,4 @@ class Coin:
     
     def __eq__(self, __o: object) -> bool:
         return self.name == __o.name
+

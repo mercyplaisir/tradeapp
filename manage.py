@@ -2,5 +2,5 @@ from exchanges import BinanceClient
 from base import CryptoPair
 #run file
 
-with BinanceClient() as client:
+with BinanceClient(testnet=True) as client:
     client.run()
