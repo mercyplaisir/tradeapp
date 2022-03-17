@@ -3,7 +3,7 @@
 class : CRYPTOPAIR,COIN
 
 """
-
+from abc import ABC
 import datetime
 from typing import Literal, Protocol
 
@@ -31,11 +31,11 @@ base_url = BINANCE_API_URL
 
 
 
-class CoinObject(Protocol):
-    name:str
+class CryptoObject(ABC):
+    pass
 
 
-class CryptoPair:
+class CryptoPair(CryptoObject):
     """
     a representation of a cryptopair
     ex: BNBBTC
@@ -50,54 +50,42 @@ class CryptoPair:
         """return Cryptopair name"""
         return self.name
 
+    @property
+    def basecoin(self) -> CryptoObject:
+        """return a basecoin from a cryptopair
+        ex: BNBBTC return BNB"""
+        return self.get_basecoin()
+
+    @property
+    def quotecoin(self) -> CryptoObject:
+        """return quotecoin from a cryptopair
+        ex: BNBBTC return BTC"""
+        return self.get_quotecoin()
     def verify(self):
         """Verify if the crypto pair really exits in the database"""
 
-        result = db.selectDB(
-            f"select basecoin from relationalcoin where cryptopair='{self.get_name()}'"
-        )
-        if len(result) == 0:
+        if not self.basecoin:
             raise ValueError("the cryptopair doesn't exit in the database")
 
-    @property
-    def basecoin(self) -> CoinObject:
-        """return a basecoin from a cryptopair
-        ex: BNBBTC return BNB"""
-        result: list[tuple[str]] = db.selectDB(
-            f"select basecoin from relationalcoin where cryptopair='{self.get_name()}'"
-        )
+        return self.get_quotecoin()
+        
 
-        name: str = result[0][0]
-        return Coin(name)
-
-    @property
-    def quotecoin(self) -> CoinObject:
-        """return quotecoin from a cryptopair
-        ex: BNBBTC return BTC"""
-        result = db.selectDB(
-            "select quotecoin from relationalcoin"
-            + f" where cryptopair='{self.name}'"
-        )
-
-        name: str = result[0][0]
-        return Coin(name)
-
-    def is_basecoin(self, coin: CoinObject) -> bool:
+    def is_basecoin(self, coin: CryptoObject) -> bool:
         """return True if it iss a basecoin"""
         return self.basecoin == coin
 
-    def is_quotecoin(self, coin: CoinObject) -> bool:
+    def is_quotecoin(self, coin: CryptoObject) -> bool:
         """return True if it iss a quotecoin"""
         return self.quotecoin == coin
 
-    def is_any(self, coin: CoinObject):
+    def is_any(self, coin: CryptoObject):
         """To see if a coin is in the cryptopair"""
         if self.is_basecoin(coin) or self.is_quotecoin(coin):
             return True
         # if not found
         raise ValueError(f"{coin.name} is not in {self.name} ")
 
-    def replace(self, coin: CoinObject) -> CoinObject:
+    def replace(self, coin: CryptoObject) -> CryptoObject:
         """return basecoin if the given coin is quotecoin vice-versa"""
         if self.is_basecoin(coin):
             return self.quotecoin
@@ -188,7 +176,11 @@ class CryptoPair:
         return hash(self.get_name())
         
     def __eq__(self, __o: object) -> bool:
-        return self.name == __o.name
+        if isinstance(__o,str):
+            return self.name == __o
+        elif isinstance(__o,Coin):
+            return self.name == __o.name
+        return
 
     @classmethod
     def _decision(cls, klines: pd.DataFrame) -> Literal['buy','sell','wait']:
@@ -200,82 +192,27 @@ class CryptoPair:
         klines_df = self.get_klines()
         dec = self._decision(klines=klines_df)
         return dec
-
-    # def get_kline(self):
-    #     \"""{
-    #             "e": "kline",     // Event type
-    #             "E": 123456789,   // Event time
-    #             "s": "BNBBTC",    // Symbol
-    #             "k": {
-    #             "t": 123400000, // Kline start time
-    #             "T": 123460000, // Kline close time
-    #             "s": "BNBBTC",  // Symbol
-    #             "i": "1m",      // Interval
-    #             "f": 100,       // First trade ID
-    #             "L": 200,       // Last trade ID
-    #             "o": "0.0010",  // Open price
-    #             "c": "0.0020",  // Close price
-    #             "h": "0.0025",  // High price
-    #             "l": "0.0015",  // Low price
-    #             "v": "1000",    // Base asset volume
-    #             "n": 100,       // Number of trades
-    #             "x": false,     // Is this kline closed?
-    #             "q": "1.0000",  // Quote asset volume
-    #             "V": "500",     // Taker buy base asset volume
-    #             "Q": "0.500",   // Taker buy quote asset volume
-    #             "B": "123456"   // Ignore
-    #             }
-    #         }
-
-    #         \"""
-
-    #     async def main():
-    #         client = await AsyncClient.create()
-    #         bm = BinanceSocketManager(client)
-    #         # start any sockets here, i.e a trade socket
-    #         ts = bm.kline_socket(self.name)  # .trade_socket('BNBBTC')
-    #         # then start receiving messages
-    #         async with ts as tscm:
-    #             while True:
-    #                 res = await tscm.recv()
-    #                 break
-
-    #         await client.close_connection()
-    #         return res
-
-    #     while True:
-    #         try:
-    #             loop = asyncio.get_event_loop()
-    #             klines_list: dict[str, dict] = loop.run_until_complete(main())
-    #             kline_data: dict[str, Union[str, int, bool]] = klines_list['k'].copy()
-    #             break
-    #         except asyncio.exceptions.TimeoutError:
-    #             pass
-
-    #     unwanted: list = ['T', 'q', 'n', 'V', 'Q', 'B', "i", "f", "L", "s", "x"]
-    #     for key in unwanted:
-    #         kline_data.pop(key)
-
-    #     for kline in kline_data:
-    #         kline['t'] = datetime.datetime.fromtimestamp(kline['t'] / 1e3)
-
-    #     columns = ['date', 'open', 'close', 'high', 'low', 'volume']
-    #     keys = list(kline_data.keys())
-    #     klines: dict = {}
-
-    #     for i in range(len(keys)):
-    #         column = columns[i]
-    #         key = keys[i]
-    #         klines[column] = kline_data[key]
-    #     # klines_pd: pd.DataFrame = pd.DataFrame(klines_list)  # changer en dataframe
-    #     # klines_pd.columns = ['date', 'open', 'high', 'low','close', 'volume']  # renommer les colonnes
-    #     crypto_klines: dict[str, dict[str, Union[str, datetime.datetime]]] = {self.name: klines}
-    #     return crypto_klines
+    
+    def get_basecoin(self)->CryptoObject:
+        result = db.selectDB(
+            f"select basecoin from relationalcoin where cryptopair='{self.get_name()}'"
+        )
+        name: str = result[0][0]
+        return Coin(name)
         
+    def get_quotecoin(self)->CryptoObject:
+        result = db.selectDB(
+            "select quotecoin from relationalcoin"
+            + f" where cryptopair='{self.name}'"
+        )
+
+        name: str = result[0][0]
+        return Coin(name)
+
+    
 
 
-
-class Coin:
+class Coin(CryptoObject):
     """
     Representation of a Coin
 
@@ -320,7 +257,7 @@ class Coin:
         return float(resp["price"])
 
 
-    def get_cryptopair_related(self) -> list[CryptoPair]:
+    def get_cryptopair_related(self) -> list[CryptoObject]:
         """return all coins related cryptopair
         where the coin appears to be a quotecoin
          or basecoin"""
@@ -334,8 +271,6 @@ class Coin:
         )
         return [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
 
-    def __add__(self, other: object) -> CryptoPair:
-        return CryptoPair(self.name + other.name)
 
     @staticmethod
     def get_all_coins():
@@ -343,6 +278,13 @@ class Coin:
         result: list[tuple[str]] = db.selectDB(requete="select shortname from Coin")
         return [Coin(name[0]) for name in result]
     
+    def __add__(self, other: object) -> CryptoPair:
+        return CryptoPair(self.name + other.name)
+
     def __eq__(self, __o: object) -> bool:
-        return self.name == __o.name
+        if isinstance(__o,str):
+            return self.name == __o
+        elif isinstance(__o,Coin):
+            return self.name == __o.name
+        return
 

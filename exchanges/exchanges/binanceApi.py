@@ -164,7 +164,7 @@ class BinanceClient:
 
     def _pass_order(self, cryptopair: CryptoPair, order_type: str) -> Order:
         """Analyse and choose the right order to pass"""
-        order_caller = {"buy": self._buy_order, "sell": self._sell_order}
+        order_caller = {"buy": self.buy_order, "sell": self.sell_order}
         caller = order_caller[order_type]
 
         cout("%s for %s" % (order_type, cryptopair))
@@ -186,7 +186,7 @@ class BinanceClient:
                 results[cryptopair] = decision
         return results
 
-    def _buy_order(self, cryptopair: CryptoPair) -> dict:
+    def buy_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market Buy Order
         cryptopair .ex:BNBBTC, BTCUSDT
@@ -199,7 +199,7 @@ class BinanceClient:
         cout(f">>>Buy Order passed for {cryptopair}")
         return order_details
 
-    def _sell_order(self, cryptopair: CryptoPair) -> dict:
+    def sell_order(self, cryptopair: CryptoPair) -> dict:
         """
         Market sell Order
 
