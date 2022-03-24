@@ -10,7 +10,7 @@ def get_cryptopair():
         return CryptoPair(last_cryptopair_traded)
 with BinanceClient() as client:
     cr = get_cryptopair()
-    client._pass_order(cr,'sell')   
+    client.pass_order(cr,'sell')   
     print()
     #client._order_quantity()
     #('')

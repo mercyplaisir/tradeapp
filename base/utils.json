@@ -1,1 +1,4 @@
-{"tracked": {"coin": "USDT", "cryptopair": "XTZBTC"}}
+{
+    "coin": "USDT",
+    "cryptopair": "XTZBTC"
+}

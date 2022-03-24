@@ -3,6 +3,7 @@ got some useful math formula
 """
 import asyncio
 from decimal import Decimal
+import json
 import time
 from typing import Type, Union, Optional, Dict
 import dateparser
@@ -23,11 +24,12 @@ STOP_LOSS = 0.5
 TIMEFRAME: str = "15m"
 
 # URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
-URL = 'http://localhost:5000/tradeapp'
+URL = 'http://localhost:5000/set'
 
-STATUS_ENDPOINT = "/status"
-HISTORY_ENDPOINT = "/history"
 
+
+
+config_file = 'base/utils.json'
 
 # db = DbEngine()
 
@@ -142,8 +144,8 @@ def convert_ts_str(ts_str):
 
 # def clean_database():
     
-#     requete = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
-#     db.requestDB(requete= requete)
+#     request = "DELETE  FROM relationalcoin WHERE basecoin not in (SELECT shortname from Coin)"
+#     db.request(request= request)
 
 def cout(*args):
     now = datetime.time(datetime.now())
@@ -152,55 +154,23 @@ def cout(*args):
 
 
 
-def track_order(order):
-        """Create a loop tracking the order until the TAKEPROFIT hitted"""
-        order_symbol = order.symbol
-        order_price = order.price
-        buy_order = True if order.side == "BUY" else False
+def set_new_data(**kwargs) -> bool:
+    """Set the new status"""
+    data: dict = get_config_file()
+    data.update(kwargs)
+    write_in_json_file(config_file,data)
 
-        cout(f'orderPrice:{order_price}')
-        async def main():
-            client = await AsyncClient.create()
-            socket_manager = BinanceSocketManager(client)
-            # start any sockets here, i.e a trade socket
-            kline = socket_manager.kline_socket(order_symbol)  # .trade_socket('BNBBTC')
-            # then start receiving messages
-            async with kline as tscm:
-                while True:
-                    response = await tscm.recv()
-                    price = float(response["k"]["c"])
 
-                    pourcentage_change = percent_change(float(order_price), price)
+def get_config_file() -> dict:
+    data:dict = load_from_json_file(config_file)
+    return data
 
-                    profit_in_buy = buy_order and pourcentage_change >= TAKE_PROFIT
-                    profit_in_sell = not buy_order and -pourcentage_change >= TAKE_PROFIT
-                    
-                    profit = profit_in_buy or profit_in_sell
+def load_from_json_file(path):
+    with open(path,'r') as f:
+        loaded_data = json.load(f)
+    return loaded_data
 
-                    loss_in_buy = buy_order and -pourcentage_change >=  STOP_LOSS
-                    loss_in_sell = not buy_order and pourcentage_change >= STOP_LOSS
-
-                    loss = loss_in_buy or loss_in_sell
-
-                    if profit or loss :
-                        cout("tracking ended")
-                        order.profit_change(pourcentage_change)
-                        break
-                    else:
-                        cout(
-                            f"price:{price} - profit:{round(pourcentage_change,2)} - all time profit : {round(order.profit,2)}"
-                            + " - still waiting..."
-                        )
-                        time.sleep(2.5)
-            await client.close_connection()
-            # return response
-
-        while True:
-            try:
-                loop = asyncio.get_event_loop()
-
-                loop.run_until_complete(main())
-                break
-            except asyncio.exceptions.TimeoutError:
-                pass
-
+def write_in_json_file(path,data):
+    with open(path,'w') as f:
+        formatted_data = json.dumps(data)
+        f.write(formatted_data)

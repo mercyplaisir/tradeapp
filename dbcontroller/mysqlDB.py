@@ -12,21 +12,21 @@ class MysqlDB:
         self.connected = False
         self.con = None  # for connection
 
-    def requestDB(self, requete:str):
+    def request(self, request:str):
         self._connect()
 
         mycursor = self.con.cursor()
-        mycursor.execute(requete)
+        mycursor.execute(request)
         mycursor.close()
 
         self._disconnect()
 
-    def selectDB(self, requete:str):
+    def select(self, request:str):
         self._connect()
         if not self.connected:
             raise ValueError("Not Connected")
         cursor = self.con.cursor()
-        cursor.execute(requete)
+        cursor.execute(request)
         result:tuple = cursor.fetchall()
         cursor.close()
 

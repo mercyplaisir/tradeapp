@@ -23,7 +23,7 @@ class Sma(Indicator):
         return sma.df
 
     @classmethod
-    def price_study(cls, klines: pd.DataFrame , period: int = 20):
+    def price_study(cls, klines: pd.DataFrame , period: int = 200):
         """
         -Parameters
         -------------
@@ -35,7 +35,7 @@ class Sma(Indicator):
         distance = 9 / 100  # distance between the close price and the sma. 9%
 
         binanceKlines = klines.copy(deep=True)
-        kline = cls.create_indicator(period, klines=klines.copy())
+        kline = cls.create_indicator( klines=klines.copy(),periode = period)
 
         smaValues = np.array(kline[f"sma{period}"][-COUNT_START:-1])
 

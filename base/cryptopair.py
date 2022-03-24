@@ -14,6 +14,7 @@ import requests
 from common import TIMEFRAME
 from dbcontroller import DbEngine
 from strategies.study import Study
+from errors.errors import CoinNotFound
 
 # from base import Coin
 
@@ -41,9 +42,10 @@ class CryptoPair(CryptoObject):
     ex: BNBBTC
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str,quotecoin:bool) -> None:
 
         self.name: str = name
+        self._principal_coin = self.basecoin if quotecoin else self.quotecoin
         # self.verify()
 
     def get_name(self):
@@ -194,14 +196,14 @@ class CryptoPair(CryptoObject):
         return dec
     
     def get_basecoin(self)->CryptoObject:
-        result = db.selectDB(
+        result = db.select(
             f"select basecoin from relationalcoin where cryptopair='{self.get_name()}'"
         )
         name: str = result[0][0]
         return Coin(name)
         
     def get_quotecoin(self)->CryptoObject:
-        result = db.selectDB(
+        result = db.select(
             "select quotecoin from relationalcoin"
             + f" where cryptopair='{self.name}'"
         )
@@ -209,7 +211,39 @@ class CryptoPair(CryptoObject):
         name: str = result[0][0]
         return Coin(name)
 
+    @classmethod
+    def study(cls,data:list[CryptoObject]):
+        """study a given list of cryptopsirs
+         and return profitable cryptopsirs"""
+        cryptopair_decision_uncleaned: dict[CryptoPair, pd.DataFrame] = {
+            cryptopair: cryptopair.decision() for cryptopair in data
+        }
+
+        # clean the cryptopairs_study dict so we only have
+        # possible trades
+        return cls._cleaner(cryptopair_decision_uncleaned)
+        
+
+    @classmethod
+    def _cleaner(cls, study: dict[CryptoObject, str]):# -> dict[cls, str]:
+        """Clean the given data througths the defined process"""
+        cryptopairs: dict[cls, str] = study.items()
+        results: dict[cls, str] = {}
+        # clean
+        for cryptopair, decision in cryptopairs:
+            # when i possess ETH
+            # ETHBTC must be a 'sell'
+            coin_i_possess =cryptopair._principal_coin
+
+            valid_sell:bool = cryptopair.is_basecoin(coin_i_possess) and decision == "sell"
+            valid_buy: bool = cryptopair.is_quotecoin(coin_i_possess) and decision == "buy"
+            
+            if valid_sell or valid_buy:
+                results[cryptopair] = decision
+        return results
     
+    def sell_quantity(self):
+        """calculate the quantity for a sell order"""
 
 
 class Coin(CryptoObject):
@@ -233,19 +267,19 @@ class Coin(CryptoObject):
 
     def verify(self):
         """verify if the given coin name exists in database"""
-        result = db.selectDB(
-            requete="select fullname from Coin where shortname='"
+        result = db.select(
+            request="select fullname from Coin where shortname='"
             + self.get_name()
             + "'"
         )
         if len(result) == 0:
-            raise ValueError("the coin doens't exist in the database")
+            raise CoinNotFound("the coin does not exist in the database")
 
     @property
     def fullname(self):
         """fullname getter"""
-        return db.selectDB(
-            requete="select fullname from Coin where shortname='"
+        return db.select(
+            request="select fullname from Coin where shortname='"
             + self.get_name()
             + "'"
         )[0][0]
@@ -262,20 +296,24 @@ class Coin(CryptoObject):
         where the coin appears to be a quotecoin
          or basecoin"""
         coin_name = self.get_name()
-        cryptopairs_name: list[tuple[str]] = db.selectDB(
-            requete="select cryptopair from relationalcoin where basecoin ='"
-            + coin_name
-            + "' or quotecoin ='"
+        cryptopairs_basecoins: list[tuple[str]] = db.select(
+            request="select cryptopair from relationalcoin where basecoin ='"
+            + coin_name +"' "
+        )
+        basecoins = [CryptoPair(cryptopair_name[0],quotecoin=False) for cryptopair_name in cryptopairs_basecoins]
+        cryptopairs_name: list[tuple[str]] = db.select(
+            request="select cryptopair from relationalcoin where quotecoin ='"
             + coin_name
             + "' "
         )
-        return [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
+        quotecoins = [CryptoPair(cryptopair_name[0],quotecoin=True) for cryptopair_name in cryptopairs_name]
+        return basecoins + quotecoins
 
 
     @staticmethod
     def get_all_coins():
         """Return all coins stored in the database"""
-        result: list[tuple[str]] = db.selectDB(requete="select shortname from Coin")
+        result: list[tuple[str]] = db.select(request="select shortname from Coin")
         return [Coin(name[0]) for name in result]
     
     def __add__(self, other: object) -> CryptoPair:

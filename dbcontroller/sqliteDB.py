@@ -1,34 +1,36 @@
 import sqlite3
 from pathlib import Path
+from typing import Any, List, Tuple, Union
 
-DBSTORAGE: str = str(Path('dbcontroller/appDB.db').resolve())
+#db file
+DB_STORAGE: str = str(Path('dbcontroller/appDB.db').resolve())
 
 
 class SqliteDB:
 
-    def requestDB(self, requete):
-        con = sqlite3.connect(DBSTORAGE)
-        mycursor = con.cursor()
+    def request(self, request:str ):
+        """for sending a request to the database 
+        specially for request : DELETE,UPDATE,INSERT"""
+        con = sqlite3.connect(DB_STORAGE)
+        cursor = con.cursor()
 
 
-        mycursor.execute(requete)
+        cursor.execute(request)
 
         # Save(commit) changes
         con.commit()
         con.close()
         return True
 
-    def selectDB(self, requete):
-        con = sqlite3.connect(DBSTORAGE)
-        mycursor = con.cursor()
+    def select(self, request:str )->Union[List,Any]:
+        """for selecting in the database
+        specially for request : SELECT"""
+        con = sqlite3.connect(DB_STORAGE)
+        cursor = con.cursor()
 
-        mycursor.execute(requete)
-        resultat = mycursor.fetchall()
+        cursor.execute(request)
+        result = cursor.fetchall()
         con.close()
-        return resultat
+        return result
 
 
-if __name__=='__main__':
-    con = SqliteDB()
-    res = con.selectDB("select * from Coin")
-    print(res)
