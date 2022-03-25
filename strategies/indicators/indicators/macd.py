@@ -27,7 +27,7 @@ class Macd(Indicator):
         """
         distance = 0.9
 
-        kline = cls.create_indicator(klines=klines.copy())
+        kline = cls.create_indicator(klines=klines.copy(deep=True))
         macd = kline["macd"][-COUNT_START:-1]
         signal = kline["signal"][-COUNT_START:-1]
         histogram = kline["histogram"][-COUNT_START:-1]
@@ -40,6 +40,7 @@ class Macd(Indicator):
         decision = (
             uptrend * histogram_up * between_histogram_macd_ok * between_signal_macd
         )
+        
 
         true_count = list(decision).count(True)
         false_count = list(decision).count(False)

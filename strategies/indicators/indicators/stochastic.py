@@ -36,7 +36,7 @@ class Stochastic(Indicator):
         line_down = 20
         between_2_lines = 7  # between the stochastic lines
 
-        kline:pd.DataFrame = cls.create_indicator(klines=klines.copy())
+        kline:pd.DataFrame = cls.create_indicator(klines=klines.copy(deep=True))
         
         k_not_higher = line_up > kline["k"]
         k_not_lower = kline["k"] > line_down

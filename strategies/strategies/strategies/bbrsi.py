@@ -1,7 +1,7 @@
 """bollinger bands and rsi strategies"""
 import pandas as pd
 
-from strategies.strategies.base import Strategie
+from strategies.base import Strategie
 from strategies.indicators import Bollingerbands, Rsi
 
 
@@ -16,9 +16,7 @@ class BbRsi(Strategie):
         rsi_decision = Rsi.price_study(klines=klines)
         bb_decision = Bollingerbands.price_study(klines=klines)
 
-        if rsi_decision == 'buy' and bb_decision == 'buy':
-            return 'buy'
-        elif rsi_decision == 'sell' and bb_decision == 'sell':
-            return 'sell'
-        else:
-            return 'wait'
+        if rsi_decision ==  bb_decision:
+            return rsi_decision
+
+        return 'wait'

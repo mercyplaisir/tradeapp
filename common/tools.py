@@ -26,7 +26,8 @@ TIMEFRAME: str = "15m"
 # URL = "https://tradeappapiassistant.herokuapp.com/tradeapp"
 URL = 'http://localhost:5000/set'
 
-
+STATUS_ENDPOINT = "/status"
+HISTORY_ENDPOINT = "/history"
 
 
 config_file = 'base/utils.json'

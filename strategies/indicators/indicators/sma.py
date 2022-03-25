@@ -35,7 +35,7 @@ class Sma(Indicator):
         distance = 9 / 100  # distance between the close price and the sma. 9%
 
         binanceKlines = klines.copy(deep=True)
-        kline = cls.create_indicator( klines=klines.copy(),periode = period)
+        kline = cls.create_indicator( klines=klines.copy(deep=True),periode = period)
 
         smaValues = np.array(kline[f"sma{period}"][-COUNT_START:-1])
 

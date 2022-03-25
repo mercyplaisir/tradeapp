@@ -10,6 +10,10 @@ class Strategie(ABC):
     def decision(cls) -> Literal['buy','sell','wait']:
         """return decision of the strategies"""
 
-    def __add__(self,other):
-        assert isinstance(other,Strategie), "can not perfom addition on type %s"%type(other)
+    def __add__(self,other:object):
         """adding two strategies return they decision"""
+        assert isinstance(other,Strategie), "can not perfom addition on type %s"%type(other.__class__)
+        if self.decision() == other.decision():
+            return self.decision()
+        else:
+            return 'wait'

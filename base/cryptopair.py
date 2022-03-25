@@ -5,7 +5,7 @@ class : CRYPTOPAIR,COIN
 """
 from abc import ABC
 import datetime
-from typing import Literal, Protocol
+from typing import Dict, Literal, Protocol, Union
 
 
 import pandas as pd
@@ -30,7 +30,7 @@ BINANCE_TESTNET_API_URL = "https://testnet.binance.vision"
 base_url = BINANCE_API_URL
 # TICKER_24H = EXCHANGE_API_URL + "/v3/ticker/24hr?symbol=%s"
 
-
+fav = ['BNBBTC','BTCUSDT','ETHUSDT','BNBUSDT']
 
 class CryptoObject(ABC):
     pass
@@ -189,6 +189,7 @@ class CryptoPair(CryptoObject):
         """Calculate the prices and return a decision"""
         return Study.decision(klines)
 
+    @property
     def decision(self):
         """study cryptopair with it's klines"""
         klines_df = self.get_klines()
@@ -210,25 +211,44 @@ class CryptoPair(CryptoObject):
 
         name: str = result[0][0]
         return Coin(name)
+    
+    # def study(self):
+    #     return self._cleaner()
+    
+    # def _cleaner(self)->Dict[str,Union[bool,str]]:
+    #     coin_i_possess = self._principal_coin
+    #     decision = self.decision
+    #     valid_sell:bool = self.is_basecoin(coin_i_possess) and decision == "sell"
+    #     valid_buy: bool = self.is_quotecoin(coin_i_possess) and decision == "buy"
+            
+    #     if valid_sell or valid_buy:
+    #         return {'valid':True,'decision':decision}
+    #     else:
+    #         return {'valid':False,'decision':decision}
 
     @classmethod
-    def study(cls,data:list[CryptoObject]):
+    def study(cls,data:Union[list[CryptoObject],CryptoObject]):
         """study a given list of cryptopsirs
          and return profitable cryptopsirs"""
-        cryptopair_decision_uncleaned: dict[CryptoPair, pd.DataFrame] = {
-            cryptopair: cryptopair.decision() for cryptopair in data
-        }
-
+        if isinstance(data,list):
+            cryptopair_decision_uncleaned: dict[CryptoPair, str] = {
+                cryptopair: cryptopair.decision for cryptopair in data
+            }
+        elif isinstance(data,CryptoObject):
+            cryptopair_decision_uncleaned = {
+                data : data.decision
+            }
         # clean the cryptopairs_study dict so we only have
         # possible trades
         return cls._cleaner(cryptopair_decision_uncleaned)
         
 
     @classmethod
-    def _cleaner(cls, study: dict[CryptoObject, str]):# -> dict[cls, str]:
+    def _cleaner(cls, study: dict[CryptoObject, str]) -> CryptoObject:# -> dict[cls, str]:
         """Clean the given data througths the defined process"""
         cryptopairs: dict[cls, str] = study.items()
         results: dict[cls, str] = {}
+        favorite = None
         # clean
         for cryptopair, decision in cryptopairs:
             # when i possess ETH
@@ -240,7 +260,8 @@ class CryptoPair(CryptoObject):
             
             if valid_sell or valid_buy:
                 results[cryptopair] = decision
-        return results
+                favorite = cryptopair
+        return favorite
     
     def sell_quantity(self):
         """calculate the quantity for a sell order"""

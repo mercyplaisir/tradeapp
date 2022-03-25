@@ -1,3 +1,6 @@
-from errors.errors import CryptoPairDoesNotExist
 
-raise CryptoPairDoesNotExist("coucou")
+
+import numpy as np
+
+cd = np.array([True,False,True])
+
