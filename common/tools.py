@@ -10,9 +10,9 @@ import dateparser
 import math
 import pytz
 from datetime import datetime
-
+import pandas as pd
 import requests
-from binance import BinanceSocketManager,AsyncClient
+# from binance import BinanceSocketManager,AsyncClient
 # from base.order import Order
 
 # from dbcontroller import DbEngine
@@ -52,17 +52,32 @@ def percent_change(original_number: float, new_number: float) -> int:
 
 
 def send_data( method, endpoint,**kwargs):
-        """send requested data to the assistant API"""
-        methods = {"get": requests.get,
-        "post": requests.post,
-        "put": requests.put,
-        "delete": requests.delete}
-        caller = methods[method]
-        url = URL+endpoint
+    """choose where to send data"""
+    # save_online(method, endpoint,**kwargs) # save online
+    save_local(**kwargs) #save local
+
+def save_online(method, endpoint,**kwargs):
+    """send requested data to the assistant API"""
+    methods = {"get": requests.get,
+    "post": requests.post,
+    "put": requests.put,
+    "delete": requests.delete}
+    caller = methods[method]
+    url = URL+endpoint
+    
+#caller(url,data=kwargs)
+
+def save_local(method, endpoint,**kwargs):
+    """save to local machine"""
+    #retrieve data
+    #gets data saved localy
+    #reformat data
+    #resave data
         
-        caller(url,data=kwargs)
+    data = pd.DataFrame(kwargs)
 
-
+    data.to_csv('trades.csv',mode='a',header=False,index=False)
+    
 
 def date_to_milliseconds(date_str: str) -> int:
     """Convert UTC date to milliseconds

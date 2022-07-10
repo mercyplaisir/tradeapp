@@ -1,7 +1,7 @@
 """bollinger bands and rsi strategies"""
 import pandas as pd
 
-from strategies.base import Strategie
+from strategies.strategies.base import Strategie
 from strategies.indicators import Bollingerbands, Rsi
 
 

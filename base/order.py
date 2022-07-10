@@ -1,84 +1,77 @@
-"""Representation of an Order object"""
+# handles order
 
 import asyncio
-import datetime
 import time
-from dataclasses import dataclass,field
+from typing import Callable
+import pandas as pd
 
-# import requests
+import requests
 from binance import BinanceSocketManager, AsyncClient
-import sys
 
-# from common.tools import STOP_LOSS, cout
-sys.path.append('..')
-from common import TAKE_PROFIT, percent_change, HISTORY_ENDPOINT, send_data,cout,STOP_LOSS
-from base import CryptoPair
+from common import (TAKE_PROFIT,
+ percent_change,
+   cout,
+   STOP_LOSS)
 
-@dataclass
+base_url = "https://api.binance.com"
+
+filename = 'orders.csv'
+
+storage = f'data\{filename}'
+
 class Order:
-    """Representation of an Order passed by binance API
-
-      {
-    "symbol": "BTCUSDT",
-    "orderId": 28,
-    "orderListId": -1,# //Unless OCO, value will be -1
-    "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
-    "transactTime": 1507725176595,
-    "price": "0.30000000",
-    "origQty": "10.00000000",
-    "executedQty": "10.00000000",
-    "cummulativeQuoteQty": "10.00000000",
-    "status": "FILLED",
-    "timeInForce": "GTC",
-    "type": "MARKET",
-    "side": "SELL"
-      }
-
-    """
-
-    # orderDetails : dict
-    symbol: str
-    orderId: int
-    orderListId: int
-    clientOrderId: str
-    transactTime: int
-    price: str
-    origQty: str
-    executedQty: str
-    cummulativeQuoteQty: str
-    status: str
-    timeInForce: str
-    type: str
-    side: str
-    fills:list =field(init=True,default=None)
-
-    profit:float = field(init=False,default=0.0)
-
-    def __post_init__(self):
-      if float(self.price) == 0.0:
-        self.price = CryptoPair(self.symbol).get_price()
+    """Representation of an order"""
+    profit = 0.0 # for profit made all along
+    def __init__(self, crypto_name:str) -> None:
+        self.cryptopair = crypto_name
+        self.order = {} # passed order details
+    
+    def get_price(self) -> float:
+        """get price of a cryptopair"""
+        url = "%s/api/v3/ticker/24hr?symbol=%s" % (base_url,self.cryptopair)
+        resp = requests.get(url)
+        return float(resp.json()["lastPrice"])
 
     @classmethod
     def profit_change(cls,newvalue):
         cls.profit += newvalue
-
-    def save(self):
-        """save by sending order to the assistant server"""
-        send_data("post", HISTORY_ENDPOINT, **self.dict())
-        return self
-
-    def dict(self):
-        """return dict object of all variable of the class"""
-        d=self.__dict__
-        if d.get('fills'):
-          d.pop('fills')
-        return d
     
+    def buy(self,func:Callable):
+        """For buy order 
+        params:
+        ::func: buy order function,
+        ::name: name of the crypto to buy"""
+        order_details = func(self.cryptopair)
+        self.save(order_details)
+
+    def sell(self,func:Callable):
+        """For sell order 
+        params:
+        ::func: sell order function
+        ::name : name of the crypto to sell"""
+        order_details = func(self.cryptopair)
+        self.save(order_details)
+    def clean(self):
+        if float(self.order.get('price')) == 0.0:
+            self.order['price'] = self.get_price()
+
+    def save(self,**kwargs):
+        """save order"""
+        self.order = kwargs
+        self.clean(self.order)
+        if kwargs.get('fills'):
+          kwargs['fills'] = [1]
+        data = pd.DataFrame(kwargs)
+
+        data.to_csv(storage,mode='a',header=False,index=False) 
+
+        self.track_order()
+
 
     def track_order(self):
             """Create a loop tracking the order until the TAKEPROFIT hitted"""
-            order_symbol = self.symbol
-            order_price = self.price
+            order_symbol = self.order.get('symbol')
+            order_price = self.order.get('price')
             buy_order = True if self.side == "BUY" else False
 
             cout(f'orderPrice:{order_price}')
@@ -127,61 +120,4 @@ class Order:
                 except asyncio.exceptions.TimeoutError:
                     pass
 
-
-
-# d={
-#   "symbol": "BTCUSDT",
-#   "orderId": 28,
-#   "orderListId": -1, #//Unless OCO, value will be -1
-#   "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
-#   "transactTime": 1507725176595,
-#   "price": "0.0000000",
-#   "origQty": "10.00000000",
-#   "executedQty": "10.00000000",
-#   "cummulativeQuoteQty": "10.00000000",
-#   "status": "FILLED",
-#   "timeInForce": "GTC",
-#   "type": "MARKET",
-#   "side": "SELL",
-#   "fills": [
-#     {
-#       "price": "4000.00000000",
-#       "qty": "1.00000000",
-#       "commission": "4.00000000",
-#       "commissionAsset": "USDT",
-#       "tradeId": 56
-#     },
-#     {
-#       "price": "3999.00000000",
-#       "qty": "5.00000000",
-#       "commission": "19.99500000",
-#       "commissionAsset": "USDT",
-#       "tradeId": 57
-#     },
-#     {
-#       "price": "3998.00000000",
-#       "qty": "2.00000000",
-#       "commission": "7.99600000",
-#       "commissionAsset": "USDT",
-#       "tradeId": 58
-#     },
-#     {
-#       "price": "3997.00000000",
-#       "qty": "1.00000000",
-#       "commission": "3.99700000",
-#       "commissionAsset": "USDT",
-#       "tradeId": 59
-#     },
-#     {
-#       "price": "3995.00000000",
-#       "qty": "1.00000000",
-#       "commission": "3.99500000",
-#       "commissionAsset": "USDT",
-#       "tradeId": 60
-#     }
-#   ]
-# }
-
-
-# order1=Order(**d)
-# print(order1)
+    

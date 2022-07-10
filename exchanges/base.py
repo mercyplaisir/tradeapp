@@ -13,7 +13,7 @@ class Exchange(ABC):
     #turning into a context manager to track
     # when it goes down
     @abstractmethod
-    def __enter(self):
+    def __enter__(self):
         """enter function for the context manager"""
     @abstractmethod
     def __exit__(self,*args,**kwargs):

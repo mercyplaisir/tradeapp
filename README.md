@@ -37,7 +37,7 @@ run those lines of code each one
 
 after running the last line. it should open the '.env' file and you should put in info in such order
 
-##### .env
+#####  .env
 
     BINANCEPUBLICKEY="your binance public key"
     BINANCEPRIVATEKEY="your binance secret key"
@@ -46,7 +46,7 @@ after that you should be ready to go by running
 
     python3 -m virtualenv venv
     source venv/bin/activate
-    python3 -r install requirements.txt
+    pip3 install -r requirements.txt
     python3 run.py
 
 Thanks for visiting the repos.

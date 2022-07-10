@@ -6,9 +6,13 @@ import requests
 from binance.client import Client
 
 
-from common.tools import cout,get_config_file,send_data,set_new_data
+from common.tools import (cout,
+get_config_file,
+send_data,
+set_new_data)
 
 from exchanges.base import Exchange
+from base.order import Order
 
 from base.sensitive import (
     BINANCE_PRIVATE_KEY,
@@ -76,21 +80,50 @@ class BinanceClient(Exchange):
         )
 
     
-    def pass_order(self, cryptopair_name: str, order_type: str) ->dict:
-        """Analyse and choose the right order to pass"""
-        order_caller = {"buy": self.buy_order, "sell": self.sell_order}
-        caller = order_caller[order_type]
+    def pass_order(self, cryptopair: str, order_type: str) ->dict:
+        """Analyse and choose the right order to pass
+        
+                    {
+            symbol: "BTCUSDT",
+            orderId: 28,
+            orderListId: -1, //Unless OCO, value will be -1
+            clientOrderId: "6gCrw2kRUAF9CvJDGP16IP",
+            transactTime: 1507725176595,
+            price: "0.00000000",
+            origQty: "10.00000000",
+            executedQty: "10.00000000",
+            cummulativeQuoteQty: "10.00000000",
+            status: "FILLED",
+            timeInForce: "GTC",
+            type: "MARKET",
+            side: "SELL",
+            fills:[1,2]
+            }
+        
+        """
+        # order_caller = {"buy": self.buy_order, "sell": self.sell_order}
+        # caller = order_caller[order_type]
 
-        cout("%s for %s" % (order_type, cryptopair_name))
-        order_details = caller(cryptopair_name)
-
+        # cout("%s for %s" % (order_type, cryptopair_name))
+        # order_details = caller(cryptopair_name)
+        
+        
 
         old_coin = self.coin
-        self.coin = cryptopair_name.replace(old_coin)
+        # self.coin = cryptopair_name.replace(old_coin)
         
-        #send order to the api
-        send_data('post','/order',order_details)
-        return order_details
+        # #send order to the api
+        # # send_data(order_details)
+        # print(order_details)
+        if order_type == 'buy':
+            Order(crypto_name=cryptopair).buy(self.buy_order())
+        if order_type == 'sell':
+            Order(crypto_name=cryptopair).buy(self.sell_order())
+        
+        #set new coin i possess
+        self.coin = cryptopair.replace(old_coin,'')
+        
+        # return order_details
 
 
 
@@ -139,12 +172,12 @@ class BinanceClient(Exchange):
 
     def __enter__(self):
         """enter special method"""
-        send_data(
-            "post",
-            "/all",
-            status="on",
-            enterTime=datetime.datetime.now()
-        )
+        # send_data(
+        #     "post",
+        #     "/all",
+        #     status="on",
+        #     enterTime=datetime.datetime.now()
+        # )
         cout("entered")
         return self
 
@@ -156,14 +189,14 @@ class BinanceClient(Exchange):
             self.coin = self.rescue_coin
         errors = {"type": exc_type, "value": exc_val}
         config_file = get_config_file()
-        send_data(
-            "post",
-            "/all",
-            status="off",
-            errors=errors,
-            coin=self.coin,
-            cryptopair=self.cryptopair,
-            exitTime=datetime.datetime.now(),
-            **config_file
-        )
+        # send_data(
+        #     "post",
+        #     "/all",
+        #     status="off",
+        #     errors=errors,
+        #     coin=self.coin,
+        #     cryptopair=self.cryptopair,
+        #     exitTime=datetime.datetime.now(),
+        #     **config_file
+        # )
         cout("exited")

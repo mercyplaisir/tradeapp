@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 
 from common import TIMEFRAME
+from common.tools import get_config_file
 from dbcontroller import DbEngine
 from strategies.study import Study
 from errors.errors import CoinNotFound
@@ -36,17 +37,25 @@ class CryptoObject(ABC):
     pass
 
 
+
+def coin_i_possess() -> str:
+    """return coin i possess"""
+    
+    return get_config_file()['coin']
+
 class CryptoPair(CryptoObject):
     """
     a representation of a cryptopair
     ex: BNBBTC
     """
+    def __init__(self,name:str) -> None:
+        self.name = name
+        
+    # def __init__(self, name: str,quotecoin:bool) -> None:
 
-    def __init__(self, name: str,quotecoin:bool) -> None:
-
-        self.name: str = name
-        self._principal_coin = self.basecoin if quotecoin else self.quotecoin
-        # self.verify()
+    #     self.name: str = name
+    #     self._principal_coin = self.basecoin if quotecoin else self.quotecoin
+    #     # self.verify()
 
     def get_name(self):
         """return Cryptopair name"""
@@ -144,10 +153,10 @@ class CryptoPair(CryptoObject):
         #     self.name, self.TIMEFRAME, f"{interval} ago UTC")
         url: str = f"{base_url}/api/v3/klines?symbol={self.get_name()}&interval={TIMEFRAME}"
         klines_list: list = requests.get(url).json()
-
+        # print(self.name)
         # changer timestamp en date
         for kline in klines_list:
-            kline[0] = datetime.datetime.fromtimestamp(kline[0] / 1e3)
+            kline[0] = datetime.datetime.fromtimestamp(float(kline[0]) / 1e3)
 
         klines: pd.DataFrame = pd.DataFrame(klines_list)  # changer en dataframe
 
@@ -188,7 +197,7 @@ class CryptoPair(CryptoObject):
     def _decision(cls, klines: pd.DataFrame) -> Literal['buy','sell','wait']:
         """Calculate the prices and return a decision"""
         return Study.decision(klines)
-
+    
     @property
     def decision(self):
         """study cryptopair with it's klines"""
@@ -230,11 +239,14 @@ class CryptoPair(CryptoObject):
     def study(cls,data:Union[list[CryptoObject],CryptoObject]):
         """study a given list of cryptopsirs
          and return profitable cryptopsirs"""
+        # print(type(data))
         if isinstance(data,list):
+            print("liste")
             cryptopair_decision_uncleaned: dict[CryptoPair, str] = {
                 cryptopair: cryptopair.decision for cryptopair in data
             }
         elif isinstance(data,CryptoObject):
+            
             cryptopair_decision_uncleaned = {
                 data : data.decision
             }
@@ -253,10 +265,10 @@ class CryptoPair(CryptoObject):
         for cryptopair, decision in cryptopairs:
             # when i possess ETH
             # ETHBTC must be a 'sell'
-            coin_i_possess =cryptopair._principal_coin
+            coin = Coin(coin_i_possess())
 
-            valid_sell:bool = cryptopair.is_basecoin(coin_i_possess) and decision == "sell"
-            valid_buy: bool = cryptopair.is_quotecoin(coin_i_possess) and decision == "buy"
+            valid_sell:bool = cryptopair.is_basecoin(coin) and decision == "sell"
+            valid_buy: bool = cryptopair.is_quotecoin(coin) and decision == "buy"
             
             if valid_sell or valid_buy:
                 results[cryptopair] = decision
@@ -321,13 +333,13 @@ class Coin(CryptoObject):
             request="select cryptopair from relationalcoin where basecoin ='"
             + coin_name +"' "
         )
-        basecoins = [CryptoPair(cryptopair_name[0],quotecoin=False) for cryptopair_name in cryptopairs_basecoins]
+        basecoins = [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_basecoins]
         cryptopairs_name: list[tuple[str]] = db.select(
             request="select cryptopair from relationalcoin where quotecoin ='"
             + coin_name
             + "' "
         )
-        quotecoins = [CryptoPair(cryptopair_name[0],quotecoin=True) for cryptopair_name in cryptopairs_name]
+        quotecoins = [CryptoPair(cryptopair_name[0]) for cryptopair_name in cryptopairs_name]
         return basecoins + quotecoins
 
 

@@ -13,6 +13,7 @@ sleep_time = '5m'
 def main(client: BinanceClient,data:Union[List[CryptoPair],CryptoPair]):
     """"""
     # get all decision for each cryptopair
+    
     cryptopair:CryptoPair = CryptoPair.study(data)
     if cryptopair is None:
         cout(">>> No opportunity for trading")
@@ -22,22 +23,25 @@ def main(client: BinanceClient,data:Union[List[CryptoPair],CryptoPair]):
 
         return
     cout("opportunities on: ", cryptopair)
-    order_details = client.pass_order(
+    client.pass_order(
                 cryptopair_name=cryptopair, order_type=cryptopair.decision
             )
-    order = Order(**order_details)
+    # order = Order(**order_details)
     new_coin = CryptoPair.replace(coin)
 
-    # track order
-    order.track_order()
+    # # track order
+    # order.track_order()
 
-    send_data(
-    "post",
-    "/all",
-    profit=order.profit,
-    coin=new_coin,
-    cryptopair=cryptopair,
-    )
+    #for online 
+    
+    # send_data(
+    # "post",
+    # "/all",
+    # profit=order.profit,
+    # coin=new_coin,
+    # cryptopair=cryptopair,
+    # )
+
 
 crypto = 'BTCUSDT'
 
@@ -47,6 +51,7 @@ with BinanceClient(testnet=True) as client:
     while True:
         # get crypto related
         cryptopair_related: list = coin.get_cryptopair_related()
-        crypto_for_use = CryptoPair(crypto)
+        # crypto_for_use = CryptoPair(crypto)
+        # print(type(cryptopair_related))
 
-        main(client,crypto_for_use)
+        main(client,cryptopair_related)

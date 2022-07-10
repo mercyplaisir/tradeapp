@@ -1,0 +1,1 @@
+symbol,orderId,orderListId,clientOrderId,transactTime,price,origQty,executedQty,cummulativeQuoteQty,status,timeInForce,type,side,fills
