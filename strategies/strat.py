@@ -29,9 +29,16 @@ def rsi7(data: pd.DataFrame):
     down_limit = 25.0
     last_rsi_value = float(rsi_df.iloc[-1]['rsi'])
     if last_rsi_value <= down_limit:
-        return 'buy'
-    if last_rsi_value >= up_limit:
-        return 'sell'
-    return 'wait'
+        result = 'buy'
+        # print(result)
+        return result
+    elif last_rsi_value >= up_limit:
+        result = 'sell'
+        # print(result)
+        return result
+
+    result = 'wait'
+    # print(result)
+    return result
 
     
