@@ -22,7 +22,7 @@ Indicators implemented :
 Crypto tracked:
 
                 -[ADA,BCH,BNB,BTC,ETH,LTC
-                LUNA,SOL,USDT,XRP]
+                SOL,USDT,XRP]
 
 10 coins supported and +50 cryptopairs tracked
 
