@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from binance import BinanceSocketManager, AsyncClient
 
-from common import (TAKE_PROFIT,
+from common.tools import (TAKE_PROFIT,
  percent_change,
    cout,
    STOP_LOSS)
@@ -93,6 +93,7 @@ class Order:
                         
                         profit = profit_in_buy or profit_in_sell
 
+                        # loss calculation
                         loss_in_buy = buy_order and -pourcentage_change >=  STOP_LOSS
                         loss_in_sell = not buy_order and pourcentage_change >= STOP_LOSS
 

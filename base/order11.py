@@ -11,7 +11,7 @@ import sys
 
 # from common.tools import STOP_LOSS, cout
 sys.path.append('..')
-from common import TAKE_PROFIT, percent_change, HISTORY_ENDPOINT, send_data,cout,STOP_LOSS
+from common.tools import TAKE_PROFIT, percent_change, HISTORY_ENDPOINT, send_data,cout,STOP_LOSS
 from base import CryptoPair
 
 @dataclass

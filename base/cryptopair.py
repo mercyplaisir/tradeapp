@@ -11,10 +11,10 @@ from typing import Dict, Literal, Protocol, Union
 import pandas as pd
 import requests
 
-from common import TIMEFRAME
+from common.tools import TIMEFRAME
 from common.tools import get_config_file
 from dbcontroller import DbEngine
-from strategies.study import Study
+from strategies.study import study
 from errors.errors import CoinNotFound
 
 # from base import Coin
@@ -196,7 +196,7 @@ class CryptoPair(CryptoObject):
     @classmethod
     def _decision(cls, klines: pd.DataFrame) -> Literal['buy','sell','wait']:
         """Calculate the prices and return a decision"""
-        return Study.decision(klines)
+        return study(klines)
     
     @property
     def decision(self):
@@ -237,16 +237,14 @@ class CryptoPair(CryptoObject):
 
     @classmethod
     def study(cls,data:Union[list[CryptoObject],CryptoObject]):
-        """study a given list of cryptopsirs
-         and return profitable cryptopsirs"""
-        # print(type(data))
+        """study a given list of cryptopairs
+        and return profitable cryptopairs"""
         if isinstance(data,list):
-            print("liste")
+            # print("liste")
             cryptopair_decision_uncleaned: dict[CryptoPair, str] = {
                 cryptopair: cryptopair.decision for cryptopair in data
             }
-        elif isinstance(data,CryptoObject):
-            
+        elif isinstance(data,CryptoObject):            
             cryptopair_decision_uncleaned = {
                 data : data.decision
             }
