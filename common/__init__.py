@@ -1,2 +1,0 @@
-"""Initializer for common"""
-
