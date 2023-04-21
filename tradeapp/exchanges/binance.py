@@ -1,31 +1,24 @@
-from typing import Dict,List
+from typing import Any, Dict,List,Protocol
 import os
 
 import ccxt
 
-from tradeapp.cryptopair import CryptoPair
 from exchange import Exchange
+from tradeapp.order import OrderType
+
+class CryptoType(Protocol):
+    def get_symbol(self) -> str:
+        ...
+    
 
 class Binance(Exchange):
     
-    def __init__(self) -> None:
+    def __init__(self,balance:float) -> None:
         keys = self._get_keys()
+        self.balance:float = balance
         self.ex = ccxt.binance(keys) # exchange instance of ccxt
+     
     
-    def buy_order(self) -> Dict[str, str]:
-        """buy order
-
-        Returns:
-            Dict[str, str]: order details
-        """
-        # TODO implement a buy order 
-    def sell_order(self) -> Dict[str, str]:
-        """sell order
-
-        Returns:
-            Dict[str, str]: order details
-        """
-        # TODO implement a sell order
     def _get_keys(self) ->Dict[str,str]:
         """Binance keys
 
@@ -39,21 +32,18 @@ class Binance(Exchange):
     
     
     
-    def _fetch_cryptopairs(self) -> List[CryptoPair]:
+    def _fetch_cryptopairs(self) -> List[CryptoType]:
         """Get all crypto used in the exchange
 
         Returns:
             List[CryptoPair]: Cyptopair object
         """
-        res = []
+    
+        
         data = self.ex.load_markets(True)
-        for crypto in data:
-            crypto_data:Dict = crypto['info']
-            #create cryptopair instance
-            cry: CryptoPair = CryptoPair(crypto_data)
-            #append in list
-            if cry.status == 'TRADING':
-                res.append(cry)
-        return res
+        # only for spot trading
+        return [CryptoType(cry,exchange = self) for cry in data if cry['spot'] and cry['active']] 
+        
+        
 
     
