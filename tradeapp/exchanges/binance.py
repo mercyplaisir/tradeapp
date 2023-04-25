@@ -3,8 +3,7 @@ import os
 
 import ccxt
 
-from exchange import Exchange
-from tradeapp.order import OrderType
+from tradeapp.protocols import Exchange
 
 class CryptoType(Protocol):
     def get_symbol(self) -> str:
@@ -32,7 +31,7 @@ class Binance(Exchange):
     
     
     
-    def _fetch_cryptopairs(self) -> List[CryptoType]:
+    def fetch_cryptopairs(self) -> List[Dict]:
         """Get all crypto used in the exchange
 
         Returns:
@@ -41,8 +40,10 @@ class Binance(Exchange):
     
         
         data = self.ex.load_markets(True)
+        #ccxt binance instance
+        exchange = self.ex
         # only for spot trading
-        return [CryptoType(cry,exchange = self) for cry in data if cry['spot'] and cry['active']] 
+        return {exchange : [cry for cry in data if cry['spot'] and cry['active']]} 
         
         
 

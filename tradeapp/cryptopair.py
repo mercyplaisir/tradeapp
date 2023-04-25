@@ -1,10 +1,10 @@
 """
 represent pair
 """
-from typing import Dict, Protocol,Any
+from typing import Dict, List,Protocol,Any, Self
 
-from tradeapp.exchange import Exchange
-
+from tradeapp.protocols import Exchange
+from tradeapp.tools import OrderType
 
 class Crypto:
     def __init__(self,name:str,ex: Exchange) -> None:
@@ -12,7 +12,7 @@ class Crypto:
         self.ex = ex
     @property
     def balance(self) -> float|int:
-        return self._balance[0]
+        return self._balance()[0]
     @property
     def locked(self) -> float|int:
         pass
@@ -38,7 +38,7 @@ class CryptoPair:
                 DASH / ETH
                         ↑ quote currency
     """
-    def __init__(self,exchange:Exchange, kwargs:Dict) -> None:
+    def __init__(self,exchange: Exchange, kwargs:Dict) -> None:
         """
             Args:
                 details (Dict): 
@@ -57,6 +57,7 @@ class CryptoPair:
         
         self.exchange: Exchange = exchange
         self.__dict__.update(kwargs)
+
     
     def get_symbol(self):
         return self.symbol
@@ -90,17 +91,18 @@ class CryptoPair:
         )
     
     @classmethod
-    def _fetch_all_cryptopairs(cls, exchange:Exchange) :
-        """Get all crypto used in the exchange
+    def load_cryptopair_from(cls,data:Dict[Exchange,List[dict]]) :
+        """create Cryptopairs instance using list of data given
+
+        Args:
+            data (List[dict]): _description_
 
         Returns:
-            List[CryptoPair]: Cyptopair object
+            _type_: _description_
         """
-    
-        
-        data = exchange.load_markets(True)
-        # only for spot trading
-        return [CryptoPair(cry, exchange) for cry in data if cry['spot'] and cry['active']] 
-        
+        assert len(data)>0 , "data can't be empty" 
+        exchange = list(data.keys())[0]
+        return [CryptoPair(kwargs=d) for d in data.values()]
 
-    
+    def __str__(self) -> str:
+        return f"looking at {self.get_symbol()} \n "

@@ -18,5 +18,8 @@ class Exchange(ABC):
     @abstractmethod
     def sell_order(self) -> Dict[str,str]:
         pass
+    @abstractmethod
+    def fetch_cryptopairs(self) -> List[Dict]:
+        pass
 
     
