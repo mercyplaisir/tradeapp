@@ -4,7 +4,8 @@
 from abc import ABC,abstractmethod
 from typing import Dict,List
 
-
+from dotenv import load_dotenv
+load_dotenv()
 
 class Exchange(ABC):
     """representstion of an exchange

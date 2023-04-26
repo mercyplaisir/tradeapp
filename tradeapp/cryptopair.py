@@ -3,6 +3,8 @@ represent pair
 """
 from typing import Dict, List,Protocol,Any, Self
 
+import pandas as pd
+
 from tradeapp.protocols import Exchange
 from tradeapp.tools import OrderType
 
@@ -10,6 +12,9 @@ class Crypto:
     def __init__(self,name:str,ex: Exchange) -> None:
         self.name = name
         self.ex = ex
+    def __str__(self) -> str:
+        return f'{self.name}'
+    
     @property
     def balance(self) -> float|int:
         return self._balance()[0]
@@ -54,16 +59,25 @@ class CryptoPair:
                 }
         """
         assert kwargs['symbol'] , "symbol name not provided"
-        
+        assert kwargs['status'] != 'TRADING' , "status is not trading"
         self.exchange: Exchange = exchange
         self.__dict__.update(kwargs)
 
+    def __str__(self) -> str:
+        return f"{self.symbol}"
     
     def get_symbol(self):
         return self.symbol
     def get_baseAsset(self):
+        """return the base asset as crpto object
+
+        Returns:
+            _type_: _description_
+        """
         return Crypto(self.baseAsset,ex=self.exchange)
     def get_quoteAsset(self):
+        """return the quote asset as Crypto object
+        """
         return Crypto(self.quoteAsset,ex=self.exchange)
     def buy_order(self) ->None :
         """buy order
@@ -89,6 +103,14 @@ class CryptoPair:
             symbol = self.get_symbol(),
             amount = round(amount,self.quoteAssetPrecision)
         )
+    
+    def get_ohlc(self,timeframe:str):
+        data = self.exchange.fetch_ohlcv(
+        symbol = f'{self.get_baseAsset()}/{self.get_quoteAsset()}',
+        timeframe= timeframe
+        )
+        df = pd.DataFrame(data,columns=['Time','Open','High','Low','Close','Volume'])
+        return df
     
     @classmethod
     def load_cryptopair_from(cls,data:Dict[Exchange,List[dict]]) :
