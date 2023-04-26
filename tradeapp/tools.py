@@ -48,13 +48,26 @@ class Timeframe(Enum):
     def __hash__(self) -> int:
         return hash(self.value)
 
-def get_trend(data:pd.DataFrame) -> Trend:
+def get_trend(df:pd.DataFrame) -> Trend:
     """give the trend of the current stock
 
     Args:
-        data (pd.DataFrame): contains ohlc data of given crypto
+        df (pd.DataFrame): contains ohlc data of given crypto
     """
     # TODO implement the trend
+    sma_size = 200
+    # Get the trend of the market by using sma200
+    # Get list of 5 last closed price
+    price : List[float] = df['Close'][-5:].to_list()
+    # calculate sma 
+    df[f'SMA_{sma_size}'] = df['Close'].rolling(window=sma_size).mean()
+    sma_value : List[float] = df[f'SMA_{sma_size}'][-5:].to_list()
+    # condition
+    cond = price > sma_value
+    if cond:
+        return Trend.UPTREND
+    return Trend.DOWNTREND
+
 
 def get_support_and_resistance(df:pd.DataFrame) -> List[Tuple[int,str]]:
     """return resistance and support on given data
