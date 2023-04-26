@@ -16,21 +16,19 @@ from tradeapp.tools import get_support_and_resistance
 def follow_trend_strat(cry:CryptoPair) -> OrderType:
     """the strategy is to follow the trend, if up search buy positions if down search sell positions
     """
-    daily_data = cry.get_ohlc(timeframe= Timeframe.DAY)
-    h4_data = cry.get_ohlc(timeframe= Timeframe.H4)
-    m15_data = cry.get_ohlc(timeframe= Timeframe.M15)
+    
     #get trend for daily timeframe
-    trend_daily:Trend = get_trend(daily_data)
+    trend_daily:Trend = cry.get_trend(timeframe=Timeframe.DAY)
     #get trend for 4hour
-    trend_4hour:Trend = get_trend(h4_data)
+    trend_4hour:Trend = cry.get_trend(timeframe=Timeframe.H4)
     #get trend for 15minutes
-    trend_15m:Trend = get_trend(m15_data)
+    trend_15m:Trend = cry.get_trend(timeframe=Timeframe.M15)
 
     #if not equal dont lose time
     if not trend_15m == trend_4hour == trend_daily:
         return
     #get support and resistance on 4h timeframe
-    sup_res = get_support_and_resistance(df = h4_data)
+    sup_res = cry.get_support_and_resistance(timeframe= Timeframe.H4)
     
 
 
