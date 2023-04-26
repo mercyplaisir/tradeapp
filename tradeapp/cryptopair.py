@@ -110,6 +110,9 @@ class CryptoPair:
         timeframe= timeframe
         )
         df = pd.DataFrame(data,columns=['Time','Open','High','Low','Close','Volume'])
+        df['Time'] = pd.to_datetime(df['Time'], unit='ms')
+        # change index to time column
+        df = df.set_index('Time')
         return df
     
     @classmethod
