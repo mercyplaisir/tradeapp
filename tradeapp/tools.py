@@ -1,19 +1,24 @@
 """function tools
     """
-
-
-
-
-
-
+from dataclasses import dataclass
 from enum import Enum,auto
-from typing import List, Tuple
+from typing import Dict, List
+import json
 
-import pandas as pd
-import numpy as np
-
+import ccxt
 
 class OrderType(Enum):
+    MARKET = auto()
+    LIMIT = auto()
+
+    def __str__(self) -> str:
+        return f'{self.name}'
+    def __eq__(self, __value: object) -> bool:
+        return self.name == __value.name
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+class Signal(Enum):
     BUY = auto()
     SELL = auto()
     
@@ -27,6 +32,10 @@ class Trend(Enum):
     
     def __str__(self) -> str:
         return f'{self.name}'
+    def __eq__(self, __value: object) -> bool:
+        return self.name == __value.name
+    def __hash__(self) -> int:
+        return hash(self.name)
 
 class Timeframe(Enum):
     M1 = '1m'
@@ -48,22 +57,22 @@ class Timeframe(Enum):
     def __hash__(self) -> int:
         return hash(self.value)
 
-def get_trend(df:pd.DataFrame) -> Trend:
-    """give the trend of the current stock
+def save(data):
+    with open('tradeapp/results/data.json','+w') as f:
+        f.write(json.dumps(data))
 
-    Args:
-        df (pd.DataFrame): contains ohlc data of given crypto
-    """
-    # TODO implement the trend
-    sma_size = 200
-    # Get the trend of the market by using sma200
-    # Get list of 5 last closed price
-    price : List[float] = df['Close'][-5:].to_list()
-    # calculate sma 
-    df[f'SMA_{sma_size}'] = df['Close'].rolling(window=sma_size).mean()
-    sma_value : List[float] = df[f'SMA_{sma_size}'][-5:].to_list()
-    # condition
-    cond = price > sma_value
-    if cond:
-        return Trend.UPTREND
-    return Trend.DOWNTREND
+def fetch_cryptopairs(exchange: ccxt.Exchange) -> List[Dict]:
+        """Get all crypto used in the exchange
+
+        Returns:
+            List[CryptoPair]: Cyptopair object
+        """
+
+        data = exchange.load_markets(True)
+        # ccxt binance instance
+        
+        # only for spot trading
+        save([data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]])
+        return [data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]]
+
+
