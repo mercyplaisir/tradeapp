@@ -136,6 +136,7 @@ dmypy.json
 #test folder
 test/
 test.py
+results/
 
 # jupyther files
 *.ipynb
