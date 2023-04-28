@@ -1,17 +1,21 @@
 """
 represent pair
 """
+import io
 from typing import Dict, List, Protocol, Any, Self
-import ccxt
+import pathlib
 
+import ccxt
 import pandas as pd
 import numpy as np
+import mplfinance as mpf
 
 
-from .tools import Signal
-from .tools import Timeframe
-from .tools import Trend
-from .tools import OrderType
+
+from tradeapp.tools import Signal
+from tradeapp.tools import Timeframe
+from tradeapp.tools import Trend
+from tradeapp.tools import OrderType
 
 
 class Crypto:
@@ -54,7 +58,7 @@ class CryptoPair:
                         ↑ quote currency
     """
 
-    def __init__(self, exchange: ccxt.Exchange, kwargs: Dict) -> None:
+    def __init__(self, exchange: ccxt.Exchange, symbol:str) -> None:
         """
         Args:
             details (Dict):
@@ -65,14 +69,26 @@ class CryptoPair:
                 "quoteAsset": "BTC",
                 "quotePrecision": "8",
                 "quoteAssetPrecision": "8",
-                "baseCommissionPrecision": "8",
+                "quoteAssetPrecision": "8",
                 "quoteCommissionPrecision": "8"
             }
         """
-        assert kwargs["symbol"], "symbol name not provided"
-        assert kwargs["status"] == "TRADING", f"{kwargs['symbol']} status is not trading"
+        assert symbol, "symbol name not provided"
         self.exchange = exchange
-        self.__dict__.update(kwargs)
+        self.symbol = symbol
+        self._generate_data()
+
+    def _check(self):
+        if not self.exchange.symbols:
+            self.exchange.load_markets(True)
+        cond = self.symbol in self.exchange.symbols
+        assert cond, "symbol not available in the exchange try another one"
+    def _generate_data(self):
+        self._check()
+        data = self.exchange.market(symbol= self.symbol)['info']
+        for key in data:
+            setattr(self,key,data[key])
+        
 
     @property
     def trend(self):
@@ -83,19 +99,9 @@ class CryptoPair:
         """
         return self.get_trend()
 
-    def get_symbol(self):
-        """
-        return the symbol
-        Returns:
-            _type_: _description_
-        """
-        return self.symbol
-
     def get_base_asset(self):
         """return the base asset as crpto object
 
-        Returns:
-            _type_: _description_
         """
         return Crypto(self.baseAsset, ex=self.exchange)
 
@@ -112,7 +118,7 @@ class CryptoPair:
         amount = self.get_quoteAsset().balance / self.get_price()
 
         order_data = self.exchange.create_order(
-            symbol=self.get_symbol(),
+            symbol=self.symbol(),
             type=OrderType.MARKET,
             side=Signal.BUY,
             amount=round(amount, self.baseAssetPrecision),
@@ -127,7 +133,7 @@ class CryptoPair:
         """
         balance = self.get_base_asset().balance
         order_data = self.exchange.create_order(
-            symbol=self.get_symbol(),
+            symbol=self.symbol(),
             type=OrderType.MARKET,
             side=Signal.SELL,
             amount=round(balance, self.quoteAssetPrecision),
@@ -150,25 +156,12 @@ class CryptoPair:
         data = data.set_index("Time")
         return data
 
-    @classmethod
-    def load_cryptopair_from(cls, data: Dict[ccxt.Exchange, List[dict]]):
-        """create Cryptopairs instance using list of data given
-
-        Args:
-            data (List[dict]): _description_
-
-        Returns:
-            _type_: _description_
-        """
-        assert len(data) > 0, "data can't be empty"
-        exchange = list(data.keys())[0]
-        return [CryptoPair(kwargs=d) for d in data.values()]
-
+    
     def __str__(self) -> str:
-        return f"looking at {self.get_symbol()} \n "
+        return f"looking at {self.symbol()} \n "
 
     def get_support_and_resistance(
-        self, timeframe=Timeframe.DAY
+        self, timeframe: Timeframe = Timeframe.DAY, s_r:bool = True
     ) -> Dict[str, List[float | int]]:
         """return resistance and support on given data
 
@@ -194,26 +187,28 @@ class CryptoPair:
             cond4 = df["High"][i - 1] > df["High"][i - 2]
             return cond1 and cond2 and cond3 and cond4
 
+        # a list to store resistance and support levels
+        levels = []
         # to make sure the new level area does not exist already
         def is_far_from_level(value, levels, df):
             ave = np.mean(df["High"] - df["Low"])
-            return np.sum([abs(value - level) < ave for _, level in levels]) == 0
+            return np.sum([abs(value - level) < ave for  level in levels]) == 0
 
-        # a list to store resistance and support levels
-        levels = []
         high_low = {"resistances": [], "supports": []}
         for i in range(2, df.shape[0] - 2):
             if is_support(df, i):
                 low = df["Low"][i]
 
                 if is_far_from_level(low, levels, df):
-                    levels.append((i, low))
+                    levels.append( low)
                     high_low["supports"].append(low)
             elif is_resistance(df, i):
                 high = df["High"][i]
                 if is_far_from_level(high, levels, df):
-                    levels.append((i, high))
+                    levels.append( high)
                     high_low["resistances"].append(high)
+        if not s_r:
+            return levels
         return high_low
 
     def get_trend(self, timeframe=Timeframe.DAY) -> Trend:
@@ -236,5 +231,20 @@ class CryptoPair:
         if cond:
             return Trend.UPTREND
         return Trend.DOWNTREND
+    
+    def generate_image(self):
+        data = self.get_ohlc()
+        levels = self.get_support_and_resistance(s_r=False)
+        #print([True for ind in data.index if ind in [l[0] for l in levels]].count(False))
+        path = pathlib.Path("./graph.png")
+        buf = io.BytesIO()
+        kwargs = dict(type='candle',mav=(50,200),volume=True,figratio=(20,8),figscale=0.8,savefig=dict(fname=buf,dpi=500,pad_inches=1000))
+
+        # levels_plot = mpf.make_addplot(levels,color='#606060')
+        
+        mpf.plot(data.iloc[:,-10:],**kwargs,style='binance',hlines= levels)
+        buf.seek(0)
+        return buf
+
 
     

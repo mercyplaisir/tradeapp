@@ -1,4 +1,6 @@
 import os
+import io
+
 import telebot
 
 
@@ -14,6 +16,6 @@ class Telegram:
         print(cls.chat_id)
         cls.bot.send_message(chat_id=cls.chat_id, text=message)
     @classmethod
-    def send_image(cls,path:str):
-        cls.bot.send_photo()
+    def send_image(cls,bf:io.BytesIO):
+        cls.bot.send_photo(cls.chat_id, bf)
 

@@ -12,7 +12,7 @@ from tradeapp.tools import Signal
 
 from tradeapp.telegram import Telegram
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 
 load_dotenv()  # take environment variables from .env.
 
@@ -21,12 +21,19 @@ PROFIT = 2
 #implement exchange
 exchange:ccxt.Exchange = binance()
 # get crypto to work with
-cryptos_data:List = fetch_cryptopairs(exchange=exchange)
-cryptos = [CryptoPair(exchange=exchange,kwargs=data) for data in cryptos_data ]
+# cryptos_data:List = fetch_cryptopairs(exchange=exchange)
+# cryptos = [CryptoPair(exchange=exchange,kwargs=data) for data in cryptos_data ]
+cryptos_data = ['BTC/USDT','ETH/USDT','BNB/USDT','DOGE/USDT']
+cryptos = [CryptoPair(exchange=exchange,symbol=crypto) for crypto in cryptos_data]
 
 # put them on strategy
 cryptos_signal = {crypto:follow_trend_strat_spot(crypto) for crypto in cryptos[10:]}
 # select the one with buy signal
 cryptos_with_buy = [crypto for crypto in cryptos_signal if cryptos_signal[crypto]==Signal.BUY]
+
+print(cryptos)
 # send them to telegram
-Telegram.send_message(str(cryptos_with_buy))
+for crypto in cryptos:
+    
+    Telegram.send_message("".join(crypto.symbol))
+    Telegram.send_image(crypto.generate_image())
