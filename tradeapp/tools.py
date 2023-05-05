@@ -7,6 +7,19 @@ import json
 
 import ccxt
 
+class aobject(object):
+    """Inheriting this class allows you to define an async __init__.
+
+    So you can create objects by doing something like `await MyClass(params)`
+    """
+    async def __new__(cls, *a, **kw):
+        instance = super().__new__(cls)
+        await instance.__init__(*a, **kw)
+        return instance
+
+    async def __init__(self):
+        pass
+
 class OrderType(Enum):
     MARKET = auto()
     LIMIT = auto()
@@ -33,7 +46,7 @@ class Trend(Enum):
     def __str__(self) -> str:
         return f'{self.name}'
     def __eq__(self, __value: object) -> bool:
-        return self.name == __value.name
+        return self.name ==  __value
     def __hash__(self) -> int:
         return hash(self.name)
 
@@ -74,5 +87,4 @@ def fetch_cryptopairs(exchange: ccxt.Exchange) -> List[Dict]:
         # only for spot trading
         save([data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]])
         return [data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]]
-
 

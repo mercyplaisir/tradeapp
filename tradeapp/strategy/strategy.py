@@ -2,32 +2,37 @@
     Implementation of strategies
 """
 from typing import Dict,List
+import asyncio
 
 import pandas as pd
 import numpy as np
 
-from tradeapp.cryptopair import CryptoPair
+from tradeapp.models.cryptopair import CryptoPair
 from tradeapp.tools import Signal
 from tradeapp.tools import Trend
 from tradeapp.tools import Timeframe
+from tradeapp.logs import create_logger
 
-def follow_trend_strat_spot(cry:CryptoPair) -> Signal|None:
+log  = create_logger(__name__)
+
+async def follow_trend_strat_spot(cry:CryptoPair) -> Signal|None:
     """the strategy is to follow the trend, if up search buy positions if down search sell positions
     """
+    log.info(f'implementing follow_trend_strat on {cry.symbol}')
     dist_price_support = 2.5
-    cond1 = (cry.trend == Trend.UPTREND)
+    cond1 = (await cry.trend == Trend.UPTREND)
     #if not uptrend dont lose time
     if not cond1:
         return None
     #get support and resistance on 4h timeframe
-    sup_res = cry.get_support_and_resistance(timeframe= Timeframe.H4)
+    sup_res = await cry.get_support_and_resistance(timeframe= Timeframe.H4)
     resistances,supports = sup_res['resistances'],sup_res['supports']
     def around_the(a:int|float,b:int|float):
         if b>a:
             return (abs(b/a) -1) * 100
         return (abs(a/b) -1) *100
     # closes prices
-    data = cry.get_ohlc(timeframe= Timeframe.M15)
+    data = await cry.get_ohlc(timeframe= Timeframe.M15)
     closes_prices = data['Close'][-5:].to_list()
     # if closes prices are around supports in an uptrend then buy
     for close_price in closes_prices:

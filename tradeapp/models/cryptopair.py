@@ -1,11 +1,11 @@
 """
 represent pair
 """
+from __future__ import annotations
 import io
-from typing import Dict, List, Protocol, Any, Self
-import pathlib
+from typing import Dict, List, Protocol 
 
-import ccxt
+
 import pandas as pd
 import numpy as np
 import mplfinance as mpf
@@ -16,38 +16,26 @@ from tradeapp.tools import Signal
 from tradeapp.tools import Timeframe
 from tradeapp.tools import Trend
 from tradeapp.tools import OrderType
+from tradeapp.tools import aobject
 
+from tradeapp.models import Crypto
+from tradeapp.logs import create_logger
 
-class Crypto:
-    def __init__(self, name: str, ex: ccxt.Exchange) -> None:
-        self.name = name
-        self.ex = ex
+log = create_logger(__name__)
 
-    def __str__(self) -> str:
-        return f"{self.name}"
+class Exchange(Protocol):
+    """
+    """
+    async def load_markets(reload:bool=False) -> None:
+        ...
+    async def market(symbol:str) -> Dict:
+        ...
+    async def create_order(*args, **kwargs) -> None:
+        ...
+    async def fetch_ohlcv(*args, **kwargs) -> None:
+        ...
 
-    @property
-    def balance(self) -> float | int:
-        return self._balance()[0]
-
-    @property
-    def locked(self) -> float | int:
-        pass
-
-    @property
-    def total(self) -> float | int:
-        pass
-
-    def _balance(self):
-        data: Dict[str, float | int] = self.get_balance()
-        free, used, total = data.values()
-        return free, used, total
-
-    def get_balance(self) -> Dict:
-        return self.ex.fetch_balance(currency=self.name)
-
-
-class CryptoPair:
+class CryptoPair(aobject):
     """
     represent a crypto Pair
     ex:'BTCUSDT' - BTC/USDT
@@ -57,8 +45,7 @@ class CryptoPair:
                 DASH / ETH
                         ↑ quote currency
     """
-
-    def __init__(self, exchange: ccxt.Exchange, symbol:str) -> None:
+    async def __init__(self, exchange: Exchange, symbol:str) -> None:
         """
         Args:
             details (Dict):
@@ -74,93 +61,103 @@ class CryptoPair:
             }
         """
         assert symbol, "symbol name not provided"
+        log.info(f'creating {symbol}')
         self.exchange = exchange
         self.symbol = symbol
-        self._generate_data()
+        await self._generate_data()
+        self.log =create_logger(f'cryptopair:{self.symbol}')
+        
+    def __str__(self) -> str:
+        return f"{self.baseAsset}/{self.quoteAsset}"
 
-    def _check(self):
+    async def _check(self):
         if not self.exchange.symbols:
-            self.exchange.load_markets(True)
-        cond = self.symbol in self.exchange.symbols
+            await self.exchange.load_markets(True)
+        cond = self.symbol in  self.exchange.symbols
         assert cond, "symbol not available in the exchange try another one"
-    def _generate_data(self):
-        self._check()
-        data = self.exchange.market(symbol= self.symbol)['info']
-        for key in data:
-            setattr(self,key,data[key])
+    
+    
+    async def _generate_data(self):
+        await self._check()
+        data =  self.exchange.market(symbol= self.symbol)
+        for key in data['info']:
+            setattr(self,key,data['info'][key])
         
 
     @property
-    def trend(self):
+    async def trend(self):
         """return the trend
 
         Returns:
             Trend ( object): the trend object
         """
-        return self.get_trend()
+        self.log.info('get trend')
+        return await self.get_trend()
 
-    def get_base_asset(self):
+    async def get_base_asset(self):
         """return the base asset as crpto object
 
         """
         return Crypto(self.baseAsset, ex=self.exchange)
 
-    def get_quoteAsset(self):
+    async def get_quoteAsset(self):
         """return the quote asset as Crypto object"""
         return Crypto(self.quoteAsset, ex=self.exchange)
 
-    def buy_order(self) -> None:
+    async def buy_order(self) -> None:
         """buy order
 
         Returns:
             Dict[str, str]: order details
         """
-        amount = self.get_quoteAsset().balance / self.get_price()
+        self.log.info('executing buy order')
+        amount = await self.get_quoteAsset().balance / self.get_price()
 
-        order_data = self.exchange.create_order(
+        order_data = await self.exchange.create_order(
             symbol=self.symbol(),
             type=OrderType.MARKET,
             side=Signal.BUY,
             amount=round(amount, self.baseAssetPrecision),
         )
-        return order_data
+        return  order_data
 
-    def sell_order(self) -> None:
+    async def sell_order(self) -> None:
         """sell ordPer
 
         Returns:
             Dict[str, str]: order details
         """
-        balance = self.get_base_asset().balance
-        order_data = self.exchange.create_order(
+        self.log.info('executing sell order')
+        balance = await self.get_base_asset().balance
+        order_data = await self.exchange.create_order(
             symbol=self.symbol(),
             type=OrderType.MARKET,
             side=Signal.SELL,
             amount=round(balance, self.quoteAssetPrecision),
         )
-        return order_data
+        return  order_data
 
-    def get_ohlc(self, timeframe=Timeframe.DAY):
+    async def get_ohlc(self, timeframe=Timeframe.DAY):
         """
         getting price data
         """
-        data = self.exchange.fetch_ohlcv(
-            symbol=f"{self.get_base_asset()}/{self.get_quoteAsset()}",
+        self.log.info(f'get ohlc data')
+        data = await self.exchange.fetch_ohlcv(
+            symbol=self.symbol,
             timeframe=timeframe,
-        )
+        ) 
         data = pd.DataFrame(
             data, columns=["Time", "Open", "High", "Low", "Close", "Volume"]
         )
         data["Time"] = pd.to_datetime(data["Time"], unit="ms")
         # change index to time column
         data = data.set_index("Time")
-        return data
+        self.log.info(f'got the ohlc data')
+        return  data
 
     
-    def __str__(self) -> str:
-        return f"looking at {self.symbol()} \n "
 
-    def get_support_and_resistance(
+    async def get_support_and_resistance(
         self, timeframe: Timeframe = Timeframe.DAY, s_r:bool = True
     ) -> Dict[str, List[float | int]]:
         """return resistance and support on given data
@@ -170,7 +167,7 @@ class CryptoPair:
         """
         # method 1: fractal candlestick pattern
         # determine bullish fractal
-        df: pd.DataFrame = self.get_ohlc(timeframe=timeframe)
+        df: pd.DataFrame = await self.get_ohlc(timeframe=timeframe)
 
         def is_support(df, i):
             cond1 = df["Low"][i] < df["Low"][i - 1]
@@ -211,14 +208,14 @@ class CryptoPair:
             return levels
         return high_low
 
-    def get_trend(self, timeframe=Timeframe.DAY) -> Trend:
+    async def get_trend(self, timeframe=Timeframe.DAY) -> Trend:
         """give the trend of the current stock
 
         Args:
             df (pd.DataFrame): contains ohlc data of given crypto
         """
         # data
-        df = self.get_ohlc(timeframe=timeframe)
+        df = await self.get_ohlc(timeframe=timeframe)
         sma_size = 200
         # Get the trend of the market by using sma200
         # Get list of 5 last closed price
@@ -232,19 +229,35 @@ class CryptoPair:
             return Trend.UPTREND
         return Trend.DOWNTREND
     
-    def generate_image(self):
-        data = self.get_ohlc()
-        levels = self.get_support_and_resistance(s_r=False)
+    async def generate_image(self) -> io.BytesIO:
+        self.log.info('generating image')
+        data = await self.get_ohlc()
+        levels = await self.get_support_and_resistance(s_r=False)
         #print([True for ind in data.index if ind in [l[0] for l in levels]].count(False))
-        path = pathlib.Path("./graph.png")
         buf = io.BytesIO()
-        kwargs = dict(type='candle',mav=(50,200),volume=True,figratio=(20,8),figscale=0.8,savefig=dict(fname=buf,dpi=500,pad_inches=1000))
+        mydpi = 100
+        kwargs = dict(
+            type='candle',
+            mav=(50,200),
+            volume=True,
+            figratio=(16,9),
+            figsize =(1280/mydpi,720/mydpi), 
+            figscale=0.8,
+            savefig=dict(fname=buf,dpi=mydpi),#,pad_inches=1000),
+            scale_padding=0.2)
 
         # levels_plot = mpf.make_addplot(levels,color='#606060')
         
         mpf.plot(data.iloc[:,-10:],**kwargs,style='binance',hlines= levels)
         buf.seek(0)
         return buf
-
-
     
+    async def __ainit__(self, exchange: Exchange, symbol:str) -> None:
+        assert symbol, "symbol name not provided"
+        log.info(f'creating {symbol}')
+        self.exchange = exchange
+        self.symbol = symbol
+        await self._generate_data()
+        self.log =create_logger(f'cryptopair:{self.symbol}')
+        
+

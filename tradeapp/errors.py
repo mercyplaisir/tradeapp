@@ -3,3 +3,9 @@ class CryptoPairNotFound(Exception):
 
     
     """
+class CryptoNotInExchange(Exception):
+    """crypto not in the exchange
+
+    Args:
+        Exception (_type_): _description_
+    """

@@ -1,6 +1,6 @@
 import os
 
-import ccxt
+import ccxt.async_support as ccxt
 
 
 def binance() -> ccxt.Exchange:
