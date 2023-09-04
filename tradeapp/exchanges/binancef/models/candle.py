@@ -2,8 +2,9 @@ from enum import Enum,auto
 from websocket import create_connection
 import json
 
-from timeframe import Timeframe
+from tradeapp.exchanges.binancef.models.timeframe import Timeframe
 
+from tools.logs import logger_wrapper
 class Candle(Enum):
     RED = auto()
     GREEN = auto()
@@ -11,7 +12,7 @@ class Candle(Enum):
     def __str__(self) -> str:
         return f'{self.name}'
 
-
+logger_wrapper(__name__,"getting th candle")
 def get_candle(pair:str,timeframe):
     base_url = "wss://fstream.binance.com:443/ws/"
 

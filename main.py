@@ -3,71 +3,95 @@ from tradeapp.exchanges.binancef.binanceFuture import (
     binance_future,
     get_bal_of,
     market_buy_order,
+    klines_future,
+    last_price,
+    market_sell_order
 )
+from tradeapp.exchanges.binancef.models.timeframe import Timeframe
+from tradeapp.exchanges.binancef.tools import nearby_numbers,take_profit,stop_loss
+from tradeapp.exchanges.binancef.track import chart_track, track
+from tradeapp.exchanges.binancef.models.candle import get_candle,Candle
 
-from tools.telegram import Telegram
-
+from tools.logs import create_logger
+from tools.supandres import sup_res
 
 from dotenv import load_dotenv
 
+log = create_logger(__name__)
+
 load_dotenv()  # take environment variables from .env.
 
-#crypto to trade
-crypto = 'BTCUSDT'
+#tp/sl
+tp = 0.20/100
+sl = 0.50/100
+
+
 # exchange
 ex = binance_future()
-# get klines
-# get res and support
-# select points near the price to work on
-# track
-# if touch the points get the candle type
-# place an order against the candle
-
+#crypto to trade
+crypto = 'BTCUSDT'
+log.info(f"working with {crypto}")
 
 leverage = 10
 balance = get_bal_of(ex=ex, crypto="USDT")
-crypto_price = ex.fetch_ticker("BTCUSDT")["last"]
-market_buy_order(
-    exchange= ex,
-    symbol = 'BTCUSDT',
-    quantity = (balance*leverage)/crypto_price,
-    recvWindow = 5000,
-)
-# market_sell_order(
-#     exchange= ex,
-#     symbol = 'BTCUSDT',
-#     quantity = (balance*leverage)/crypto_price,
-#     recvWindow = 5000,
-#     isolated = True,
-# )
-print(balance)
+# price
+price = last_price(crypto)
 
-# print(ex.fetch_ticker('BTCUSDT')['last'])
+# get klines for sup and res
+klines = klines_future(crypto, Timeframe.H4)
 
-Telegram.send_message("hello")
-# async def main():
-#     # #profit
-#     # PROFIT = 2
-#     # CRYPTO_I_OWN = 'USDT'
-#     # #implement exchange
-#     # exchange:ccxt.Exchange = binance()
+# get res and support
+points = sup_res(klines)
 
-#     # # get related crypto to the one i one
-#     # mycrypto =  await Crypto( CRYPTO_I_OWN,exchange)
-#     # crypto_related = await mycrypto.get_cryptopair_related()
-#     # # create cryptopairs objects
-#     # cryptos = await asyncio.gather(*[CryptoPair(exchange,sym) for sym in crypto_related])
+# select points near the price to work on
+nearby_points = nearby_numbers(points,price,1)
 
-#     # # put them on strategy
-#     # awaitables = [asyncio.create_task(follow_trend_strat_spot(crypto)
-#     # ) for crypto in cryptos[:20]]
-#     # cryptos_signal = await asyncio.gather(*awaitables)
+# track
+chart_track(crypto,nearby_points)
 
-#     # await exchange.close()
-#     # -------------------------------------
-#     ex = await binance_future()
-#     balance =  ex.fetch_balance()
-#     print(balance['total'])
-#     Telegram.send_message(balance['total'])
-# if __name__ == '__main__':
-#     asyncio.run(main())
+# if touch the points get the candle type
+candle = get_candle(crypto,Timeframe.H1)
+
+# place an order against the candle
+if candle == Candle.RED:
+    market_buy_order(
+        exchange= ex,
+        symbol = crypto,
+        quantity = (balance*leverage)/price,
+        recvWindow = 5000,
+    )
+    lp = last_price(crypto)
+    tp = take_profit(lp,tp)
+    sl = stop_loss(lp,sl)
+    # track for tp/sl
+    track(crypto,tp,sl)
+    # get out
+    market_sell_order(
+        exchange= ex,
+        symbol = crypto,
+        quantity = (balance*leverage)/price,
+        recvWindow = 5000,
+        isolated = True,
+    )
+if candle == Candle.GREEN:
+    market_sell_order(
+        exchange= ex,
+        symbol = crypto,
+        quantity = (balance*leverage)/price,
+        recvWindow = 5000,
+        isolated = True,
+    )
+    lp = last_price(crypto)
+    tp = take_profit(lp,tp)
+    sl = stop_loss(lp,sl)
+    # track for tp/sl
+    track(crypto,tp,sl)
+    # get out
+    market_buy_order(
+        exchange= ex,
+        symbol = crypto,
+        quantity = (balance*leverage)/price,
+        recvWindow = 5000,
+    )
+
+

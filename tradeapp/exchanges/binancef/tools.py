@@ -7,6 +7,9 @@ import json
 
 import ccxt
 
+from tools.logs import logger_wrapper
+
+
 class aobject(object):
     """Inheriting this class allows you to define an async __init__.
 
@@ -38,6 +41,9 @@ def fetch_cryptopairs(exchange: ccxt.Exchange) -> List[Dict]:
         # only for spot trading
         save([data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]])
         return [data[cry]['info'] for cry in data if data[cry]["spot"] and data[cry]["active"]]
+
+
+@logger_wrapper(__name__,"getting nearby points")
 def nearby_numbers(dt:list,nb:int|float,pick:int=0):
   dd = []
   for d in dt:
@@ -51,7 +57,14 @@ def nearby_numbers(dt:list,nb:int|float,pick:int=0):
       if value == d:
         if key not in rs:
           rs.append(key)
-  if pick==0:
+  if pick==0 or pick == 1:
     return rs
   else:
     return rs[:pick]
+
+
+def take_profit(price,percent):
+   return price + (price*percent)
+
+def stop_loss(price,percent):
+   return price - (price*percent) 

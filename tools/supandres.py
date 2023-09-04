@@ -1,5 +1,6 @@
 import numpy as np
 
+from tools.logs import logger_wrapper
 # def sup_res(df):
 #     # Create two functions to calculate if a level is SUPPORT or a RESISTANCE level through fractal identification
 #     def is_Suppport_Level(df, i):
@@ -54,7 +55,7 @@ import numpy as np
 #     return levels
 
 
-
+logger_wrapper(__name__,"calculating sup/res")
 def sup_res(df):
     # Create two functions to calculate if a level is SUPPORT or a RESISTANCE level through fractal identification
     def is_Suppport_Level(df, i):

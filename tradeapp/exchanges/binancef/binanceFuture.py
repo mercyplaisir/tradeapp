@@ -6,11 +6,12 @@ from enum import Enum,auto,StrEnum
 import requests
 # using datetime module
 import pandas as pd
+from tools.logs import create_logger,logger_wrapper
 
 from tradeapp.exchanges.binancef.models.order import Order_side, Order_type
 
 
-    
+log  = create_logger(__name__)  
 
 
 
@@ -18,6 +19,8 @@ binance_keys = {
         'apiKey': os.getenv('BINANCEPUBLICKEY'),
         'secret' : os.getenv('BINANCEPRIVATEKEY')
     }
+
+@logger_wrapper(__name__,"connecting to exchange")
 def binance_future() -> ccxt.Exchange:
     exchange =  ccxt.binanceusdm(binance_keys)
     # exchange = ccxt.binance({
@@ -30,9 +33,11 @@ def binance_future() -> ccxt.Exchange:
     #     },
     # })
     
+    
     return  exchange
 
 
+@logger_wrapper(__name__,"send a buy order")
 def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,amount:int|float,**kwargs):
     """"""
     kwargs['timestamp'] = binance_timestamp()
@@ -44,7 +49,7 @@ def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,
         params = kwargs
                           )
 
-
+@logger_wrapper(__name__,"send a sell order")
 def sell_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,amount:int|float,**kwargs):
     """"""
     kwargs['timestamp'] = binance_timestamp()
@@ -78,6 +83,7 @@ def market_sell_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs)
         **kwargs
     )
 
+@logger_wrapper(__name__,"retreiving balance")
 def get_bal_of(ex:ccxt.Exchange,crypto:str):
     timestamp = binance_timestamp() 
     print(f"{pd.to_datetime(now_timestamp(),unit='ms')}")
@@ -90,6 +96,7 @@ def binance_timestamp():
     rs = requests.get("https://fapi.binance.com/fapi/v1/time")
     return rs.json()['serverTime']
 
+@logger_wrapper(__name__,"retreiving klines")
 def klines_future(pair:str,interval:str):
     rs = requests.get("https://fapi.binance.com/fapi/v1/indexPriceKlines",params={
         "pair": pair,
@@ -102,7 +109,7 @@ def klines_future(pair:str,interval:str):
     return df
 
 
-
+@logger_wrapper(__name__,"get last price")
 def last_price(pair:str):
     rs = requests.get("https://fapi.binance.com/fapi/v1/continuousKlines",
                       params={
@@ -115,9 +122,4 @@ def last_price(pair:str):
     Open_time,Open,High,Low,Close,Volume,Close_time,_,_,_,_,_ = rs.json()[0]
     return float(Close)
 
-
-# rs= last_price(pair='BTCUSDT')
-# print(rs)
-# # rs = find_support_resistance(kline.loc[:,'close'],window_size=400)
-# print(sup_res(kline))
 

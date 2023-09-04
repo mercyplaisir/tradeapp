@@ -2,7 +2,6 @@ import os
 import io
 
 import telebot
-from tools.logs import create_logger
 
 # log = create_logger(__name__)
 
@@ -11,7 +10,6 @@ class Telegram:
     token = os.getenv('TOKEN')
     chat_id = os.getenv('CHATID')
     bot = telebot.TeleBot(token=token,parse_mode=None)
-    log = create_logger(__name__)
         
     @classmethod
     def send_message(cls,message:str):
@@ -24,7 +22,6 @@ class Telegram:
             cls.bot.send_message(cls.chat_id, text=message)
     @classmethod
     def send_image(cls,bf:io.BytesIO):
-        cls.log.info('sending image')
         cls.bot.send_photo(cls.chat_id, bf)
 
     @classmethod

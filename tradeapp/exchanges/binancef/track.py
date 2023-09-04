@@ -2,7 +2,11 @@ from websocket import create_connection
 import json
 import time
 
+from tools.logs import logger_wrapper,create_logger
 
+
+
+@logger_wrapper(__name__,"track for a tp/sl")
 def track(pair:str,tp:float,sl:float,buy:float=True):
     base_url = "wss://fstream.binance.com:443/ws/"
 
@@ -51,5 +55,52 @@ def track(pair:str,tp:float,sl:float,buy:float=True):
         except KeyError as e:
             print(f"{e},retry ...")
             time.sleep(0.2)
-            
 
+@logger_wrapper(__name__,"track the price")
+def chart_track(pair:str,point:float|int):
+    base_url = "wss://fstream.binance.com:443/ws/"
+
+    # last price trought continious kline
+    # https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-streams
+
+    #<pair>_<contractType>@continuousKline_<interval>
+    stream_name = f"{pair.lower()}" + "_" + "perpetual" + "@continuousKline_5m"
+
+    subscribe_params = {
+    "method": "SUBSCRIBE",
+    "params":
+    [
+    stream_name
+    ],
+    "id": 2
+    }
+
+
+    ws = create_connection(base_url + stream_name)
+    print("connection created")
+
+    #subscribe
+    ws.send(json.dumps(subscribe_params))
+    print("subscribed")
+
+    while True:
+        print("redo")
+        rs =  ws.recv()
+        result = json.loads(rs)
+        print(result)
+        try : 
+            (_,_),(_,_),(_,_),(_,_),(_,_),(_,o),(_,c),(_,h),(_,l),(_,v),(_,_),(_,_),(_,_),(_,_),(_,_),(_,_) = result['k'].items()
+            c = float(c)
+
+            # print(f"{i} Received {c}")
+            print(c)
+            
+            if c == point:
+                return 'tadaa'
+            
+            time.sleep(0.3)
+        
+        except KeyError as e:
+            print(f"{e},retry ...")
+            time.sleep(0.2)
+            
