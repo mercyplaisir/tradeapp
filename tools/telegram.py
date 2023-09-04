@@ -2,7 +2,7 @@ import os
 import io
 
 import telebot
-from tradeapp.logs import create_logger
+from tools.logs import create_logger
 
 # log = create_logger(__name__)
 
@@ -27,3 +27,6 @@ class Telegram:
         cls.log.info('sending image')
         cls.bot.send_photo(cls.chat_id, bf)
 
+    @classmethod
+    def obj_to_str(cls,obj):
+        """"""

@@ -1,7 +1,7 @@
 from typing import Dict,List, Protocol
 
 from tradeapp.errors import CryptoNotInExchange
-from tradeapp.tools import aobject
+from tradeapp.exchanges.binancef.tools import aobject
 class Exchange(Protocol):
     async def load_markets(reload:bool) -> None:
         ...
