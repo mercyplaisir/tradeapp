@@ -18,7 +18,7 @@ from tradeapp.exchanges.binancef.tools import Trend
 from tradeapp.exchanges.binancef.tools import OrderType
 from tradeapp.exchanges.binancef.tools import aobject
 
-from tradeapp.models import Crypto
+from models.crypto import Crypto
 from tools.logs import create_logger
 
 log = create_logger(__name__)

@@ -42,10 +42,10 @@ def logger_wrapper(class_name:str,message):
     def decorator(func):
         def wrapper(*args, **kwargs):
             log =  create_logger(class_name)
+            Telegram.send_message(message=message)
             log.info(f"starting {message}")
             res  = func(*args, **kwargs)
             log.info(f"ending {message}")
-            Telegram.send_message(message=message)
             return res
         return wrapper
     return decorator

@@ -85,10 +85,11 @@ def market_sell_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs)
 
 @logger_wrapper(__name__,"retreiving balance")
 def get_bal_of(ex:ccxt.Exchange,crypto:str):
-    timestamp = binance_timestamp() 
-    print(f"{pd.to_datetime(now_timestamp(),unit='ms')}")
-    return ex.fetch_balance(
-        {'timestamp' : now_timestamp(),
+    # timestamp = binance_timestamp() 
+    # print(f"{pd.to_datetime(now_timestamp(),unit='ms')}")
+    return ex.fetch_balance({
+        # 'timestamp' : binance_timestamp(),
+         'timestamp' : now_timestamp(),
          'recvWindow' : 5000})['total'][crypto]
 def now_timestamp():
     return int(round(time.time() * 1000))
@@ -106,6 +107,8 @@ def klines_future(pair:str,interval:str):
     df = pd.DataFrame(rs.json(),columns=["open time","open","high","low","close","volume","close time","1","2","3","4","5"])
     df = df.get(["open time","open","high","low","close","close time"])
     df[["open","high","low","close"]] = df[["open","high","low","close"]].astype(float)
+    # df = df.set_index([pd.Index([i for i in range(df.shape[0])]),'open time'])
+    # print(df)
     return df
 
 
@@ -118,7 +121,7 @@ def last_price(pair:str):
                           'interval':'1m',
                           'limit':1
                       })
-    print(rs.json())
+    # print(rs.json())
     Open_time,Open,High,Low,Close,Volume,Close_time,_,_,_,_,_ = rs.json()[0]
     return float(Close)
 

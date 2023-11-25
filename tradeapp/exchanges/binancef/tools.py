@@ -58,7 +58,7 @@ def nearby_numbers(dt:list,nb:int|float,pick:int=0):
         if key not in rs:
           rs.append(key)
   if pick==0 or pick == 1:
-    return rs
+    return rs[0]
   else:
     return rs[:pick]
 

@@ -7,11 +7,13 @@ import asyncio
 import pandas as pd
 import numpy as np
 
-from tradeapp.models.cryptopair import CryptoPair
+from models.cryptopair import CryptoPair
+
+from tools.logs import create_logger
+
 from tradeapp.exchanges.binancef.tools import Signal
 from tradeapp.exchanges.binancef.tools import Trend
 from tradeapp.exchanges.binancef.tools import Timeframe
-from tools.logs import create_logger
 
 log  = create_logger(__name__)
 

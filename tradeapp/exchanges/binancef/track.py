@@ -34,10 +34,10 @@ def track(pair:str,tp:float,sl:float,buy:float=True):
     print("subscribed")
 
     while True:
-        print("redo")
+        # print("redo")
         rs =  ws.recv()
         result = json.loads(rs)
-        print(result)
+        # print(result)
         try : 
             (_,_),(_,_),(_,_),(_,_),(_,_),(_,o),(_,c),(_,h),(_,l),(_,v),(_,_),(_,_),(_,_),(_,_),(_,_),(_,_) = result['k'].items()
             c = float(c)
@@ -84,19 +84,20 @@ def chart_track(pair:str,point:float|int):
     print("subscribed")
 
     while True:
-        print("redo")
+        # print("redo")
         rs =  ws.recv()
         result = json.loads(rs)
-        print(result)
+        # print(result)
         try : 
             (_,_),(_,_),(_,_),(_,_),(_,_),(_,o),(_,c),(_,h),(_,l),(_,v),(_,_),(_,_),(_,_),(_,_),(_,_),(_,_) = result['k'].items()
             c = float(c)
 
             # print(f"{i} Received {c}")
-            print(c)
+            # print(c)
             
             if c == point:
-                return 'tadaa'
+                print( 'tadaa')
+                break
             
             time.sleep(0.3)
         
