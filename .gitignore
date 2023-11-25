@@ -141,3 +141,7 @@ results/
 # jupyther files
 *.ipynb
 .space
+
+# unuseful
+gainers.xlsx
+losers.xlsx
