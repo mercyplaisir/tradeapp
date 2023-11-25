@@ -18,6 +18,7 @@ import csv
 #     market_sell_order
 # )
 
+link = "https://fr.tradingview.com/symbols/%s/?exchange=BINANCE"
 
 
 def gainers_losers():
@@ -46,11 +47,13 @@ def gainers_losers():
     # }
     gainers = {
         'crypto' : [p.text+'USDT' for p in gainers],
-        'volume' : [vol for vol in gainers_volume]
+        'volume' : [vol for vol in gainers_volume],
+        'chart_link' : [link.format(p.text+"USDT") for p in gainers]
     }
     losers ={
         'crypto' : [p.text+'USDT' for p in losers],
-        'volume' : [vol for vol in losers_volume]
+        'volume' : [vol for vol in losers_volume],
+        'chart_link' : [link.format(p.text+"USDT") for p in losers]
     }
     return gainers,losers
 
