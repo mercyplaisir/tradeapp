@@ -18,7 +18,7 @@ import csv
 #     market_sell_order
 # )
 
-link = "https://fr.tradingview.com/symbols/%s/?exchange=BINANCE"
+link = "https://fr.tradingview.com/chart/?symbol=BINANCE%3A{}"
 
 
 def gainers_losers():
