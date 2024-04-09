@@ -2,7 +2,7 @@ from enum import Enum,auto
 from websocket import create_connection
 import json
 
-from tradeapp.exchanges.binancef.models.timeframe import Timeframe
+from tools.models.timeframe import Timeframe
 
 from tools.logs import logger_wrapper
 class Candle(Enum):

@@ -15,6 +15,7 @@ class Telegram:
     def send_message(cls,message:str):
         # cls.log.info('sending message')
         # cls.bot.send_message(chat_id=cls.chat_id, text=message)
+        # print(cls.token)
         if len(message) > 4095:
             for x in range(0, len(message), 4095):
                 cls.bot.send_message(cls.chat_id, text=message[x:x+4095])

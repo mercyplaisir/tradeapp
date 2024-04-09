@@ -68,3 +68,9 @@ def take_profit(price,percent):
 
 def stop_loss(price,percent):
    return price - (price*percent) 
+
+def settings_loader():
+  setting_file = "./settings.json"
+  with open(setting_file,'r') as f:
+     data = json.load(f)
+  return data

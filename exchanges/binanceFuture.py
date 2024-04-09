@@ -8,11 +8,10 @@ import requests
 import pandas as pd
 from tools.logs import create_logger,logger_wrapper
 
-from tradeapp.exchanges.binancef.models.order import Order_side, Order_type
+from tools.models.order import Order_side, Order_type
 
 
 log  = create_logger(__name__)  
-
 
 
 binance_keys = {
@@ -22,7 +21,7 @@ binance_keys = {
 
 @logger_wrapper(__name__,"connecting to exchange")
 def binance_future() -> ccxt.Exchange:
-    exchange =  ccxt.binanceusdm(binance_keys)
+    exchange =  ccxt.binance(binance_keys)
     # exchange = ccxt.binance({
     # 'apiKey': os.getenv('BINANCEPUBLICKEY'),
     # 'secret' : os.getenv('BINANCEPRIVATEKEY'),
@@ -40,7 +39,7 @@ def binance_future() -> ccxt.Exchange:
 @logger_wrapper(__name__,"send a buy order")
 def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,amount:int|float,**kwargs):
     """"""
-    kwargs['timestamp'] = binance_timestamp()
+    # kwargs['timestamp'] = binance_timestamp()
     exchange.create_order(
         symbol = symbol,
         type = type,
@@ -52,7 +51,7 @@ def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,
 @logger_wrapper(__name__,"send a sell order")
 def sell_order(exchange:ccxt.Exchange,symbol:str,side:Order_type,type:Order_type,amount:int|float,**kwargs):
     """"""
-    kwargs['timestamp'] = binance_timestamp()
+    # kwargs['timestamp'] = binance_timestamp()
     exchange.create_order(
         symbol = symbol,
         type = type,
@@ -87,10 +86,11 @@ def market_sell_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs)
 def get_bal_of(ex:ccxt.Exchange,crypto:str):
     # timestamp = binance_timestamp() 
     # print(f"{pd.to_datetime(now_timestamp(),unit='ms')}")
-    return ex.fetch_balance({
-        # 'timestamp' : binance_timestamp(),
-         'timestamp' : now_timestamp(),
-         'recvWindow' : 5000})['total'][crypto]
+    return ex.fetch_balance(
+        # {'timestamp' : binance_timestamp(),
+        # #  'timestamp' : now_timestamp(),
+        #  'recvWindow' : 5000}
+         )['total'][crypto]
 def now_timestamp():
     return int(round(time.time() * 1000))
 def binance_timestamp():  
@@ -99,10 +99,11 @@ def binance_timestamp():
 
 @logger_wrapper(__name__,"retreiving klines")
 def klines_future(pair:str,interval:str):
-    rs = requests.get("https://fapi.binance.com/fapi/v1/indexPriceKlines",params={
-        "pair": pair,
-        "contractType": "PERPERTUAL",
-        "interval" : interval
+    rs = requests.get("https://fapi.binance.com/fapi/v1/klines",params={
+        "symbol": pair,
+        # "contractType": "PERPERTUAL",
+        "interval" : interval,
+        "limit":50
     })
     df = pd.DataFrame(rs.json(),columns=["open time","open","high","low","close","volume","close time","1","2","3","4","5"])
     df = df.get(["open time","open","high","low","close","close time"])

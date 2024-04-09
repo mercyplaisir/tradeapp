@@ -1,0 +1,23 @@
+{
+    "crypto" : "TRX",
+    "crypto_i_have" : "TRX",
+    "quote_crypto" :"USDT",
+    "pair" : "TRXUSDT",
+    "crypto_list":["BTC","BNB","ETH","SOL","TRX","DOGE","XRP"],
+    "timeframe" : "15m",
+    "amount_per_trade" : 0.1, 
+    "total_order_per_trade" : 6, 
+    "stoploss" : 0.2,
+    "fee": 0.002,
+    "lowest_buy_price" : 1010,
+    "minimum_trade_size" : 10,
+    "last_trade":{
+        "pair":"TRXUSDT",
+        "base_pair":"TRX",
+        "quote_pair":"USDT",
+        "order_type":"sell",
+        "price":0.12
+    }
+    
+
+}

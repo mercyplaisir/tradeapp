@@ -10,8 +10,8 @@ def generate_image(**kwargs) -> io.BytesIO:
         df = kwargs['data']
         df = df.set_index('open time')
         #print([True for ind in data.index if ind in [l[0] for l in levels]].count(False))
-        df.index = pd.to_datetime(df.index/1000)
-        print(df.index)
+        df.index = pd.to_datetime(df.index)
+        # print(df.index)
         buf = io.BytesIO()
         mydpi = 100
         settings = dict(
@@ -20,7 +20,7 @@ def generate_image(**kwargs) -> io.BytesIO:
             mav=(50,200),
             volume=False,
             figratio=(16,9),
-            figsize =(1280/mydpi,720/mydpi), 
+            figsize =(1920/mydpi,1080/mydpi), 
             figscale=0.8,
             savefig=dict(fname=buf,dpi=mydpi),#,pad_inches=1000),
             scale_padding=0.2)

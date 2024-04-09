@@ -2,7 +2,7 @@
 import logging
 import pathlib
 
-from tools.telegram import Telegram
+from telegram.telegram import Telegram
 
 LOG_PATH = pathlib.Path('app.log')
 

@@ -1,5 +1,5 @@
-
-from tradeapp.exchanges.binancef.binanceFuture import (
+    
+from exchanges.binanceFuture import (
     binance_future,
     get_bal_of,
     market_buy_order,
@@ -7,25 +7,24 @@ from tradeapp.exchanges.binancef.binanceFuture import (
     last_price,
     market_sell_order
 )
-from tradeapp.exchanges.binancef.models.timeframe import Timeframe
-from tradeapp.exchanges.binancef.tools import nearby_numbers,take_profit,stop_loss
-from tradeapp.exchanges.binancef.track import chart_track, track
-from tradeapp.exchanges.binancef.models.candle import get_candle,Candle
+from tools.models.timeframe import Timeframe
+from tools.tools import nearby_numbers,take_profit,stop_loss
+from tools.track import chart_track, track
+from tools.models.candle import get_candle,Candle
 
-from tools.telegram import Telegram
+from telegram.telegram import Telegram
 from tools.logs import create_logger
 from tools.supandres import sup_res
 from tools.img_generator import generate_image
-
-from dotenv import load_dotenv
-
+from tools.tools import settings_loader
 
 def main():
+    settings:dict = settings_loader()
+    print(settings)
     notification = Telegram
 
     log = create_logger(__name__)
 
-    load_dotenv()  # take environment variables from .env.
 
     #tp/sl
     tp = 0.05/100
@@ -34,19 +33,24 @@ def main():
 
     # exchange
     ex = binance_future()
-    #crypto to trade
-    crypto = 'ETHUSDT'
+    #pair to trade
+    crypto = settings['crypto']
+    crypto_i_have = settings['crypto_i_have']
+
+    pair = settings['pair']
+          
     m = f"working with {crypto}"
     log.info(m)
     notification.send_message(m)
 
     leverage = 10
-    balance = get_bal_of(ex=ex, crypto="USDT")
+    balance = get_bal_of(ex=ex, crypto=crypto_i_have)
+    notification.send_message(f'you have {balance} {crypto_i_have}')
     # price
-    price = last_price(crypto)
+    price = last_price(pair)
 
     # get klines for sup and res
-    klines = klines_future(crypto, Timeframe.M15)
+    klines = klines_future(pair, Timeframe.M15)
 
     # get res and support
     points = sup_res(klines)
@@ -61,28 +65,28 @@ def main():
 
     # track
     # TODO make it recursive
-    chart_track(crypto,nearby_points)
+    chart_track(pair,nearby_points)
 
     # if touch the points get the candle type
-    candle = get_candle(crypto,Timeframe.H1)
+    candle = get_candle(pair,Timeframe.H1)
 
     # place an order against the candle
     if candle == Candle.RED:
         market_buy_order(
             exchange= ex,
-            symbol = crypto,
+            symbol = pair,
             quantity = (balance*leverage)/price,
             recvWindow = 5000,
         )
-        lp = last_price(crypto)
+        lp = last_price(pair)
         tp = take_profit(lp,tp)
         sl = stop_loss(lp,sl)
         # track for tp/sl
-        track(crypto,tp,sl)
+        track(pair,tp,sl)
         # get out
         market_sell_order(
             exchange= ex,
-            symbol = crypto,
+            symbol = pair,
             quantity = (balance*leverage)/price,
             recvWindow = 5000,
             isolated = True,
@@ -90,20 +94,20 @@ def main():
     if candle == Candle.GREEN:
         market_sell_order(
             exchange= ex,
-            symbol = crypto,
+            symbol = pair,
             quantity = (balance*leverage)/price,
             recvWindow = 5000,
             isolated = True,
         )
-        lp = last_price(crypto)
+        lp = last_price(pair)
         tp = take_profit(lp,tp)
         sl = stop_loss(lp,sl)
         # track for tp/sl
-        track(crypto,tp,sl)
+        track(pair,tp,sl)
         # get out
         market_buy_order(
             exchange= ex,
-            symbol = crypto,
+            symbol = pair,
             quantity = (balance*leverage)/price,
             recvWindow = 5000,
         )
