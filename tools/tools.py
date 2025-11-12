@@ -49,7 +49,7 @@ def nearby_numbers(dt:list,nb:int|float,pick:int=0):
   for d in dt:
     dd.append(abs(d-nb))
     dd.sort()
-  print('dd',dd)
+  # print('dd',dd)
   l = {i : abs(nb-i) for i in dt}
   rs = []
   for d in dd:

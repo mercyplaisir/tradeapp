@@ -2,7 +2,7 @@
 import logging
 import pathlib
 
-from telegram.telegram import Telegram
+from telegram.telegram import TelegramChanel
 
 LOG_PATH = pathlib.Path('app.log')
 
@@ -42,8 +42,8 @@ def logger_wrapper(class_name:str,message):
     def decorator(func):
         def wrapper(*args, **kwargs):
             log =  create_logger(class_name)
-            Telegram.send_message(message=message)
             log.info(f"starting {message}")
+            # TelegramChanel.send_message(message=message)
             res  = func(*args, **kwargs)
             log.info(f"ending {message}")
             return res

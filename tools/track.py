@@ -93,7 +93,7 @@ def chart_track(pair:str,point:float|int):
             c = float(c)
 
             # print(f"{i} Received {c}")
-            # print(c)
+            print(c)
             
             if c == point:
                 print( 'tadaa')

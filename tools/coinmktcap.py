@@ -143,15 +143,16 @@ def gainers_losers():
     }
     return gainers,losers
 
+if __name__ == "__main__":
 
-gainers,losers = gainers_losers()
+    gainers,losers = gainers_losers()
 
-#for gainers
-df_gainers = pd.DataFrame.from_dict(gainers,orient='index')
-df_gainers = df_gainers.transpose()
-df_gainers.to_excel('gainers.xlsx')
+    #for gainers
+    df_gainers = pd.DataFrame.from_dict(gainers,orient='index')
+    df_gainers = df_gainers.transpose()
+    df_gainers.to_excel('gainers.xlsx')
 
-#for losers
-df_losers = pd.DataFrame.from_dict(losers,orient='index')
-df_losers = df_losers.transpose()
-df_losers.to_excel('losers.xlsx')
+    #for losers
+    df_losers = pd.DataFrame.from_dict(losers,orient='index')
+    df_losers = df_losers.transpose()
+    df_losers.to_excel('losers.xlsx')

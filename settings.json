@@ -1,8 +1,8 @@
 {
     "crypto" : "TRX",
-    "crypto_i_have" : "TRX",
+    "crypto_i_have" : "USDT",
     "quote_crypto" :"USDT",
-    "pair" : "TRXUSDT",
+    "pair" : "TRXUSDC",
     "crypto_list":["BTC","BNB","ETH","SOL","TRX","DOGE","XRP"],
     "timeframe" : "15m",
     "amount_per_trade" : 0.1, 
@@ -15,9 +15,7 @@
         "pair":"TRXUSDT",
         "base_pair":"TRX",
         "quote_pair":"USDT",
-        "order_type":"sell",
+        "order_type":"sell", 
         "price":0.12
     }
-    
-
 }
