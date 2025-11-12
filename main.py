@@ -1,4 +1,5 @@
     
+from traceback import print_tb
 from exchanges.binanceFuture import (
     binance_future,
     get_bal_of,
@@ -23,36 +24,57 @@ import os
 from dotenv import load_dotenv,find_dotenv
 load_dotenv(find_dotenv())
 
+STABLECOIN = "USDC"
+
+
+chanel_id = os.getenv('CHATID')
+chanel_token = os.getenv('TOKEN')
+
+settings:dict = settings_loader()
+print(settings)
+
+
+log = create_logger(__name__)
+
+
+#tp/sl
+tp = 0.05/100
+sl = 0.50/100
+leverage = 10
+
+notification = TelegramChanel(name="money machine",token=chanel_token,chat_id=chanel_id)
+# exchange
+ex = binance_future()
+
+def returnToBase(ex:ccxt.Exchange,crypto_i_have:str="USDT",last_coin:str="TRX"):
+    log.error(f'you can only trade with {STABLECOIN} as quote currency')
+    q= ex.get_bal_of(last_coin)
+    market_sell_order(
+        exchange= ex,
+        symbol = crypto_i_have+STABLECOIN,
+        quantity = q,#(balance*leverage)/price,
+        recvWindow = 5000,
+        isolated = True,
+    )
+
+
 def main():
 
-    chanel_id = os.getenv('CHATID')
-    chanel_token = os.getenv('TOKEN')
-
-    settings:dict = settings_loader()
-    print(settings)
-    
-
-    log = create_logger(__name__)
-
-
-    #tp/sl
-    tp = 0.05/100
-    sl = 0.50/100
-    leverage = 10
-
-    notification = TelegramChanel(name="money machine",token=chanel_token,chat_id=chanel_id)
-    # exchange
-    ex = binance_future()
     
     #pair to trade
-    crypto = settings['crypto']
-    crypto_i_have = settings['crypto_i_have']
-
+    # crypto = settings['crypto'] 
+    # m = f"working with {crypto}"
+    crypto_i_have = settings['crypto_i_have'] # e.g USDC or BTC
+    pairs_to_trade:list = settings['crypto_list']
     pair = settings['pair']
+    last_coin = settings['crypto']
+
+    if crypto_i_have != STABLECOIN:
+        returnToBase()
+        
           
-    m = f"working with {crypto}"
-    log.info(m)
-    notification.send_message(m)
+    # log.info(m)
+    # notification.send_message(m)
 
     balance = get_bal_of(ex=ex, crypto=crypto_i_have)
     notification.send_message(f'you have {balance} {crypto_i_have}')
@@ -76,7 +98,6 @@ def main():
     notification.send_image(img)
 
     # track
-    # TODO make it recursive
     log.info(f'tracking {pair} on points {nearby_points}')
     chart_track(pair,nearby_points)
 
@@ -129,7 +150,13 @@ def main():
             recvWindow = 5000,
         )
 
+def closing():
+    print("closing all connections")
+    pass
 
 
 if __name__ =="__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        closing()

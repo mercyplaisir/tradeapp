@@ -1,7 +1,7 @@
 from enum import StrEnum,auto
 
 
-class Order_type(StrEnum):
+class OrderType(StrEnum):
     LIMIT = auto()
     MARKET = auto()
     STOP = auto()
@@ -15,7 +15,15 @@ class Order_type(StrEnum):
     def __repr__(self) -> str:
         return  self.name
     
-class Order_side(StrEnum):
+class OrderSide(StrEnum):
+    """_summary_
+
+    Args:
+        StrEnum (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     BUY = auto()
     SELL = auto()
 

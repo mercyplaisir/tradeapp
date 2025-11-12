@@ -8,7 +8,7 @@ import requests
 import pandas as pd
 from tools.logs import create_logger,logger_wrapper
 
-from tools.models.order import Order_side, Order_type
+from tools.models.order import OrderSide, OrderType
 from dotenv import load_dotenv,find_dotenv
 load_dotenv(find_dotenv())
 
@@ -28,7 +28,7 @@ def binance_future() -> ccxt.Exchange:
 
 
 @logger_wrapper(__name__,"send a buy order")
-def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_side,type:Order_type,amount:int|float,**kwargs):
+def buy_order(exchange:ccxt.Exchange,symbol:str,side:OrderSide,type:OrderType,amount:int|float,**kwargs):
     """"""
     # kwargs['timestamp'] = binance_timestamp()
     exchange.create_order(
@@ -40,7 +40,7 @@ def buy_order(exchange:ccxt.Exchange,symbol:str,side:Order_side,type:Order_type,
                           )
 
 @logger_wrapper(__name__,"send a sell order")
-def sell_order(exchange:ccxt.Exchange,symbol:str,side:Order_side,type:Order_type,amount:int|float,**kwargs):
+def sell_order(exchange:ccxt.Exchange,symbol:str,side:OrderSide,type:OrderType,amount:int|float,**kwargs):
     """"""
     # kwargs['timestamp'] = binance_timestamp()
     exchange.create_order(
@@ -56,8 +56,8 @@ def market_buy_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs):
     buy_order(
         exchange= exchange,
         symbol=symbol,
-        side= Order_side.BUY,
-        type=Order_type.MARKET,
+        side= OrderSide.BUY,
+        type=OrderType.MARKET,
         amount=quantity,
         # positionSide = 'LONG',
         **kwargs
@@ -66,8 +66,8 @@ def market_sell_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs)
     sell_order(
         exchange= exchange,
         symbol=symbol,
-        side= Order_side.SELL,
-        type=Order_type.MARKET,
+        side= OrderSide.SELL,
+        type=OrderType.MARKET,
         amount=quantity,
         # positionSide = 'LONG',
         **kwargs
@@ -76,6 +76,7 @@ def market_sell_order(exchange:ccxt.Exchange,symbol:str,quantity:float,**kwargs)
 @logger_wrapper(__name__,"retreiving balance")
 def get_bal_of(ex:ccxt.Exchange,crypto:str):
     return ex.fetch_balance()['total'][crypto]
+    # return ex.fetch_balance()['total'][crypto]
 
 @logger_wrapper(__name__,"getting current timestamp")
 def now_timestamp():
