@@ -1,13 +1,18 @@
-from websocket import create_connection
+""" track the price of a given pair on binance future through websocket
+    and notify when the price reach the take profit or stop loss"""
+from typing import List, Literal
 import json
 import time
 
-from tools.logs import logger_wrapper,create_logger
+from websocket import create_connection
+
+from tools.logs import logger_wrapper
 
 
 
 @logger_wrapper(__name__,"track for a tp/sl")
-def track(pair:str,tp:float,sl:float,buy:float=True):
+def track(pair:str,tp:float,sl:float,buy:float=True) -> Literal['Profit'] | Literal['Loss']:
+    """ track if the price reach the take profit or stop loss"""
     base_url = "wss://fstream.binance.com:443/ws/"
 
     # last price trought continious kline
@@ -38,7 +43,7 @@ def track(pair:str,tp:float,sl:float,buy:float=True):
         rs =  ws.recv()
         result = json.loads(rs)
         # print(result)
-        try : 
+        try :
             (_,_),(_,_),(_,_),(_,_),(_,_),(_,o),(_,c),(_,h),(_,l),(_,v),(_,_),(_,_),(_,_),(_,_),(_,_),(_,_) = result['k'].items()
             c = float(c)
 
@@ -51,13 +56,14 @@ def track(pair:str,tp:float,sl:float,buy:float=True):
                 ws.close()
                 return 'Loss'
             time.sleep(0.3)
-        
+    
         except KeyError as e:
             print(f"{e},retry ...")
             time.sleep(0.2)
 
 @logger_wrapper(__name__,"track the price")
-def chart_track(pair:str,point:float|int):
+def chart_track(pair:str,points:List):
+    """ track to see if"""
     base_url = "wss://fstream.binance.com:443/ws/"
 
     # last price trought continious kline
@@ -88,20 +94,21 @@ def chart_track(pair:str,point:float|int):
         rs =  ws.recv()
         result = json.loads(rs)
         # print(result)
-        try : 
+        try:
             (_,_),(_,_),(_,_),(_,_),(_,_),(_,o),(_,c),(_,h),(_,l),(_,v),(_,_),(_,_),(_,_),(_,_),(_,_),(_,_) = result['k'].items()
             c = float(c)
 
             # print(f"{i} Received {c}")
             print(c)
-            
-            if c == point:
-                print( 'tadaa')
-                break
-            
-            time.sleep(0.3)
-        
+            if hasattr(points,'__iter__') is True:
+
+                if c in points:
+                    print( 'tadaa')
+                    break
+                time.sleep(0.3)
         except KeyError as e:
             print(f"{e},retry ...")
             time.sleep(0.2)
-            
+
+if __name__ == "__main__":
+    ...

@@ -1,7 +1,9 @@
-from enum import Enum,auto
+""" Timeframe Enum for different timeframes """
+from dataclasses import dataclass
 
-
-class Timeframe(Enum):
+@dataclass
+class Timeframe:
+    """ Timeframe Enum for different timeframes"""
     M1 = '1m'
     M5 = '5m'
     M15 = '15m'
@@ -11,12 +13,10 @@ class Timeframe(Enum):
     DAY = '1d'
     WEEK = '1w'
 
-    def __repr__(self) -> str:
-        return  f'{self.value}'
 
-    def __str__(self) -> str:
-        return  f'{self.value}'
-    def __eq__(self, __value: object) -> bool:
-        return self.value==__value
-    def __hash__(self) -> int:
-        return hash(self.value)
+if __name__ == "__main__":
+    print(Timeframe.M15)
+    print(repr(Timeframe.H1))
+    print(str(Timeframe.M5))
+    print(Timeframe.DAY == '1d')
+    print(hash(Timeframe.WEEK))
