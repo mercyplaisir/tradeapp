@@ -50,8 +50,8 @@ notification = TelegramChanel(name="money machine",token=chanel_token,chat_id=ch
 # exchange
 exchange = BinanceFuture(apikey=api_key,secretkey=secret_key)
 
-def send_points_image(notification,points,pair,klines):
-    img = generate_image(data = klines,hlines = points,title=pair)
+def send_points_image(notification,points,pair,klines,support,resistance):
+    img = generate_image(data = klines,hlines = points,title=pair,support=support,resistance=resistance)
     notification.send_image(img)
 
 
@@ -100,7 +100,7 @@ def main():
 
         # send image
         notification.send_message(f'target  {points}')
-        send_points_image(notification,points,pair,klines)
+        send_points_image(notification,points,pair,klines,support=points.get('support',[]),resistance=points.get('resistance',[]))
 
         # track if it
         # log.info('tracking %s on points %s',pair,nearby_points)
